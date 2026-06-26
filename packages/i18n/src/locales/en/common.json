@@ -1,0 +1,35 @@
+{
+  "appName": "KidsWear",
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "cart": "Cart",
+    "blog": "Blog",
+    "contact": "Contact",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "actions": {
+    "addToCart": "Add to cart",
+    "checkout": "Checkout",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "search": "Search",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "orderStatus": {
+    "pending": "Pending",
+    "deposit_paid": "Deposit paid",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "common": {
+    "loading": "Loading...",
+    "emptyCart": "Your cart is empty",
+    "price": "Price"
+  }
+}

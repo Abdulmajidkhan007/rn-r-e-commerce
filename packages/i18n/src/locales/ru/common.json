@@ -1,0 +1,35 @@
+{
+  "appName": "KidsWear",
+  "nav": {
+    "home": "Главная",
+    "catalog": "Каталог",
+    "cart": "Корзина",
+    "blog": "Блог",
+    "contact": "Контакты",
+    "profile": "Профиль",
+    "admin": "Админ"
+  },
+  "actions": {
+    "addToCart": "В корзину",
+    "checkout": "Оформить заказ",
+    "login": "Войти",
+    "register": "Регистрация",
+    "logout": "Выйти",
+    "search": "Поиск",
+    "save": "Сохранить",
+    "cancel": "Отмена"
+  },
+  "orderStatus": {
+    "pending": "В ожидании",
+    "deposit_paid": "Внесена предоплата",
+    "processing": "В обработке",
+    "shipped": "Отправлен",
+    "delivered": "Доставлен",
+    "cancelled": "Отменён"
+  },
+  "common": {
+    "loading": "Загрузка...",
+    "emptyCart": "Корзина пуста",
+    "price": "Цена"
+  }
+}

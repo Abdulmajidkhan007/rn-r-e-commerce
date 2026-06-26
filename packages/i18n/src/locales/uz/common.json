@@ -1,0 +1,35 @@
+{
+  "appName": "KidsWear",
+  "nav": {
+    "home": "Bosh sahifa",
+    "catalog": "Katalog",
+    "cart": "Savatcha",
+    "blog": "Blog",
+    "contact": "Aloqa",
+    "profile": "Profil",
+    "admin": "Boshqaruv"
+  },
+  "actions": {
+    "addToCart": "Savatchaga qo'shish",
+    "checkout": "Buyurtma berish",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "logout": "Chiqish",
+    "search": "Qidirish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish"
+  },
+  "orderStatus": {
+    "pending": "Kutilmoqda",
+    "deposit_paid": "Oldindan to'lov qilindi",
+    "processing": "Tayyorlanmoqda",
+    "shipped": "Jo'natildi",
+    "delivered": "Yetkazildi",
+    "cancelled": "Bekor qilindi"
+  },
+  "common": {
+    "loading": "Yuklanmoqda...",
+    "emptyCart": "Savatcha bo'sh",
+    "price": "Narx"
+  }
+}
