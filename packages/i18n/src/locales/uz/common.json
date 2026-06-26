@@ -140,5 +140,29 @@
     "signOut": "Chiqish",
     "retry": "Qayta urinish",
     "webNote": "Biometrik kirish faqat mobil ilovada mavjud."
+  },
+  "catalog": {
+    "search": "Qidirish",
+    "sortBy": "Saralash",
+    "newest": "Eng yangi",
+    "priceLowHigh": "Narx: arzondan",
+    "priceHighLow": "Narx: qimmatdan",
+    "category": "Toifa",
+    "allCategories": "Barchasi",
+    "inStock": "Mavjud",
+    "lowStock": "Kam qoldi",
+    "outOfStock": "Tugagan",
+    "addToCart": "Savatchaga",
+    "addedToCart": "Savatchaga qo'shildi",
+    "selectSize": "O'lchamni tanlang",
+    "selectColor": "Rangni tanlang",
+    "quantity": "Miqdor",
+    "noProducts": "Mahsulotlar topilmadi",
+    "loadError": "Yuklashda xatolik",
+    "retry": "Qayta urinish",
+    "products": "Mahsulotlar",
+    "home": "Bosh sahifa",
+    "featured": "Tanlangan",
+    "newArrivals": "Yangi kelganlar"
   }
 }

@@ -140,5 +140,29 @@
     "signOut": "Выйти",
     "retry": "Повторить",
     "webNote": "Биометрическая разблокировка доступна в мобильном приложении."
+  },
+  "catalog": {
+    "search": "Поиск",
+    "sortBy": "Сортировка",
+    "newest": "Новинки",
+    "priceLowHigh": "Цена: по возрастанию",
+    "priceHighLow": "Цена: по убыванию",
+    "category": "Категория",
+    "allCategories": "Все",
+    "inStock": "В наличии",
+    "lowStock": "Мало",
+    "outOfStock": "Нет в наличии",
+    "addToCart": "В корзину",
+    "addedToCart": "Добавлено в корзину",
+    "selectSize": "Выберите размер",
+    "selectColor": "Выберите цвет",
+    "quantity": "Количество",
+    "noProducts": "Товары не найдены",
+    "loadError": "Ошибка загрузки",
+    "retry": "Повторить",
+    "products": "Товары",
+    "home": "Главная",
+    "featured": "Рекомендуем",
+    "newArrivals": "Новинки"
   }
 }

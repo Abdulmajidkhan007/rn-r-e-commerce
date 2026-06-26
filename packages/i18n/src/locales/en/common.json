@@ -140,5 +140,29 @@
     "signOut": "Sign out",
     "retry": "Retry",
     "webNote": "Biometric unlock is available in the KidsWear mobile app."
+  },
+  "catalog": {
+    "search": "Search",
+    "sortBy": "Sort by",
+    "newest": "Newest",
+    "priceLowHigh": "Price: low to high",
+    "priceHighLow": "Price: high to low",
+    "category": "Category",
+    "allCategories": "All",
+    "inStock": "In stock",
+    "lowStock": "Low stock",
+    "outOfStock": "Out of stock",
+    "addToCart": "Add to cart",
+    "addedToCart": "Added to cart",
+    "selectSize": "Select size",
+    "selectColor": "Select color",
+    "quantity": "Quantity",
+    "noProducts": "No products found",
+    "loadError": "Failed to load",
+    "retry": "Retry",
+    "products": "Products",
+    "home": "Home",
+    "featured": "Featured",
+    "newArrivals": "New arrivals"
   }
 }
