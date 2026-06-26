@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const AddressSchema = z.object({
+  /** Stable client-generated id, used as the key for edit/delete. */
+  id: z.string(),
   fullName: z.string(),
   phone: z.string(),
   region: z.string(),
