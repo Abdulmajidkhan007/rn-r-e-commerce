@@ -48,6 +48,16 @@ export {
 } from './storage';
 export type { UploadData } from './storage';
 
+export {
+  signUpWithEmail,
+  signInWithEmail,
+  signOutUser,
+  sendPasswordReset,
+  onAuthChange,
+  getCurrentClaims,
+} from './auth';
+export type { AuthClaims, User } from './auth';
+
 // Commonly needed Firebase types re-exported for app bootstrap / consumers.
 export type { FirebaseOptions } from 'firebase/app';
 export type { Persistence } from 'firebase/auth';
