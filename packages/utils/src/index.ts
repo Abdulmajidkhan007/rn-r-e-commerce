@@ -4,3 +4,5 @@
 export * from './price';
 export * from './date';
 export * from './id';
+export * from './localized';
+export * from './stock';
