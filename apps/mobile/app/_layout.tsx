@@ -9,10 +9,13 @@ import { StatusBar } from 'expo-status-bar';
 import { Stack } from 'expo-router';
 import { ActivityIndicator, useTheme } from 'react-native-paper';
 import { useAuth, useAuthBootstrap } from '@kidswear/auth';
+import { QueryClientProvider, makeQueryClient } from '@kidswear/data';
 import { StoreProvider } from '@/providers/StoreProvider';
 import { AppThemeProvider } from '@/theme/ThemeProvider';
 import { AppLockProvider } from '@/lib/applock/AppLockProvider';
 import { LockGate } from '@/lib/applock/LockGate';
+
+const queryClient = makeQueryClient();
 
 /** Renders the navigation stack with theme-aware header colors. */
 function RootNavigator(): React.ReactElement {
@@ -62,9 +65,11 @@ export default function RootLayout(): React.ReactElement {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StoreProvider>
-          <AppThemeProvider>
-            <RootNavigator />
-          </AppThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AppThemeProvider>
+              <RootNavigator />
+            </AppThemeProvider>
+          </QueryClientProvider>
         </StoreProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@kidswear/auth": "*",
     "@kidswear/core": "*",
+    "@kidswear/data": "*",
     "@kidswear/firebase": "*",
     "@kidswear/i18n": "*",
     "@kidswear/store": "*",
