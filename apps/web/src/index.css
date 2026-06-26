@@ -1,0 +1,45 @@
+/*
+ * Cascade layer order. MUI/emotion styles are emitted into the `mui` layer
+ * (via <StyledEngineProvider enableCssLayer />), which sits BEFORE Tailwind's
+ * `utilities` layer — so Tailwind utility classes always win over MUI.
+ */
+@layer theme, base, mui, components, utilities;
+
+@import 'tailwindcss';
+
+/*
+ * Bridge @kidswear/theme tokens into Tailwind v4 (CSS-first). Keep these values
+ * in sync with packages/theme/src. Exposed as utilities like `bg-primary`,
+ * `text-ink`, `rounded-lg`, etc.
+ */
+@theme {
+  --color-primary: #ff5a3c;
+  --color-primary-soft: #ffe0d8;
+  --color-secondary: #1aa18f;
+  --color-success: #22a85b;
+  --color-error: #e54545;
+  --color-warning: #f98906;
+  --color-ink: #212529;
+  --color-muted: #868e96;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --font-sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}

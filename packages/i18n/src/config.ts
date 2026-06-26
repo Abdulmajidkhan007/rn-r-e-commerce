@@ -1,4 +1,4 @@
-import i18n, { type i18n as I18nInstance, type Module, type NewableModule } from 'i18next';
+import i18n, { type i18n as I18nInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import {
   resources,
@@ -8,7 +8,7 @@ import {
 } from './resources';
 
 /** Anything `i18next.use()` accepts: a module, a constructable module, or a plugin. */
-export type I18nDetector = Module | NewableModule<Module>;
+export type I18nDetector = Parameters<typeof i18n.use>[0];
 
 export interface InitI18nOptions {
   /**
