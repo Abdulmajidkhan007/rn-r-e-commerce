@@ -19,6 +19,7 @@
     "@kidswear/config": "*",
     "@kidswear/core": "*",
     "@kidswear/firebase": "*",
-    "@kidswear/store": "*"
+    "@kidswear/store": "*",
+    "@kidswear/utils": "*"
   }
 }

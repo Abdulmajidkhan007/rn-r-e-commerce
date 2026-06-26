@@ -95,5 +95,50 @@
       "invalidCredential": "Invalid email or password",
       "generic": "Something went wrong. Please try again"
     }
+  },
+  "profile": {
+    "editProfile": "Edit profile",
+    "displayName": "Your name",
+    "phone": "Phone",
+    "save": "Save",
+    "saved": "Saved",
+    "validation": {
+      "displayNameRequired": "Please enter your name",
+      "phoneInvalid": "Invalid phone number (e.g. +998901234567)"
+    }
+  },
+  "addresses": {
+    "title": "Addresses",
+    "addAddress": "Add address",
+    "editAddress": "Edit address",
+    "deleteAddress": "Delete address",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "region": "Region",
+    "district": "District",
+    "street": "Street, house",
+    "note": "Note",
+    "noAddresses": "No saved addresses",
+    "confirmDelete": "Delete this address?",
+    "validation": {
+      "fullNameRequired": "Please enter the full name",
+      "phoneRequired": "Phone is required",
+      "regionRequired": "Region is required",
+      "districtRequired": "District is required",
+      "streetRequired": "Street and house are required"
+    }
+  },
+  "security": {
+    "security": "Security",
+    "unlockWith": "Unlock with {{label}}",
+    "faceId": "Face ID",
+    "fingerprint": "Fingerprint",
+    "biometrics": "Biometrics",
+    "biometricNotAvailable": "Biometric unlock is not available or not set up on this device",
+    "enableBiometric": "Unlock with {{label}}",
+    "unlockPrompt": "Confirm to unlock your account",
+    "signOut": "Sign out",
+    "retry": "Retry",
+    "webNote": "Biometric unlock is available in the KidsWear mobile app."
   }
 }

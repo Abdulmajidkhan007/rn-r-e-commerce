@@ -7,7 +7,15 @@
 export { loginSchema, registerSchema, forgotSchema } from './schemas';
 export type { LoginValues, RegisterValues, ForgotValues } from './schemas';
 
+export { profileSchema, addressSchema } from './profileSchemas';
+export type { ProfileValues, AddressFormValues } from './profileSchemas';
+
 export { mapAuthError } from './mapAuthError';
+
+export { useProfileActions } from './useProfileActions';
+export type { ProfileActions } from './useProfileActions';
+export { useAddressActions } from './useAddressActions';
+export type { AddressActions } from './useAddressActions';
 
 export { useAuthActions } from './useAuthActions';
 export type { AuthActions } from './useAuthActions';

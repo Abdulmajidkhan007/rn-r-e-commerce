@@ -95,5 +95,50 @@
       "invalidCredential": "Неверный email или пароль",
       "generic": "Что-то пошло не так. Повторите попытку"
     }
+  },
+  "profile": {
+    "editProfile": "Редактировать профиль",
+    "displayName": "Ваше имя",
+    "phone": "Телефон",
+    "save": "Сохранить",
+    "saved": "Сохранено",
+    "validation": {
+      "displayNameRequired": "Введите ваше имя",
+      "phoneInvalid": "Неверный номер телефона (например +998901234567)"
+    }
+  },
+  "addresses": {
+    "title": "Адреса",
+    "addAddress": "Добавить адрес",
+    "editAddress": "Редактировать адрес",
+    "deleteAddress": "Удалить адрес",
+    "fullName": "Полное имя",
+    "phone": "Телефон",
+    "region": "Область",
+    "district": "Район",
+    "street": "Улица, дом",
+    "note": "Примечание",
+    "noAddresses": "Нет сохранённых адресов",
+    "confirmDelete": "Удалить этот адрес?",
+    "validation": {
+      "fullNameRequired": "Введите полное имя",
+      "phoneRequired": "Введите телефон",
+      "regionRequired": "Введите область",
+      "districtRequired": "Введите район",
+      "streetRequired": "Введите улицу и дом"
+    }
+  },
+  "security": {
+    "security": "Безопасность",
+    "unlockWith": "Разблокировать с помощью {{label}}",
+    "faceId": "Face ID",
+    "fingerprint": "Отпечаток пальца",
+    "biometrics": "Биометрия",
+    "biometricNotAvailable": "Биометрия недоступна или не настроена на этом устройстве",
+    "enableBiometric": "Разблокировка через {{label}}",
+    "unlockPrompt": "Подтвердите, чтобы разблокировать аккаунт",
+    "signOut": "Выйти",
+    "retry": "Повторить",
+    "webNote": "Биометрическая разблокировка доступна в мобильном приложении."
   }
 }

@@ -95,5 +95,50 @@
       "invalidCredential": "Email yoki parol noto'g'ri",
       "generic": "Xatolik yuz berdi. Qayta urining"
     }
+  },
+  "profile": {
+    "editProfile": "Profilni tahrirlash",
+    "displayName": "Ismingiz",
+    "phone": "Telefon",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "validation": {
+      "displayNameRequired": "Ismingizni kiriting",
+      "phoneInvalid": "Telefon raqami noto'g'ri (masalan +998901234567)"
+    }
+  },
+  "addresses": {
+    "title": "Manzillar",
+    "addAddress": "Manzil qo'shish",
+    "editAddress": "Manzilni tahrirlash",
+    "deleteAddress": "Manzilni o'chirish",
+    "fullName": "To'liq ism",
+    "phone": "Telefon",
+    "region": "Viloyat",
+    "district": "Tuman",
+    "street": "Ko'cha, uy",
+    "note": "Izoh",
+    "noAddresses": "Saqlangan manzillar yo'q",
+    "confirmDelete": "Bu manzilni o'chirmoqchimisiz?",
+    "validation": {
+      "fullNameRequired": "To'liq ismni kiriting",
+      "phoneRequired": "Telefon kiriting",
+      "regionRequired": "Viloyatni kiriting",
+      "districtRequired": "Tumanni kiriting",
+      "streetRequired": "Ko'cha va uyni kiriting"
+    }
+  },
+  "security": {
+    "security": "Xavfsizlik",
+    "unlockWith": "{{label}} bilan kirish",
+    "faceId": "Face ID",
+    "fingerprint": "Barmoq izi",
+    "biometrics": "Biometrika",
+    "biometricNotAvailable": "Bu qurilmada biometrik kirish mavjud emas yoki sozlanmagan",
+    "enableBiometric": "{{label}} bilan ochish",
+    "unlockPrompt": "Hisobingizni ochish uchun tasdiqlang",
+    "signOut": "Chiqish",
+    "retry": "Qayta urinish",
+    "webNote": "Biometrik kirish faqat mobil ilovada mavjud."
   }
 }
