@@ -4,6 +4,9 @@ import { Avatar, Button, Card, Chip, Divider, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth, useAuthActions } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { AddressSection } from '@/components/profile/AddressSection';
+import { SecuritySection } from '@/components/profile/SecuritySection';
 
 export default function ProfileScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -53,15 +56,9 @@ export default function ProfileScreen(): React.ReactElement {
         </Card.Content>
       </Card>
 
-      {/* Security / Biometric — filled in the next phase. */}
-      <Card mode="outlined">
-        <Card.Content style={{ gap: 4 }}>
-          <Text variant="titleMedium">{t('auth.profile.securityTitle')}</Text>
-          <Text variant="bodySmall" style={{ opacity: 0.7 }}>
-            {t('auth.profile.securityPlaceholder')}
-          </Text>
-        </Card.Content>
-      </Card>
+      <ProfileForm />
+      <AddressSection />
+      <SecuritySection />
     </ScrollView>
   );
 }

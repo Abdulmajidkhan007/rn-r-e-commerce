@@ -11,6 +11,8 @@ import { ActivityIndicator, useTheme } from 'react-native-paper';
 import { useAuth, useAuthBootstrap } from '@kidswear/auth';
 import { StoreProvider } from '@/providers/StoreProvider';
 import { AppThemeProvider } from '@/theme/ThemeProvider';
+import { AppLockProvider } from '@/lib/applock/AppLockProvider';
+import { LockGate } from '@/lib/applock/LockGate';
 
 /** Renders the navigation stack with theme-aware header colors. */
 function RootNavigator(): React.ReactElement {
@@ -34,21 +36,24 @@ function RootNavigator(): React.ReactElement {
     );
   }
 
+  // AuthGate (above) resolves the session; AppLockProvider then gates the UI.
   return (
-    <>
+    <AppLockProvider>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: theme.colors.surface },
-          headerTintColor: theme.colors.onSurface,
-          contentStyle: { backgroundColor: theme.colors.background },
-        }}
-      >
-        <Stack.Screen name="(public)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="admin" options={{ headerShown: false }} />
-      </Stack>
-    </>
+      <LockGate>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: theme.colors.surface },
+            headerTintColor: theme.colors.onSurface,
+            contentStyle: { backgroundColor: theme.colors.background },
+          }}
+        >
+          <Stack.Screen name="(public)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="admin" options={{ headerShown: false }} />
+        </Stack>
+      </LockGate>
+    </AppLockProvider>
   );
 }
 

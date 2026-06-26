@@ -22,7 +22,18 @@
       "bundler": "metro",
       "output": "static"
     },
-    "plugins": ["expo-router", "expo-localization", "expo-font"],
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow KidsWear to use Face ID to unlock your account."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
