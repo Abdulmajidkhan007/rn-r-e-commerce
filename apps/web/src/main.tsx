@@ -6,6 +6,7 @@ import './i18n';
 import './index.css';
 import { StoreProvider } from '@/app/StoreProvider';
 import { AppThemeProvider } from '@/theme/ThemeProvider';
+import { AuthGate } from '@/app/AuthGate';
 import { router } from '@/app/router';
 
 const container = document.getElementById('root');
@@ -17,9 +18,11 @@ createRoot(container).render(
   <StrictMode>
     <StoreProvider>
       <AppThemeProvider>
-        <Suspense fallback={null}>
-          <RouterProvider router={router} />
-        </Suspense>
+        <AuthGate>
+          <Suspense fallback={null}>
+            <RouterProvider router={router} />
+          </Suspense>
+        </AuthGate>
       </AppThemeProvider>
     </StoreProvider>
   </StrictMode>,

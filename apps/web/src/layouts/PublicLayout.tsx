@@ -8,7 +8,9 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useAppSelector } from '@kidswear/store';
+import { useAuth } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
 import { Badge, LanguageSwitcher, ThemeToggle } from '@/components';
 
@@ -22,6 +24,7 @@ const NAV = [
 /** Public-facing layout: header with nav, language, theme, cart; and a footer. */
 export function PublicLayout(): React.ReactElement {
   const { t } = useTranslation();
+  const { isAuthenticated, isAdmin } = useAuth();
   const cartCount = useAppSelector((s) =>
     s.cart.items.reduce((sum, item) => sum + item.quantity, 0),
   );
@@ -57,9 +60,30 @@ export function PublicLayout(): React.ReactElement {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
-          <Button component={RouterLink} to="/login" variant="outlined" size="small">
-            {t('actions.login')}
-          </Button>
+          {isAdmin && (
+            <Button
+              component={RouterLink}
+              to="/admin"
+              color="inherit"
+              sx={{ display: { xs: 'none', md: 'inline-flex' } }}
+            >
+              {t('nav.admin')}
+            </Button>
+          )}
+          {isAuthenticated ? (
+            <IconButton
+              component={RouterLink}
+              to="/profile"
+              aria-label={t('nav.profile')}
+              color="inherit"
+            >
+              <AccountCircleIcon />
+            </IconButton>
+          ) : (
+            <Button component={RouterLink} to="/login" variant="outlined" size="small">
+              {t('actions.login')}
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 

@@ -6,6 +6,7 @@
     "noEmit": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@kidswear/auth": ["../../packages/auth/src/index.ts"],
       "@kidswear/core": ["../../packages/core/src/index.ts"],
       "@kidswear/firebase": ["../../packages/firebase/src/index.ts"],
       "@kidswear/store": ["../../packages/store/src/index.ts"],

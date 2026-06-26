@@ -3,6 +3,7 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import CheckoutPage from '@/pages/CheckoutPage';
+import ProfilePage from '@/pages/ProfilePage';
 import { RequireAuth, RequireAdmin } from './guards';
 
 /** Wraps a default-exported page module for react-router's lazy `Component`. */
@@ -28,6 +29,15 @@ const routes: RouteObject[] = [
       },
       { path: 'blog', lazy: lazyPage(() => import('@/pages/BlogPage')) },
       { path: 'contact', lazy: lazyPage(() => import('@/pages/ContactPage')) },
+      {
+        // Guarded route — kept eager so RequireAuth can wrap it directly.
+        path: 'profile',
+        element: (
+          <RequireAuth>
+            <ProfilePage />
+          </RequireAuth>
+        ),
+      },
     ],
   },
   {
@@ -35,6 +45,10 @@ const routes: RouteObject[] = [
     children: [
       { path: 'login', lazy: lazyPage(() => import('@/pages/LoginPage')) },
       { path: 'register', lazy: lazyPage(() => import('@/pages/RegisterPage')) },
+      {
+        path: 'forgot-password',
+        lazy: lazyPage(() => import('@/pages/ForgotPasswordPage')),
+      },
     ],
   },
   {
