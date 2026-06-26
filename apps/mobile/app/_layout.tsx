@@ -2,17 +2,38 @@ import '../global.css';
 import '@/firebase';
 import '@/i18n';
 
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Stack } from 'expo-router';
-import { useTheme } from 'react-native-paper';
+import { ActivityIndicator, useTheme } from 'react-native-paper';
+import { useAuth, useAuthBootstrap } from '@kidswear/auth';
 import { StoreProvider } from '@/providers/StoreProvider';
 import { AppThemeProvider } from '@/theme/ThemeProvider';
 
 /** Renders the navigation stack with theme-aware header colors. */
 function RootNavigator(): React.ReactElement {
   const theme = useTheme();
+  useAuthBootstrap();
+  const { status } = useAuth();
+
+  if (status === 'idle') {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <StatusBar style={theme.dark ? 'light' : 'dark'} />
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />

@@ -14,6 +14,8 @@
   "dependencies": {
     "@expo/metro-runtime": "~56.0.15",
     "@expo/vector-icons": "^15.0.2",
+    "@hookform/resolvers": "^5.4.0",
+    "@kidswear/auth": "*",
     "@kidswear/core": "*",
     "@kidswear/firebase": "*",
     "@kidswear/i18n": "*",
@@ -34,6 +36,7 @@
     "expo-system-ui": "~56.0.5",
     "i18next": "^26.3.2",
     "nativewind": "^4.2.6",
+    "react-hook-form": "^7.80.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-i18next": "^17.0.8",

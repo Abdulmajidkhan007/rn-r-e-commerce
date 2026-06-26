@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useTheme } from 'react-native-paper';
 import { useTranslation } from '@kidswear/i18n';
 
-/** Auth stack: login + register. */
+/** Auth stack: login + register + forgot-password. */
 export default function AuthLayout(): React.ReactElement {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -14,8 +14,9 @@ export default function AuthLayout(): React.ReactElement {
         contentStyle: { backgroundColor: theme.colors.background },
       }}
     >
-      <Stack.Screen name="login" options={{ title: t('actions.login') }} />
-      <Stack.Screen name="register" options={{ title: t('actions.register') }} />
+      <Stack.Screen name="login" options={{ title: t('auth.login.title') }} />
+      <Stack.Screen name="register" options={{ title: t('auth.register.title') }} />
+      <Stack.Screen name="forgot-password" options={{ title: t('auth.forgot.title') }} />
     </Stack>
   );
 }
