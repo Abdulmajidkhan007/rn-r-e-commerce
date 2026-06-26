@@ -13,8 +13,15 @@ export type { RootState } from './rootReducer';
 export { useAppDispatch, useAppSelector, useAppStore } from './hooks';
 
 // Slices: reducers + actions + state types
-export { authReducer, setAuthLoading, setUser, clearUser } from './slices/authSlice';
-export type { AuthState, AuthStatus } from './slices/authSlice';
+export {
+  authReducer,
+  setAuthLoading,
+  setAuthenticated,
+  setUnauthenticated,
+  setAuthError,
+  clearAuthError,
+} from './slices/authSlice';
+export type { AuthState, AuthStatus, AuthenticatedPayload } from './slices/authSlice';
 
 export { cartReducer, addItem, removeItem, updateQty, clearCart } from './slices/cartSlice';
 export type { CartState, UpdateQtyPayload, RemoveItemPayload } from './slices/cartSlice';
