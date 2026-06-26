@@ -56,6 +56,18 @@ export const baseConfig = tseslint.config(
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
+      // Bare suppressions stay banned, but allow `@ts-ignore` WITH an explanation.
+      // Needed for firebase/auth's `getReactNativePersistence`, a valid RN-only
+      // runtime export missing from the browser typings — where `@ts-expect-error`
+      // can't be used because the symbol may resolve without error.
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        {
+          'ts-ignore': 'allow-with-description',
+          'ts-expect-error': 'allow-with-description',
+          minimumDescriptionLength: 10,
+        },
+      ],
     },
   },
   prettier,
