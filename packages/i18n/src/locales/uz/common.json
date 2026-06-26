@@ -31,5 +31,69 @@
     "loading": "Yuklanmoqda...",
     "emptyCart": "Savatcha bo'sh",
     "price": "Narx"
+  },
+  "auth": {
+    "login": {
+      "title": "Hisobga kirish",
+      "subtitle": "Davom etish uchun hisobingizga kiring"
+    },
+    "register": {
+      "title": "Ro'yxatdan o'tish",
+      "subtitle": "Yangi hisob yarating"
+    },
+    "forgot": {
+      "title": "Parolni tiklash",
+      "subtitle": "Emailingizga tiklash havolasini yuboramiz"
+    },
+    "labels": {
+      "email": "Email",
+      "password": "Parol",
+      "confirmPassword": "Parolni tasdiqlang",
+      "displayName": "Ismingiz"
+    },
+    "actions": {
+      "login": "Kirish",
+      "register": "Ro'yxatdan o'tish",
+      "logout": "Chiqish",
+      "forgotPassword": "Parolni unutdingizmi?",
+      "sendResetLink": "Havola yuborish",
+      "createAccount": "Hisob yaratish",
+      "haveAccount": "Hisobingiz bormi?",
+      "noAccount": "Hisobingiz yo'qmi?",
+      "backToLogin": "Kirishga qaytish"
+    },
+    "messages": {
+      "resetSent": "Tiklash havolasi emailingizga yuborildi"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "customer": "Mijoz"
+    },
+    "profile": {
+      "title": "Profil",
+      "roleLabel": "Rol",
+      "securityTitle": "Xavfsizlik",
+      "securityPlaceholder": "Biometrik kirish keyingi bosqichda qo'shiladi"
+    },
+    "validation": {
+      "emailRequired": "Email kiriting",
+      "emailInvalid": "Email noto'g'ri",
+      "passwordRequired": "Parol kiriting",
+      "passwordMin": "Parol kamida 6 ta belgidan iborat bo'lsin",
+      "displayNameRequired": "Ismingizni kiriting",
+      "confirmRequired": "Parolni tasdiqlang",
+      "passwordsMismatch": "Parollar mos kelmadi"
+    },
+    "errors": {
+      "wrongPassword": "Parol noto'g'ri",
+      "userNotFound": "Bunday foydalanuvchi topilmadi",
+      "emailInUse": "Bu email allaqachon ro'yxatdan o'tgan",
+      "invalidEmail": "Email noto'g'ri",
+      "weakPassword": "Parol juda zaif",
+      "tooManyRequests": "Juda ko'p urinish. Birozdan keyin qayta urining",
+      "network": "Tarmoq xatosi. Internetni tekshiring",
+      "invalidCredential": "Email yoki parol noto'g'ri",
+      "generic": "Xatolik yuz berdi. Qayta urining"
+    }
   }
 }

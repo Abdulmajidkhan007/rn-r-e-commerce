@@ -31,5 +31,69 @@
     "loading": "Загрузка...",
     "emptyCart": "Корзина пуста",
     "price": "Цена"
+  },
+  "auth": {
+    "login": {
+      "title": "Вход",
+      "subtitle": "Войдите в аккаунт, чтобы продолжить"
+    },
+    "register": {
+      "title": "Регистрация",
+      "subtitle": "Создайте новый аккаунт"
+    },
+    "forgot": {
+      "title": "Сброс пароля",
+      "subtitle": "Мы отправим ссылку для сброса на email"
+    },
+    "labels": {
+      "email": "Email",
+      "password": "Пароль",
+      "confirmPassword": "Подтвердите пароль",
+      "displayName": "Ваше имя"
+    },
+    "actions": {
+      "login": "Войти",
+      "register": "Регистрация",
+      "logout": "Выйти",
+      "forgotPassword": "Забыли пароль?",
+      "sendResetLink": "Отправить ссылку",
+      "createAccount": "Создать аккаунт",
+      "haveAccount": "Уже есть аккаунт?",
+      "noAccount": "Нет аккаунта?",
+      "backToLogin": "Назад ко входу"
+    },
+    "messages": {
+      "resetSent": "Ссылка для сброса отправлена на ваш email"
+    },
+    "roles": {
+      "admin": "Администратор",
+      "customer": "Клиент"
+    },
+    "profile": {
+      "title": "Профиль",
+      "roleLabel": "Роль",
+      "securityTitle": "Безопасность",
+      "securityPlaceholder": "Биометрический вход появится в следующем этапе"
+    },
+    "validation": {
+      "emailRequired": "Введите email",
+      "emailInvalid": "Неверный email",
+      "passwordRequired": "Введите пароль",
+      "passwordMin": "Пароль должен быть не короче 6 символов",
+      "displayNameRequired": "Введите ваше имя",
+      "confirmRequired": "Подтвердите пароль",
+      "passwordsMismatch": "Пароли не совпадают"
+    },
+    "errors": {
+      "wrongPassword": "Неверный пароль",
+      "userNotFound": "Аккаунт с таким email не найден",
+      "emailInUse": "Этот email уже зарегистрирован",
+      "invalidEmail": "Неверный адрес email",
+      "weakPassword": "Слишком слабый пароль",
+      "tooManyRequests": "Слишком много попыток. Повторите позже",
+      "network": "Ошибка сети. Проверьте подключение",
+      "invalidCredential": "Неверный email или пароль",
+      "generic": "Что-то пошло не так. Повторите попытку"
+    }
   }
 }

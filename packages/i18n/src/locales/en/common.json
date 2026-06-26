@@ -31,5 +31,69 @@
     "loading": "Loading...",
     "emptyCart": "Your cart is empty",
     "price": "Price"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Sign in to your account to continue"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Create a new account"
+    },
+    "forgot": {
+      "title": "Reset password",
+      "subtitle": "We'll email you a reset link"
+    },
+    "labels": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "displayName": "Your name"
+    },
+    "actions": {
+      "login": "Sign in",
+      "register": "Sign up",
+      "logout": "Sign out",
+      "forgotPassword": "Forgot password?",
+      "sendResetLink": "Send reset link",
+      "createAccount": "Create account",
+      "haveAccount": "Already have an account?",
+      "noAccount": "Don't have an account?",
+      "backToLogin": "Back to sign in"
+    },
+    "messages": {
+      "resetSent": "A reset link has been sent to your email"
+    },
+    "roles": {
+      "admin": "Admin",
+      "customer": "Customer"
+    },
+    "profile": {
+      "title": "Profile",
+      "roleLabel": "Role",
+      "securityTitle": "Security",
+      "securityPlaceholder": "Biometric sign-in arrives in the next phase"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 6 characters",
+      "displayNameRequired": "Please enter your name",
+      "confirmRequired": "Please confirm your password",
+      "passwordsMismatch": "Passwords do not match"
+    },
+    "errors": {
+      "wrongPassword": "Incorrect password",
+      "userNotFound": "No account found for this email",
+      "emailInUse": "This email is already registered",
+      "invalidEmail": "Invalid email address",
+      "weakPassword": "Password is too weak",
+      "tooManyRequests": "Too many attempts. Try again later",
+      "network": "Network error. Check your connection",
+      "invalidCredential": "Invalid email or password",
+      "generic": "Something went wrong. Please try again"
+    }
   }
 }
