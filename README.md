@@ -5,8 +5,9 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 0** — foundation only. No Firebase, auth logic, real data, push, or biometric
-> yet. Pages/screens are themed placeholders.
+> **Phase 1** — foundation + shared Firebase data layer. Firebase initializes on both
+> platforms with typed Firestore collections and data-access functions. No auth UI, product
+> UI, or admin yet; pages/screens are still themed placeholders.
 
 ## Tech stack
 
@@ -20,14 +21,15 @@ look like the same Material Design product.
 
 ### Shared packages
 
-| Package            | Responsibility                                                                     |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| `@kidswear/core`   | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth) |
-| `@kidswear/store`  | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks     |
-| `@kidswear/i18n`   | react-i18next config, `initI18n(detector)`, uz/en/ru locales                       |
-| `@kidswear/theme`  | Pure-TS design tokens (colors, spacing, radii, typography)                         |
-| `@kidswear/utils`  | `formatPrice` (UZS), `formatDate`, etc.                                            |
-| `@kidswear/config` | Shared ESLint (flat) + Prettier + base tsconfig                                    |
+| Package              | Responsibility                                                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                           |
+| `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, typed Firestore converters/collections, data-access + storage helpers |
+| `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                               |
+| `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                 |
+| `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                   |
+| `@kidswear/utils`    | `formatPrice` (UZS), `formatDate`, etc.                                                                                      |
+| `@kidswear/config`   | Shared ESLint (flat) + Prettier + base tsconfig                                                                              |
 
 ## Getting started
 
