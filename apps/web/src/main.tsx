@@ -1,6 +1,7 @@
 import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
+import { QueryClientProvider, makeQueryClient } from '@kidswear/data';
 import './firebase';
 import './i18n';
 import './index.css';
@@ -14,16 +15,20 @@ if (!container) {
   throw new Error('Root element #root not found');
 }
 
+const queryClient = makeQueryClient();
+
 createRoot(container).render(
   <StrictMode>
     <StoreProvider>
-      <AppThemeProvider>
-        <AuthGate>
-          <Suspense fallback={null}>
-            <RouterProvider router={router} />
-          </Suspense>
-        </AuthGate>
-      </AppThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppThemeProvider>
+          <AuthGate>
+            <Suspense fallback={null}>
+              <RouterProvider router={router} />
+            </Suspense>
+          </AuthGate>
+        </AppThemeProvider>
+      </QueryClientProvider>
     </StoreProvider>
   </StrictMode>,
 );
