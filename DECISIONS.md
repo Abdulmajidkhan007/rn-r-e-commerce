@@ -140,3 +140,35 @@ enableCssLayer>` puts MUI styles in the `mui` layer so **Tailwind utilities win*
 - **Guards/redirects.** Web: `RequireAuth` (preserves intended path) and `RequireAdmin`.
   Mobile: `<Redirect>` in the profile screen and the admin group layout; `(public)` browsing
   (home/catalog/cart) stays open while signed out.
+
+## Biometric AppLock & Profile Editing (Phase 3)
+
+- **Biometric AppLock is mobile-only and lives entirely in `apps/mobile`.** Shared packages
+  stay platform-agnostic — they never import `expo-local-authentication`, `expo-secure-store`,
+  or `react-native`. Web has no biometric; its Security section just points to the mobile app.
+- **AppLock guards an already-authenticated Firebase session locally; it is not auth.** The
+  Firebase session remains the real source of truth. SecureStore holds **only a boolean**
+  (`BIOMETRIC_ENABLED`) — never a password or credential.
+- **Lock state is ephemeral (never persisted).** A session starts LOCKED on cold launch only
+  when `authenticated && enabled && isAvailable`; it also re-locks after returning from the
+  background for >30s (AppState listener). Provider order is **AuthGate → AppLockProvider →
+  app**, so the lock can only apply to a resolved, signed-in session.
+- **Never trap the user.** If biometric is enabled but no longer available/enrolled, the app
+  auto-unlocks and surfaces a one-time notice. The LockScreen always offers Retry and Sign
+  out (which clears the session and the lock).
+- **Live biometric requires a development build (EAS) — not testable in Expo Go/sandbox.**
+  Verified here by compile + `expo export` and by introspecting the config plugin
+  (`NSFaceIDUsageDescription` is injected). Native module versions are pinned from the SDK 56
+  `bundledNativeModules` manifest (`expo-local-authentication`/`expo-secure-store` ~56.0.4).
+- **`Address` gained a stable `id`** (client-generated) as the key for edit/delete. Addresses
+  remain **embedded in the user document** (no new collection); add/edit/delete mutate the
+  array via `upsertUserProfile`.
+- **`@kidswear/utils.genId()`** is a dependency-free `${ts}-${rand}` id — fine for address
+  keys (no cryptographic guarantee needed).
+- **Profile/address orchestration lives in `@kidswear/auth`** (`useProfileActions`,
+  `useAddressActions`): both write via `upsertUserProfile` (merge) and update the auth slice
+  while preserving `isAdmin`. No platform imports — used by both web and mobile UIs.
+- **One justified `eslint-disable`** (`react-hooks/set-state-in-effect`) on the AppLock
+  cold-launch effect: it synchronizes lock state from external systems (auth + SecureStore +
+  biometric) and only sets state after awaiting those reads, so the cascading-render warning
+  is a false positive there. (Distinct from the one documented `@ts-ignore`.)

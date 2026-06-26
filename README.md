@@ -5,10 +5,10 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 2** — foundation + Firebase data layer + email/password authentication. Shared
-> auth orchestration, real route guards, and auth/account UI on both platforms (login,
-> register, forgot-password, and a view-only profile with logout). No biometric or profile
-> editing yet; product/admin features are still placeholders.
+> **Phase 3** — adds profile editing + saved-address management (both platforms) and a
+> mobile-only biometric AppLock (Face ID / fingerprint with device-passcode fallback) that
+> locks the already-authenticated session locally. No avatar/image upload yet; product/cart/
+> admin features are still placeholders.
 
 ## Tech stack
 
@@ -85,6 +85,12 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
 ```
 
 The user must sign out/in afterward to refresh their token.
+
+**Biometric AppLock (mobile only).** When enabled in Profile → Security, the mobile app
+locks the already-signed-in session on cold launch and unlocks with Face ID / fingerprint
+(device-passcode fallback). SecureStore holds only an enabled flag — never a credential —
+and the Firebase session stays the source of truth. Live biometric requires a **development
+build** (EAS); it can't run in Expo Go or the sandbox.
 
 ## Conventions
 
