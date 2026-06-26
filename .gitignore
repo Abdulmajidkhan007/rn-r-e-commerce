@@ -27,6 +27,11 @@ apps/web/dist/
 .env.*
 !.env.example
 
+# secrets — Firebase Admin service-account keys (never commit)
+service-account*.json
+**/serviceAccount*.json
+*-service-account*.json
+
 # logs
 *.log
 npm-debug.log*
