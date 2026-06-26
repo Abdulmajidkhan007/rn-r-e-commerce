@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "KidsWear",
+    "slug": "kidswear",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "kidswear",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#fffaf8"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ff5a3c"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": ["expo-router", "expo-localization", "expo-font"],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    }
+  }
+}
