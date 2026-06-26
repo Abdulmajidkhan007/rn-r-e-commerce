@@ -7,6 +7,8 @@ import Divider from '@mui/material/Divider';
 import { useAuth, useAuthActions } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
 import { Avatar, Card } from '@/components';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { AddressSection } from '@/components/profile/AddressSection';
 
 export default function ProfilePage(): React.ReactElement {
   const { t } = useTranslation();
@@ -22,7 +24,7 @@ export default function ProfilePage(): React.ReactElement {
   const initial = (user?.displayName || user?.email || '?').charAt(0).toUpperCase();
 
   return (
-    <Stack spacing={3} sx={{ maxWidth: 560 }}>
+    <Stack spacing={3} sx={{ maxWidth: 640 }}>
       <Typography variant="h4" sx={{ fontWeight: 800 }}>
         {t('auth.profile.title')}
       </Typography>
@@ -52,9 +54,27 @@ export default function ProfilePage(): React.ReactElement {
             />
           </Stack>
 
-          <Button variant="outlined" color="error" onClick={handleLogout}>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleLogout}
+            sx={{ alignSelf: 'flex-start' }}
+          >
             {t('auth.actions.logout')}
           </Button>
+        </Stack>
+      </Card>
+
+      <ProfileForm />
+
+      <AddressSection />
+
+      <Card>
+        <Stack spacing={0.5}>
+          <Typography variant="h6">{t('security.security')}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('security.webNote')}
+          </Typography>
         </Stack>
       </Card>
     </Stack>
