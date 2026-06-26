@@ -1,0 +1,44 @@
+rules_version = '2';
+
+// KidsWear Cloud Storage security rules (server-side source of truth).
+// Phase 1: authored, NOT deployed yet.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Uploads must be images under 2MB.
+    function isValidImage() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 2 * 1024 * 1024;
+    }
+
+    // Product images: public read; admin-only uploads.
+    match /product-images/{productId}/{file} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidImage();
+    }
+
+    // Avatars stored as `${uid}.webp`: public read; owner-only uploads.
+    match /avatars/{file} {
+      allow read: if true;
+      allow write: if isOwner(file.split('.')[0]) && isValidImage();
+    }
+
+    // Default: deny everything else.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// KidsWear Firestore security rules (server-side source of truth).
+// Phase 1: authored, NOT deployed yet.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Categories: public read; admin-only writes.
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Products: public read; admin-only writes.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders: a signed-in user may create their own order; owners and admins
+    // may read; only admins may update; orders are never deleted.
+    match /orders/{orderId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Users: owners and admins may read. Owners may create/update their own
+    // profile; non-admins may not change their role, and must start as
+    // 'customer' on create. Profiles are never deleted.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid)
+        && (request.resource.data.role == 'customer' || isAdmin());
+      allow update: if isOwner(uid)
+        && (request.resource.data.role == resource.data.role || isAdmin());
+      allow delete: if false;
+    }
+
+    // Default: deny everything else.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
