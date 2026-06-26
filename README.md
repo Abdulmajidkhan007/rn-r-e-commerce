@@ -5,9 +5,10 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 1** — foundation + shared Firebase data layer. Firebase initializes on both
-> platforms with typed Firestore collections and data-access functions. No auth UI, product
-> UI, or admin yet; pages/screens are still themed placeholders.
+> **Phase 2** — foundation + Firebase data layer + email/password authentication. Shared
+> auth orchestration, real route guards, and auth/account UI on both platforms (login,
+> register, forgot-password, and a view-only profile with logout). No biometric or profile
+> editing yet; product/admin features are still placeholders.
 
 ## Tech stack
 
@@ -21,15 +22,16 @@ look like the same Material Design product.
 
 ### Shared packages
 
-| Package              | Responsibility                                                                                                               |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                           |
-| `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, typed Firestore converters/collections, data-access + storage helpers |
-| `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                               |
-| `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                 |
-| `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                   |
-| `@kidswear/utils`    | `formatPrice` (UZS), `formatDate`, etc.                                                                                      |
-| `@kidswear/config`   | Shared ESLint (flat) + Prettier + base tsconfig                                                                              |
+| Package              | Responsibility                                                                                                                         |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                                     |
+| `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, auth fns, typed Firestore converters/collections, data-access + storage helpers |
+| `@kidswear/auth`     | Auth orchestration (react): zod schemas, `mapAuthError`, `useAuthActions` / `useAuthBootstrap` / `useAuth`                             |
+| `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                                         |
+| `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                           |
+| `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                             |
+| `@kidswear/utils`    | `formatPrice` (UZS), `formatDate`, etc.                                                                                                |
+| `@kidswear/config`   | Shared ESLint (flat) + Prettier + base tsconfig                                                                                        |
 
 ## Getting started
 
@@ -66,6 +68,23 @@ npm run lint         # turbo run lint — eslint everywhere
 npm run build        # turbo run build
 npm run format       # prettier --write
 ```
+
+## Authentication
+
+Email/password via Firebase Auth. Copy each app's `.env.example` to `.env` and fill in your
+Firebase project's web-app config (`VITE_FIREBASE_*` for web, `EXPO_PUBLIC_FIREBASE_*` for
+mobile) so login/register actually talk to Firebase.
+
+**Granting admin.** Admin authority is the Firebase custom claim `role: 'admin'` — the
+Firestore profile role is only a UX mirror. Set it out-of-band with the admin script (never
+commit the service-account key):
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
+  node scripts/set-admin-claim.ts <uid>
+```
+
+The user must sign out/in afterward to refresh their token.
 
 ## Conventions
 

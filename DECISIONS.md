@@ -113,3 +113,30 @@ enableCssLayer>` puts MUI styles in the `mui` layer so **Tailwind utilities win*
   gates admin writes; orders/users are owner-or-admin scoped; storage uploads are images
   under 2MB.
 - **Env files**: `.env.example` (committed placeholders) per app; real `.env` is gitignored.
+
+## Authentication (`@kidswear/auth`) — Phase 2
+
+- **Email/password via Firebase Auth.** Session persistence is the one wired in Phase 1
+  (browser localStorage on web, AsyncStorage on mobile) — not re-added — so login survives
+  reload/restart.
+- **Admin authority = custom claim `role: 'admin'`**, read via `getIdTokenResult().claims.role`.
+  `UserProfile.role` in Firestore is only a UX mirror and is never client-elevatable (rules
+  enforce). The claim is set **out-of-band** by `scripts/set-admin-claim.ts` (firebase-admin,
+  gitignored service-account key). `VITE_ADMIN_EMAIL` / `EXPO_PUBLIC_ADMIN_EMAIL` are UX-only.
+- **`@kidswear/auth` owns all orchestration; the store stays thunk-free.** authSlice exposes
+  only plain actions (`setAuthLoading`, `setAuthenticated`, `setUnauthenticated`,
+  `setAuthError`, `clearAuthError`). The hooks (`useAuthActions`, `useAuthBootstrap`,
+  `useAuth`) are the single seam tying firebase + store together, which avoids a
+  store→firebase circular dependency.
+- **One auth subscription** (`useAuthBootstrap`) is installed at each app root; it loads the
+  profile + claims (creating a default `customer` profile if missing) and a splash is shown
+  until status leaves `'idle'`.
+- **Validation with zod + react-hook-form.** Schemas live in `@kidswear/auth`
+  (`loginSchema`/`registerSchema`/`forgotSchema`); messages are i18n keys. `mapAuthError`
+  maps Firebase `auth/*` codes to localized keys with a generic fallback.
+- **Typed-i18n escape hatch.** Because `t()` is typed to known keys, runtime keys (zod
+  messages, stored error keys) go through a small `useTranslateKey` helper
+  (`t(key, { defaultValue: key })`) in each app.
+- **Guards/redirects.** Web: `RequireAuth` (preserves intended path) and `RequireAdmin`.
+  Mobile: `<Redirect>` in the profile screen and the admin group layout; `(public)` browsing
+  (home/catalog/cart) stays open while signed out.
