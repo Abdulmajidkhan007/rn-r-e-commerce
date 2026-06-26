@@ -6,9 +6,8 @@ import CheckoutPage from '@/pages/CheckoutPage';
 import { RequireAuth, RequireAdmin } from './guards';
 
 /** Wraps a default-exported page module for react-router's lazy `Component`. */
-const lazyPage =
-  (loader: () => Promise<{ default: React.ComponentType }>) => () =>
-    loader().then((m) => ({ Component: m.default }));
+const lazyPage = (loader: () => Promise<{ default: React.ComponentType }>) => () =>
+  loader().then((m) => ({ Component: m.default }));
 
 const routes: RouteObject[] = [
   {

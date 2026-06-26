@@ -32,6 +32,5 @@ export type LineHeightToken = keyof typeof lineHeights;
 /** Default font family stacks. Mobile may override with a bundled font later. */
 export const fontFamilies = {
   sans: 'Inter, "Helvetica Neue", Arial, sans-serif',
-  system:
-    'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  system: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
 } as const;

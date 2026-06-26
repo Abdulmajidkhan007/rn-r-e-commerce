@@ -1,8 +1,4 @@
-import {
-  MD3DarkTheme,
-  MD3LightTheme,
-  type MD3Theme,
-} from 'react-native-paper';
+import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from 'react-native-paper';
 import { tokens } from '@kidswear/theme';
 
 /**

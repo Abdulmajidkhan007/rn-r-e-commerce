@@ -22,10 +22,7 @@ export function AuthLayout(): React.ReactElement {
       }}
     >
       <Stack spacing={2} sx={{ width: '100%', maxWidth: 420 }}>
-        <Stack
-          direction="row"
-          sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-        >
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography
             variant="h5"
             component={RouterLink}

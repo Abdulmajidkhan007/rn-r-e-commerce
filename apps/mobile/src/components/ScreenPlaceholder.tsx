@@ -8,10 +8,7 @@ export interface ScreenPlaceholderProps {
 }
 
 /** Phase 0 placeholder rendering a screen's name via Paper components. */
-export function ScreenPlaceholder({
-  title,
-  subtitle,
-}: ScreenPlaceholderProps): React.ReactElement {
+export function ScreenPlaceholder({ title, subtitle }: ScreenPlaceholderProps): React.ReactElement {
   const insets = useSafeAreaInsets();
   return (
     <View

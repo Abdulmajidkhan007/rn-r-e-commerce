@@ -8,12 +8,7 @@ import './types';
 
 export { initI18n, i18n } from './config';
 export type { I18nDetector, InitI18nOptions } from './config';
-export {
-  resources,
-  defaultNS,
-  fallbackLanguage,
-  supportedLanguages,
-} from './resources';
+export { resources, defaultNS, fallbackLanguage, supportedLanguages } from './resources';
 export type { SupportedLanguage, Resources } from './resources';
 
 export { useTranslation, Trans } from 'react-i18next';

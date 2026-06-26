@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+web-build/
+.expo/
+.turbo/
+package-lock.json
+*.tsbuildinfo

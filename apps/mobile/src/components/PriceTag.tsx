@@ -18,7 +18,11 @@ const VARIANT = {
 } as const;
 
 /** Displays a UZS price (and optional discounted-from price) in the active locale. */
-export function PriceTag({ price, compareAtPrice, size = 'md' }: PriceTagProps): React.ReactElement {
+export function PriceTag({
+  price,
+  compareAtPrice,
+  size = 'md',
+}: PriceTagProps): React.ReactElement {
   const language = useAppSelector((s) => s.ui.language);
   const showCompare = compareAtPrice !== undefined && compareAtPrice > price;
 

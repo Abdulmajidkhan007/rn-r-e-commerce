@@ -1,11 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { UserProfile } from '@kidswear/core';
 
-export type AuthStatus =
-  | 'idle'
-  | 'loading'
-  | 'authenticated'
-  | 'unauthenticated';
+export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 
 export interface AuthState {
   user: UserProfile | null;

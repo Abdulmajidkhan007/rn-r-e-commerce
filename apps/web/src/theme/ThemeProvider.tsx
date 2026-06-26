@@ -9,8 +9,7 @@ type ResolvedScheme = 'light' | 'dark';
 
 function useSystemScheme(): ResolvedScheme {
   const [scheme, setScheme] = useState<ResolvedScheme>(() =>
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light',
   );
@@ -37,8 +36,7 @@ function useSystemScheme(): ResolvedScheme {
 export function AppThemeProvider({ children }: { children: ReactNode }): ReactNode {
   const preference = useAppSelector((s) => s.ui.theme);
   const systemScheme = useSystemScheme();
-  const resolved: ResolvedScheme =
-    preference === 'system' ? systemScheme : preference;
+  const resolved: ResolvedScheme = preference === 'system' ? systemScheme : preference;
 
   const theme = useMemo(() => createAppTheme(resolved), [resolved]);
 

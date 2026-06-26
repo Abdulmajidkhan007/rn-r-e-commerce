@@ -24,9 +24,7 @@ export default function HomeScreen(): React.ReactElement {
   const [qty, setQty] = useState(1);
 
   return (
-    <ScrollView
-      contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 24 }}
-    >
+    <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 24 }}>
       <View className="gap-1">
         <Text variant="headlineMedium" style={{ fontWeight: '800' }}>
           {t('appName')}

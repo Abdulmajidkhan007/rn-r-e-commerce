@@ -1,11 +1,6 @@
 import i18n, { type i18n as I18nInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import {
-  resources,
-  defaultNS,
-  fallbackLanguage,
-  supportedLanguages,
-} from './resources';
+import { resources, defaultNS, fallbackLanguage, supportedLanguages } from './resources';
 
 /** Anything `i18next.use()` accepts: a module, a constructable module, or a plugin. */
 export type I18nDetector = Parameters<typeof i18n.use>[0];
