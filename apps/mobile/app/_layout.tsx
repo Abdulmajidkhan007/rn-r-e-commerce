@@ -1,4 +1,5 @@
 import '../global.css';
+import '@/firebase';
 import '@/i18n';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
