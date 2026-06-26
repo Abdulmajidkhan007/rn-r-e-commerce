@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AddressSchema } from './address';
 import { CartItemSchema } from './cart';
-import { IsoDateSchema } from './product';
+import { TimestampSchema } from './product';
 
 export const OrderStatusSchema = z.enum([
   'pending',
@@ -30,8 +30,8 @@ export const OrderSchema = z.object({
   total: z.number().int().nonnegative(),
   status: OrderStatusSchema,
   shippingAddress: AddressSchema,
-  createdAt: IsoDateSchema,
-  updatedAt: IsoDateSchema,
+  createdAt: TimestampSchema,
+  updatedAt: TimestampSchema,
 });
 
 export type Order = z.infer<typeof OrderSchema>;

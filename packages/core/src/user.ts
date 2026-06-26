@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AddressSchema } from './address';
-import { IsoDateSchema } from './product';
+import { TimestampSchema } from './product';
 
 export const UserRoleSchema = z.enum(['customer', 'admin']);
 
@@ -14,7 +14,7 @@ export const UserProfileSchema = z.object({
   avatarUrl: z.string().url().optional(),
   role: UserRoleSchema,
   addresses: z.array(AddressSchema),
-  createdAt: IsoDateSchema,
+  createdAt: TimestampSchema,
 });
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;

@@ -2,11 +2,12 @@ import { z } from 'zod';
 import { LocalizedTextSchema } from './localized';
 
 /**
- * Timestamps are stored as ISO-8601 strings so they remain JSON-serializable
- * (Redux/redux-persist friendly). A later phase may map Firestore Timestamps
- * to/from this representation.
+ * Timestamps are exposed in TS as epoch milliseconds (number) so they stay
+ * cross-platform and redux-persist-serializable. In Firestore they are stored
+ * as native Timestamps; the @kidswear/firebase converter maps Timestamp ->
+ * toMillis() on read and writes serverTimestamp().
  */
-export const IsoDateSchema = z.string().datetime({ offset: true });
+export const TimestampSchema = z.number().int().nonnegative();
 
 export const ProductSchema = z.object({
   id: z.string(),
@@ -24,8 +25,8 @@ export const ProductSchema = z.object({
   rating: z.number().min(0).max(5),
   reviewCount: z.number().int().nonnegative(),
   isActive: z.boolean(),
-  createdAt: IsoDateSchema,
-  updatedAt: IsoDateSchema,
+  createdAt: TimestampSchema,
+  updatedAt: TimestampSchema,
 });
 
 export type Product = z.infer<typeof ProductSchema>;
