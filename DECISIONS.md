@@ -172,3 +172,26 @@ enableCssLayer>` puts MUI styles in the `mui` layer so **Tailwind utilities win*
   cold-launch effect: it synchronizes lock state from external systems (auth + SecureStore +
   biometric) and only sets state after awaiting those reads, so the cascading-render warning
   is a false positive there. (Distinct from the one documented `@ts-ignore`.)
+
+## Catalog & data layer (`@kidswear/data`) — Phase 4
+
+- **Server state vs client state split.** Catalog **reads** use TanStack Query (v5) via the
+  new platform-agnostic `@kidswear/data` package (react + firebase + core only — no
+  native/MUI/Paper imports). Client state (cart/ui/auth) stays in Redux. Real-time
+  `onSnapshot` is intentionally **reserved for orders/admin** in later phases; the catalog is
+  fine with cached one-shot fetches (`staleTime` 60s, `retry` 1, `refetchOnWindowFocus` off).
+- **Search + sort are client-side.** Products are fetched active (optionally category-filtered
+  server-side via the existing composite index), then filtered by free-text across
+  `name.{uz,en,ru}` and sorted (`newest`/`priceAsc`/`priceDesc`) in a memoized derivation.
+  The products query key only includes `categoryId`, so typing search / changing sort never
+  refetches. **Caveat:** this suits a small catalog; a larger one needs server-side
+  search/pagination (e.g. Algolia) — deferred.
+- **Both apps wrap the tree in `QueryClientProvider`** with `makeQueryClient()` alongside the
+  Redux Provider. The client is created once at module scope per app.
+- **Localized display** uses `@kidswear/utils.pickLocalized` (uz fallback) via a per-app
+  `useLocalized` hook bound to `ui.language`. `stockStatus` (in/low/out) is a shared util.
+- **Seed script** `scripts/seed.ts` (firebase-admin, gitignored key) inserts ~5 categories and
+  ~15 products with localized text, UZS integer prices, sizes/colors, a stock mix, and
+  **placeholder image URLs** (picsum). Real images come in the admin/image phase.
+- Add-to-cart reuses the existing `cartSlice.addItem` (persisted), so the cart badge survives
+  reload/restart. No checkout/admin/image-upload in this phase.

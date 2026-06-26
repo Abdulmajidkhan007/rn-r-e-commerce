@@ -5,10 +5,11 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 3** — adds profile editing + saved-address management (both platforms) and a
-> mobile-only biometric AppLock (Face ID / fingerprint with device-passcode fallback) that
-> locks the already-authenticated session locally. No avatar/image upload yet; product/cart/
-> admin features are still placeholders.
+> **Phase 4** — real Firestore-backed catalog on both platforms: product list/grid with
+> category filter, sort, and client-side search; product detail with size/color/qty +
+> add-to-cart; full loading/empty/error states. Adds the shared `@kidswear/data`
+> (TanStack Query) read layer. No checkout, admin, or image upload yet (seeded placeholder
+> image URLs).
 
 ## Tech stack
 
@@ -27,6 +28,7 @@ look like the same Material Design product.
 | `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                                     |
 | `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, auth fns, typed Firestore converters/collections, data-access + storage helpers |
 | `@kidswear/auth`     | Auth orchestration (react): zod schemas, `mapAuthError`, `useAuthActions` / `useAuthBootstrap` / `useAuth`                             |
+| `@kidswear/data`     | Server-state reads (TanStack Query): `makeQueryClient`, `queryKeys`, `useCategories` / `useProducts` / `useProduct`                    |
 | `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                                         |
 | `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                           |
 | `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                             |
@@ -91,6 +93,18 @@ locks the already-signed-in session on cold launch and unlocks with Face ID / fi
 (device-passcode fallback). SecureStore holds only an enabled flag — never a credential —
 and the Firebase session stays the source of truth. Live biometric requires a **development
 build** (EAS); it can't run in Expo Go or the sandbox.
+
+## Seeding the catalog
+
+Populate Firestore with demo categories and products (placeholder images) using the
+gitignored service-account key:
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node scripts/seed.ts
+```
+
+Catalog reads go through `@kidswear/data` (TanStack Query); search and sort are client-side
+(small-catalog decision — see DECISIONS.md).
 
 ## Conventions
 
