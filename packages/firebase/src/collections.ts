@@ -54,6 +54,10 @@ export function productDoc(id: string): DocumentReference<Product> {
   return doc(productsCol(), id);
 }
 
+export function categoryDoc(id: string): DocumentReference<Category> {
+  return doc(categoriesCol(), id);
+}
+
 export function orderDoc(id: string): DocumentReference<Order> {
   return doc(ordersCol(), id);
 }

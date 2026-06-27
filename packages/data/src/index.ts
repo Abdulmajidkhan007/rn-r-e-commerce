@@ -19,5 +19,24 @@ export type { CheckoutInput, CheckoutResult, UseCheckoutResult } from './useChec
 export { useUserOrders, useOrder, useCancelOrder } from './useOrders';
 export type { UserOrdersState, OrderState, UseCancelOrderResult } from './useOrders';
 
+export {
+  useCreateProduct,
+  useUpdateProduct,
+  useDeleteProduct,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+  useAllOrders,
+  useUpdateOrderStatus,
+} from './useAdmin';
+export type {
+  CreateProductVars,
+  UpdateProductVars,
+  CreateCategoryVars,
+  UpdateCategoryVars,
+  AllOrdersState,
+  UpdateOrderStatusVars,
+} from './useAdmin';
+
 export { QueryClientProvider } from '@tanstack/react-query';
 export type { QueryClient } from '@tanstack/react-query';

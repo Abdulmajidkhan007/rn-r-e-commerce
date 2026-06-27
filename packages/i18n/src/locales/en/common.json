@@ -215,5 +215,63 @@
     "processing": "Processing payment...",
     "success": "Payment successful",
     "failed": "Payment failed"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "categories": "Categories",
+    "orders": "Orders",
+    "addProduct": "Add product",
+    "editProduct": "Edit product",
+    "deleteProduct": "Delete product",
+    "addCategory": "Add category",
+    "editCategory": "Edit category",
+    "deleteCategory": "Delete category",
+    "name": "Name",
+    "description": "Description",
+    "price": "Price",
+    "category": "Category",
+    "sizes": "Sizes",
+    "colors": "Colors",
+    "stock": "Stock",
+    "active": "Active",
+    "inactive": "Inactive",
+    "images": "Images",
+    "addImage": "Add image",
+    "uploading": "Uploading...",
+    "uploadError": "Image upload failed",
+    "save": "Save",
+    "saved": "Saved",
+    "confirmDelete": "Confirm delete?",
+    "inUseCannotDelete": "This category has products — cannot delete",
+    "slug": "Slug",
+    "order": "Order",
+    "validation": {
+      "nameRequired": "Name is required",
+      "priceMin": "Price must be greater than 0",
+      "categoryRequired": "Select a category",
+      "stockMin": "Stock cannot be negative",
+      "slugRequired": "Slug is required"
+    }
+  },
+  "dashboardStats": {
+    "totalProducts": "Total products",
+    "lowStock": "Low stock",
+    "totalOrders": "Total orders",
+    "byStatus": "By status",
+    "depositsCollected": "Deposits collected",
+    "revenue": "Revenue"
+  },
+  "avatar": {
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "uploading": "Uploading..."
+  },
+  "adminOrders": {
+    "allOrders": "All orders",
+    "filterByStatus": "Filter by status",
+    "updateStatus": "Update status",
+    "customer": "Customer",
+    "statusUpdated": "Status updated"
   }
 }

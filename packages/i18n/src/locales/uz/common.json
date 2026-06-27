@@ -215,5 +215,63 @@
     "processing": "Toʻlov amalga oshirilmoqda...",
     "success": "Toʻlov muvaffaqiyatli",
     "failed": "Toʻlov amalga oshmadi"
+  },
+  "admin": {
+    "dashboard": "Boshqaruv paneli",
+    "products": "Mahsulotlar",
+    "categories": "Toifalar",
+    "orders": "Buyurtmalar",
+    "addProduct": "Mahsulot qoʻshish",
+    "editProduct": "Mahsulotni tahrirlash",
+    "deleteProduct": "Mahsulotni oʻchirish",
+    "addCategory": "Toifa qoʻshish",
+    "editCategory": "Toifani tahrirlash",
+    "deleteCategory": "Toifani oʻchirish",
+    "name": "Nomi",
+    "description": "Tavsif",
+    "price": "Narx",
+    "category": "Toifa",
+    "sizes": "Oʻlchamlar",
+    "colors": "Ranglar",
+    "stock": "Ombor",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "images": "Rasmlar",
+    "addImage": "Rasm qoʻshish",
+    "uploading": "Yuklanmoqda...",
+    "uploadError": "Rasm yuklashda xatolik",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "confirmDelete": "Oʻchirishni tasdiqlaysizmi?",
+    "inUseCannotDelete": "Bu toifada mahsulotlar bor — oʻchirib boʻlmaydi",
+    "slug": "Slug",
+    "order": "Tartib",
+    "validation": {
+      "nameRequired": "Nom kiriting",
+      "priceMin": "Narx 0 dan katta boʻlsin",
+      "categoryRequired": "Toifani tanlang",
+      "stockMin": "Ombor manfiy boʻlmasin",
+      "slugRequired": "Slug kiriting"
+    }
+  },
+  "dashboardStats": {
+    "totalProducts": "Jami mahsulotlar",
+    "lowStock": "Kam qolgan",
+    "totalOrders": "Jami buyurtmalar",
+    "byStatus": "Holat boʻyicha",
+    "depositsCollected": "Yigʻilgan oldindan toʻlovlar",
+    "revenue": "Tushum"
+  },
+  "avatar": {
+    "changePhoto": "Rasmni oʻzgartirish",
+    "removePhoto": "Rasmni oʻchirish",
+    "uploading": "Yuklanmoqda..."
+  },
+  "adminOrders": {
+    "allOrders": "Barcha buyurtmalar",
+    "filterByStatus": "Holat boʻyicha saralash",
+    "updateStatus": "Holatni yangilash",
+    "customer": "Mijoz",
+    "statusUpdated": "Holat yangilandi"
   }
 }

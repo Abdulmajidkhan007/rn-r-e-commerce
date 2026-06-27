@@ -215,5 +215,63 @@
     "processing": "Обработка платежа...",
     "success": "Платёж выполнен",
     "failed": "Платёж не прошёл"
+  },
+  "admin": {
+    "dashboard": "Панель",
+    "products": "Товары",
+    "categories": "Категории",
+    "orders": "Заказы",
+    "addProduct": "Добавить товар",
+    "editProduct": "Редактировать товар",
+    "deleteProduct": "Удалить товар",
+    "addCategory": "Добавить категорию",
+    "editCategory": "Редактировать категорию",
+    "deleteCategory": "Удалить категорию",
+    "name": "Название",
+    "description": "Описание",
+    "price": "Цена",
+    "category": "Категория",
+    "sizes": "Размеры",
+    "colors": "Цвета",
+    "stock": "Склад",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "images": "Изображения",
+    "addImage": "Добавить фото",
+    "uploading": "Загрузка...",
+    "uploadError": "Ошибка загрузки изображения",
+    "save": "Сохранить",
+    "saved": "Сохранено",
+    "confirmDelete": "Подтвердить удаление?",
+    "inUseCannotDelete": "В категории есть товары — нельзя удалить",
+    "slug": "Slug",
+    "order": "Порядок",
+    "validation": {
+      "nameRequired": "Введите название",
+      "priceMin": "Цена должна быть больше 0",
+      "categoryRequired": "Выберите категорию",
+      "stockMin": "Склад не может быть отрицательным",
+      "slugRequired": "Введите slug"
+    }
+  },
+  "dashboardStats": {
+    "totalProducts": "Всего товаров",
+    "lowStock": "Мало на складе",
+    "totalOrders": "Всего заказов",
+    "byStatus": "По статусу",
+    "depositsCollected": "Собрано предоплат",
+    "revenue": "Выручка"
+  },
+  "avatar": {
+    "changePhoto": "Изменить фото",
+    "removePhoto": "Удалить фото",
+    "uploading": "Загрузка..."
+  },
+  "adminOrders": {
+    "allOrders": "Все заказы",
+    "filterByStatus": "Фильтр по статусу",
+    "updateStatus": "Обновить статус",
+    "customer": "Клиент",
+    "statusUpdated": "Статус обновлён"
   }
 }

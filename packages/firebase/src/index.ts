@@ -18,6 +18,7 @@ export {
   ordersCol,
   usersCol,
   productDoc,
+  categoryDoc,
   orderDoc,
   userDoc,
 } from './collections';
@@ -36,8 +37,20 @@ export {
   getOrderById,
   subscribeOrder,
   getAllOrders,
+  subscribeAllOrders,
   updateOrderStatus,
 } from './orders';
+
+export {
+  newProductId,
+  newCategoryId,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from './admin';
 
 export { getUserProfile, upsertUserProfile, subscribeUserProfile } from './users';
 

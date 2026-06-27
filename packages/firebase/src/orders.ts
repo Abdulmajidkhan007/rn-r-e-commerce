@@ -1,4 +1,5 @@
 import {
+  type QueryConstraint,
   type Unsubscribe,
   type WithFieldValue,
   getDoc,
@@ -51,6 +52,19 @@ export function subscribeOrdersByUser(uid: string, cb: (orders: Order[]) => void
 export async function getAllOrders(): Promise<Order[]> {
   const snap = await getDocs(query(ordersCol(), orderBy('createdAt', 'desc')));
   return snap.docs.map((d) => d.data());
+}
+
+/** Real-time subscription to all orders (admin), optionally filtered by status. */
+export function subscribeAllOrders(
+  cb: (orders: Order[]) => void,
+  statusFilter?: OrderStatus,
+): Unsubscribe {
+  const constraints: QueryConstraint[] = statusFilter
+    ? [where('status', '==', statusFilter), orderBy('createdAt', 'desc')]
+    : [orderBy('createdAt', 'desc')];
+  return onSnapshot(query(ordersCol(), ...constraints), (snap) => {
+    cb(snap.docs.map((d) => d.data()));
+  });
 }
 
 /** One-shot fetch of a single order by id, or `null`. Owner/admin (per rules). */
