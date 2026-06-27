@@ -4,6 +4,8 @@ import { AuthLayout } from '@/layouts/AuthLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import CheckoutPage from '@/pages/CheckoutPage';
 import ProfilePage from '@/pages/ProfilePage';
+import OrdersPage from '@/pages/OrdersPage';
+import OrderDetailPage from '@/pages/OrderDetailPage';
 import { RequireAuth, RequireAdmin } from './guards';
 
 /** Wraps a default-exported page module for react-router's lazy `Component`. */
@@ -29,12 +31,29 @@ const routes: RouteObject[] = [
       },
       { path: 'blog', lazy: lazyPage(() => import('@/pages/BlogPage')) },
       { path: 'contact', lazy: lazyPage(() => import('@/pages/ContactPage')) },
+      { path: 'checkout/success', lazy: lazyPage(() => import('@/pages/CheckoutSuccessPage')) },
       {
         // Guarded route — kept eager so RequireAuth can wrap it directly.
         path: 'profile',
         element: (
           <RequireAuth>
             <ProfilePage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'orders',
+        element: (
+          <RequireAuth>
+            <OrdersPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'orders/:id',
+        element: (
+          <RequireAuth>
+            <OrderDetailPage />
           </RequireAuth>
         ),
       },

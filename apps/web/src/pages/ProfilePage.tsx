@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
@@ -64,6 +64,15 @@ export default function ProfilePage(): React.ReactElement {
           </Button>
         </Stack>
       </Card>
+
+      <Button
+        component={RouterLink}
+        to="/orders"
+        variant="outlined"
+        sx={{ alignSelf: 'flex-start' }}
+      >
+        {t('orders.myOrders')}
+      </Button>
 
       <ProfileForm />
 
