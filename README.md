@@ -5,10 +5,13 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 5** — cart management + full checkout with a 50% deposit model that writes a real
-> Firestore order, plus a real-time customer Order History (onSnapshot). Payment is stubbed
-> behind a `PaymentService` interface; stock is re-checked read-only (no client writes). No
-> admin, no real gateway, no Cloud Functions yet.
+> **Phase 6** — image pipeline + admin. A cross-platform pick → resize → WebP → upload
+> pipeline (web canvas; mobile expo-image-picker + the new expo-image-manipulator contextual
+> API) powers avatar upload and a reusable `ImageUploadField`. The admin area (behind the
+> existing admin gate) adds product & category CRUD with multi-image upload, real-time order
+> management with status updates, and a dashboard (stat cards + a recharts chart on web).
+> Admin writes rely on the already-authored Firestore rules; the client never writes product
+> stock. No real payment gateway or Cloud Functions yet.
 
 ## Tech stack
 
@@ -27,7 +30,7 @@ look like the same Material Design product.
 | `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                                                     |
 | `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, auth fns, typed Firestore converters/collections, data-access + storage helpers                 |
 | `@kidswear/auth`     | Auth orchestration (react): zod schemas, `mapAuthError`, `useAuthActions` / `useAuthBootstrap` / `useAuth`                                             |
-| `@kidswear/data`     | Server-state (TanStack Query) + real-time orders: catalog hooks, `useCheckout`, `useUserOrders` / `useOrder` / `useCancelOrder`, `PaymentService` stub |
+| `@kidswear/data`     | Server-state (TanStack Query) + real-time orders/admin: catalog hooks, `useCheckout`, order hooks, admin CRUD mutations + `useAllOrders` / `useUpdateOrderStatus`, `summarizeDashboard`, `PaymentService` stub |
 | `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                                                         |
 | `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                                           |
 | `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                                             |

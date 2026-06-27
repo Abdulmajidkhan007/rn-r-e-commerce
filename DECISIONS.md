@@ -222,3 +222,42 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
 - **Orders rules updated** (authored, not deployed): create requires a valid initial state
   (deposit_paid ⇒ paidAmount == depositAmount; pending ⇒ paid 0) with required fields; update
   is admin, or an owner cancelling a pending/deposit_paid order via a status-only change.
+
+## Image pipeline & Admin (Phase 6)
+
+- **Image pipeline is shared where it can be, split where it must be.** The orchestration
+  (`ImageUploadField`, the upload-to-Storage call) is identical per platform, but capture +
+  encode are inherently native: web uses a hidden file input + `createImageBitmap` →
+  `<canvas>` → `toBlob('image/webp')`; mobile uses `expo-image-picker` + the **new**
+  `expo-image-manipulator` contextual API (`manipulate(uri).resize().renderAsync().saveAsync({
+  format: WEBP })`) — **not** the deprecated `manipulateAsync`. Both end at a `Blob` so the
+  upload (`@kidswear/firebase` Storage helpers) is common. All images are stored as `.webp`.
+- **Native modules pinned from the SDK 56 manifest** (`expo-image-picker`,
+  `expo-image-manipulator`); the image-picker config plugin injects the iOS photo/camera
+  permission strings (verified via `expo config --type introspect`).
+- **Pre-generated doc ids.** `newProductId()` / `newCategoryId()` allocate the Firestore id
+  up-front so image storage paths (`product-images/{id}/{n}.webp`) are final before the
+  document write — no rename/copy after the fact.
+- **Avatar removal needs `deleteField()`.** A merge `setDoc` can't drop a field and an empty
+  string fails the `avatarUrl` URL schema, so `setUserAvatar(uid, null)` uses
+  `deleteField()`. Orchestrated by `@kidswear/auth.useProfileActions.updateAvatar`, which also
+  syncs the auth slice.
+- **Category image is a URL field, not an upload.** The authored Storage rules only cover
+  `product-images/**` and `avatars/**`; rather than widen the rules this phase, category
+  images are an optional `imageUrl`. Empty input is dropped before write so it never fails the
+  `url()` schema on read.
+- **Admin reads vs storefront reads.** `useAdminProducts` fetches **all** products (incl.
+  inactive) under key `['products','admin']`, nested beneath `['products']` so product
+  mutations invalidate it too; the storefront `useProducts` still restricts to active.
+- **Admin order management is real-time.** `subscribeAllOrders` (onSnapshot, optional status
+  filter) feeds `useAllOrders`; `useUpdateOrderStatus` is a Query mutation. Admin authority is
+  the existing `role:'admin'` custom claim + `RequireAdmin` / Expo Router admin segment. **The
+  client never writes product stock** — that stays deferred to Cloud Functions (Phase 7).
+- **Dashboard aggregation is client-side and pure.** `summarizeDashboard(orders, products)`
+  (in `@kidswear/data`, no UI imports) computes totals/low-stock/by-status/deposits. Web
+  renders one `recharts` bar chart (orders by status) + stat cards; mobile shows stat cards +
+  a status breakdown (no chart dep). **Caveat:** in-memory scan suits modest catalogs; at
+  scale replace with server-side counters / a scheduled aggregation.
+- **Shared `slugify`** (`@kidswear/utils`, dependency-free, small uz transliteration map)
+  powers the category slug auto-suggest on both platforms; category deletion is guarded in the
+  UI when products still reference it.
