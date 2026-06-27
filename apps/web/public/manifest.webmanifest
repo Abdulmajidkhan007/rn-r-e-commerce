@@ -1,0 +1,14 @@
+{
+  "name": "KidsWear",
+  "short_name": "KidsWear",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ff5a3c",
+  "background_color": "#fffaf8",
+  "icons": [
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
