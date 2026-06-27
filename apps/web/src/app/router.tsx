@@ -80,6 +80,7 @@ const routes: RouteObject[] = [
     children: [
       { index: true, lazy: lazyPage(() => import('@/pages/AdminDashboardPage')) },
       { path: 'products', lazy: lazyPage(() => import('@/pages/AdminProductsPage')) },
+      { path: 'categories', lazy: lazyPage(() => import('@/pages/AdminCategoriesPage')) },
       { path: 'orders', lazy: lazyPage(() => import('@/pages/AdminOrdersPage')) },
     ],
   },

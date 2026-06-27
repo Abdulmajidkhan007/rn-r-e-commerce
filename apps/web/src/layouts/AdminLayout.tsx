@@ -10,6 +10,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import CategoryIcon from '@mui/icons-material/Category';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useTranslation } from '@kidswear/i18n';
 import { ThemeToggle } from '@/components';
@@ -17,9 +18,10 @@ import { ThemeToggle } from '@/components';
 const DRAWER_WIDTH = 240;
 
 const ITEMS = [
-  { to: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
-  { to: '/admin/products', label: 'Products', icon: <Inventory2Icon /> },
-  { to: '/admin/orders', label: 'Orders', icon: <ReceiptLongIcon /> },
+  { to: '/admin', labelKey: 'admin.dashboard', icon: <DashboardIcon /> },
+  { to: '/admin/products', labelKey: 'admin.products', icon: <Inventory2Icon /> },
+  { to: '/admin/categories', labelKey: 'admin.categories', icon: <CategoryIcon /> },
+  { to: '/admin/orders', labelKey: 'admin.orders', icon: <ReceiptLongIcon /> },
 ] as const;
 
 /** Admin layout: persistent sidebar + topbar. */
@@ -49,7 +51,7 @@ export function AdminLayout(): React.ReactElement {
           {ITEMS.map((item) => (
             <ListItemButton key={item.to} component={RouterLink} to={item.to}>
               <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemText primary={t(item.labelKey)} />
             </ListItemButton>
           ))}
         </List>

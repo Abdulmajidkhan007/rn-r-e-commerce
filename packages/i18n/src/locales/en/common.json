@@ -246,6 +246,19 @@
     "inUseCannotDelete": "This category has products — cannot delete",
     "slug": "Slug",
     "order": "Order",
+    "compareAtPrice": "Compare-at price",
+    "imageUrl": "Image URL",
+    "search": "Search",
+    "allCategories": "All categories",
+    "filterByCategory": "Filter by category",
+    "noProducts": "No products",
+    "noCategories": "No categories",
+    "cancel": "Cancel",
+    "create": "Create",
+    "commaHint": "Separate with commas",
+    "localeUz": "Uzbek",
+    "localeEn": "English",
+    "localeRu": "Russian",
     "validation": {
       "nameRequired": "Name is required",
       "priceMin": "Price must be greater than 0",
@@ -272,6 +285,11 @@
     "filterByStatus": "Filter by status",
     "updateStatus": "Update status",
     "customer": "Customer",
-    "statusUpdated": "Status updated"
+    "statusUpdated": "Status updated",
+    "all": "All",
+    "noOrders": "No orders",
+    "orderId": "Order",
+    "total": "Total",
+    "viewDetail": "Details"
   }
 }

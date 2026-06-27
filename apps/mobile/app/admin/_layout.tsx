@@ -24,9 +24,10 @@ export default function AdminLayout(): React.ReactElement {
         contentStyle: { backgroundColor: theme.colors.background },
       }}
     >
-      <Stack.Screen name="index" options={{ title: t('nav.admin') }} />
-      <Stack.Screen name="products" options={{ title: t('nav.catalog') }} />
-      <Stack.Screen name="orders" options={{ title: 'Orders' }} />
+      <Stack.Screen name="index" options={{ title: t('admin.dashboard') }} />
+      <Stack.Screen name="products" options={{ title: t('admin.products') }} />
+      <Stack.Screen name="categories" options={{ title: t('admin.categories') }} />
+      <Stack.Screen name="orders" options={{ title: t('admin.orders') }} />
     </Stack>
   );
 }

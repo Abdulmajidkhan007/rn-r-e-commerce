@@ -246,6 +246,19 @@
     "inUseCannotDelete": "Bu toifada mahsulotlar bor — oʻchirib boʻlmaydi",
     "slug": "Slug",
     "order": "Tartib",
+    "compareAtPrice": "Eski narx",
+    "imageUrl": "Rasm havolasi",
+    "search": "Qidirish",
+    "allCategories": "Barcha toifalar",
+    "filterByCategory": "Toifa boʻyicha",
+    "noProducts": "Mahsulotlar yoʻq",
+    "noCategories": "Toifalar yoʻq",
+    "cancel": "Bekor qilish",
+    "create": "Yaratish",
+    "commaHint": "Vergul bilan ajrating",
+    "localeUz": "Oʻzbekcha",
+    "localeEn": "Inglizcha",
+    "localeRu": "Ruscha",
     "validation": {
       "nameRequired": "Nom kiriting",
       "priceMin": "Narx 0 dan katta boʻlsin",
@@ -272,6 +285,11 @@
     "filterByStatus": "Holat boʻyicha saralash",
     "updateStatus": "Holatni yangilash",
     "customer": "Mijoz",
-    "statusUpdated": "Holat yangilandi"
+    "statusUpdated": "Holat yangilandi",
+    "all": "Barchasi",
+    "noOrders": "Buyurtmalar yoʻq",
+    "orderId": "Buyurtma",
+    "total": "Jami",
+    "viewDetail": "Batafsil"
   }
 }

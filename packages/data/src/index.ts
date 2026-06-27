@@ -20,6 +20,7 @@ export { useUserOrders, useOrder, useCancelOrder } from './useOrders';
 export type { UserOrdersState, OrderState, UseCancelOrderResult } from './useOrders';
 
 export {
+  useAdminProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
@@ -37,6 +38,9 @@ export type {
   AllOrdersState,
   UpdateOrderStatusVars,
 } from './useAdmin';
+
+export { summarizeDashboard, LOW_STOCK_THRESHOLD } from './dashboard';
+export type { DashboardStats } from './dashboard';
 
 export { QueryClientProvider } from '@tanstack/react-query';
 export type { QueryClient } from '@tanstack/react-query';

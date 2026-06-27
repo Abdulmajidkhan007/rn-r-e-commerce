@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
-import type { Order, OrderStatus } from '@kidswear/core';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from '@tanstack/react-query';
+import type { Order, OrderStatus, Product } from '@kidswear/core';
 import {
   createCategory,
   createProduct,
   deleteCategory,
   deleteProduct,
+  getProducts,
   subscribeAllOrders,
   updateCategory,
   updateOrderStatus,
@@ -15,7 +22,22 @@ import {
 } from '@kidswear/firebase';
 
 const PRODUCTS_KEY = ['products'] as const;
+const ADMIN_PRODUCTS_KEY = ['products', 'admin'] as const;
 const CATEGORIES_KEY = ['categories'] as const;
+
+// --- Admin product read (ALL products, including inactive) ---
+
+/**
+ * Fetches every product (active and inactive) for the admin catalog. Distinct
+ * from the storefront `useProducts`, which restricts to active products. The
+ * key is nested under `['products']` so product mutations invalidate it too.
+ */
+export function useAdminProducts(): UseQueryResult<Product[]> {
+  return useQuery({
+    queryKey: ADMIN_PRODUCTS_KEY,
+    queryFn: () => getProducts(),
+  });
+}
 
 // --- Product mutations (invalidate the catalog query cache) ---
 

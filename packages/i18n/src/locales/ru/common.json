@@ -246,6 +246,19 @@
     "inUseCannotDelete": "В категории есть товары — нельзя удалить",
     "slug": "Slug",
     "order": "Порядок",
+    "compareAtPrice": "Старая цена",
+    "imageUrl": "Ссылка на изображение",
+    "search": "Поиск",
+    "allCategories": "Все категории",
+    "filterByCategory": "Фильтр по категории",
+    "noProducts": "Нет товаров",
+    "noCategories": "Нет категорий",
+    "cancel": "Отмена",
+    "create": "Создать",
+    "commaHint": "Разделяйте запятыми",
+    "localeUz": "Узбекский",
+    "localeEn": "Английский",
+    "localeRu": "Русский",
     "validation": {
       "nameRequired": "Введите название",
       "priceMin": "Цена должна быть больше 0",
@@ -272,6 +285,11 @@
     "filterByStatus": "Фильтр по статусу",
     "updateStatus": "Обновить статус",
     "customer": "Клиент",
-    "statusUpdated": "Статус обновлён"
+    "statusUpdated": "Статус обновлён",
+    "all": "Все",
+    "noOrders": "Нет заказов",
+    "orderId": "Заказ",
+    "total": "Итого",
+    "viewDetail": "Подробнее"
   }
 }
