@@ -8,6 +8,7 @@ import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AddressSection } from '@/components/profile/AddressSection';
 import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import { SecuritySection } from '@/components/profile/SecuritySection';
+import { NotificationsSection } from '@/components/profile/NotificationsSection';
 
 export default function ProfileScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -66,6 +67,7 @@ export default function ProfileScreen(): React.ReactElement {
       <ProfileForm />
       <AddressSection />
       <SecuritySection />
+      <NotificationsSection />
     </ScrollView>
   );
 }
