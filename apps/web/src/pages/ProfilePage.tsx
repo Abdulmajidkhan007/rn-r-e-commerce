@@ -10,6 +10,7 @@ import { Card } from '@/components';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AddressSection } from '@/components/profile/AddressSection';
 import { AvatarUploader } from '@/components/profile/AvatarUploader';
+import NotificationsSection from '@/components/profile/NotificationsSection';
 
 export default function ProfilePage(): React.ReactElement {
   const { t } = useTranslation();
@@ -74,6 +75,8 @@ export default function ProfilePage(): React.ReactElement {
       <ProfileForm />
 
       <AddressSection />
+
+      <NotificationsSection />
 
       <Card>
         <Stack spacing={0.5}>
