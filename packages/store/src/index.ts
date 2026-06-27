@@ -29,5 +29,13 @@ export type { CartState, UpdateQtyPayload, RemoveItemPayload } from './slices/ca
 export { uiReducer, setTheme, toggleTheme, setLanguage } from './slices/uiSlice';
 export type { UiState, ThemePreference } from './slices/uiSlice';
 
+export {
+  notificationsReducer,
+  setNotificationsEnabled,
+  setExpoPushToken,
+  setFcmPushToken,
+} from './slices/notificationsSlice';
+export type { NotificationsState } from './slices/notificationsSlice';
+
 // Re-export react-redux Provider for convenience.
 export { Provider as ReduxProvider } from 'react-redux';

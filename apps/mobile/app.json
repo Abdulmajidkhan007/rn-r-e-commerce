@@ -39,6 +39,12 @@
           "photosPermission": "Allow KidsWear to access your photos to set product/profile images.",
           "cameraPermission": "Allow KidsWear to use the camera to take product/profile photos."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#ff5a3c"
+        }
       ]
     ],
     "experiments": {

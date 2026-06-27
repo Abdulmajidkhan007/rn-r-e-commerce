@@ -291,5 +291,31 @@
     "orderId": "Заказ",
     "total": "Итого",
     "viewDetail": "Подробнее"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "enableNotifications": "Включить уведомления",
+    "disableNotifications": "Выключить уведомления",
+    "enabled": "Включены",
+    "disabled": "Выключены",
+    "permissionDenied": "Разрешение на уведомления отклонено",
+    "openSystemSettings": "Открыть настройки",
+    "testNotification": "Отправить тестовое уведомление",
+    "testSent": "Тестовое уведомление отправлено",
+    "testTitle": "Тест KidsWear",
+    "testBody": "Уведомления работают — отлично!"
+  },
+  "pushTitles": {
+    "newOrder": "Новый заказ",
+    "orderProcessing": "Заказ в обработке",
+    "orderShipped": "Заказ отправлен",
+    "orderDelivered": "Заказ доставлен",
+    "orderCancelled": "Заказ отменён",
+    "orderOutOfStock": "Заказ отменён"
+  },
+  "pushBodies": {
+    "newOrderFromUser": "Новый заказ от {{name}} на {{total}} UZS",
+    "orderStatusChangedTo": "Статус вашего заказа: {{status}}",
+    "orderOutOfStockReason": "Товар отсутствует на складе"
   }
 }

@@ -291,5 +291,31 @@
     "orderId": "Order",
     "total": "Total",
     "viewDetail": "Details"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "enableNotifications": "Enable notifications",
+    "disableNotifications": "Disable notifications",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "permissionDenied": "Notification permission denied",
+    "openSystemSettings": "Open system settings",
+    "testNotification": "Send test notification",
+    "testSent": "Test notification sent",
+    "testTitle": "KidsWear test",
+    "testBody": "Notifications are working — you're all set!"
+  },
+  "pushTitles": {
+    "newOrder": "New order",
+    "orderProcessing": "Order being processed",
+    "orderShipped": "Order shipped",
+    "orderDelivered": "Order delivered",
+    "orderCancelled": "Order cancelled",
+    "orderOutOfStock": "Order cancelled"
+  },
+  "pushBodies": {
+    "newOrderFromUser": "New order from {{name}} for {{total}} UZS",
+    "orderStatusChangedTo": "Your order status: {{status}}",
+    "orderOutOfStockReason": "Item is out of stock"
   }
 }
