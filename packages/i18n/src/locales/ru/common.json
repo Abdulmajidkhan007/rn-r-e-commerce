@@ -317,5 +317,26 @@
     "newOrderFromUser": "Новый заказ от {{name}} на {{total}} UZS",
     "orderStatusChangedTo": "Статус вашего заказа: {{status}}",
     "orderOutOfStockReason": "Товар отсутствует на складе"
+  },
+  "branding": {
+    "tagline": "Детская одежда"
+  },
+  "footer": {
+    "privacy": "Политика конфиденциальности",
+    "terms": "Условия использования",
+    "copyright": "© {{year}} KidsWear. Все права защищены.",
+    "tagline": "Качественная одежда для детей"
+  },
+  "legal": {
+    "privacyTitle": "Политика конфиденциальности",
+    "termsTitle": "Условия использования",
+    "lastUpdated": "Обновлено",
+    "contactUs": "Связаться с нами",
+    "dataWeCollect": "Какие данные мы собираем",
+    "howWeUse": "Как мы используем данные",
+    "yourRights": "Ваши права",
+    "children": "Политика в отношении детей",
+    "thirdParties": "Третьи стороны",
+    "changes": "Изменения"
   }
 }

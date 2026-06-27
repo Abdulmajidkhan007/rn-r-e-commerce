@@ -317,5 +317,26 @@
     "newOrderFromUser": "{{name}} dan {{total}} UZS lik yangi buyurtma",
     "orderStatusChangedTo": "Buyurtmangiz holati: {{status}}",
     "orderOutOfStockReason": "Mahsulot omborda qolmagan"
+  },
+  "branding": {
+    "tagline": "Bolalar kiyimlari"
+  },
+  "footer": {
+    "privacy": "Maxfiylik siyosati",
+    "terms": "Foydalanish shartlari",
+    "copyright": "© {{year}} KidsWear. Barcha huquqlar himoyalangan.",
+    "tagline": "Bolalar uchun sifatli kiyimlar"
+  },
+  "legal": {
+    "privacyTitle": "Maxfiylik siyosati",
+    "termsTitle": "Foydalanish shartlari",
+    "lastUpdated": "Oxirgi yangilanish",
+    "contactUs": "Biz bilan bogʻlanish",
+    "dataWeCollect": "Yigʻiladigan maʼlumotlar",
+    "howWeUse": "Maʼlumotlardan foydalanish",
+    "yourRights": "Sizning huquqlaringiz",
+    "children": "Bolalar siyosati",
+    "thirdParties": "Uchinchi tomonlar",
+    "changes": "Oʻzgartirishlar"
   }
 }

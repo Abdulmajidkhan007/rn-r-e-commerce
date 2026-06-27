@@ -20,6 +20,7 @@
     "@kidswear/data": "*",
     "@kidswear/firebase": "*",
     "@kidswear/i18n": "*",
+    "@kidswear/legal": "*",
     "@kidswear/store": "*",
     "@kidswear/theme": "*",
     "@kidswear/utils": "*",
