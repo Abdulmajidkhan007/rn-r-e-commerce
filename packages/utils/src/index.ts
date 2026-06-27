@@ -6,3 +6,4 @@ export * from './date';
 export * from './id';
 export * from './localized';
 export * from './stock';
+export * from './order';

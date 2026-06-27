@@ -29,12 +29,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Orders: a signed-in user may create their own order; owners and admins
-    // may read; only admins may update; orders are never deleted.
+    // Orders: a signed-in user creates their own order in a valid initial state
+    // (deposit_paid must have paidAmount == depositAmount; pending must be
+    // unpaid). Owners/admins read. Admins update freely; an owner may ONLY
+    // cancel a pending/deposit_paid order (status-only change). Never deleted.
     match /orders/{orderId} {
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status in ['pending', 'deposit_paid']
+        && (request.resource.data.status == 'deposit_paid'
+              ? request.resource.data.paidAmount == request.resource.data.depositAmount
+              : request.resource.data.paidAmount == 0)
+        && request.resource.data.keys().hasAll(
+              ['items', 'subtotal', 'depositAmount', 'total', 'shippingAddress']);
       allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow update: if isAdmin();
+      allow update: if isAdmin()
+        || (isOwner(resource.data.userId)
+            && resource.data.status in ['pending', 'deposit_paid']
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'updatedAt']));
       allow delete: if false;
     }
 

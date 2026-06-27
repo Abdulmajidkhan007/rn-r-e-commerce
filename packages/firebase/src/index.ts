@@ -33,6 +33,8 @@ export {
   createOrder,
   getOrdersByUser,
   subscribeOrdersByUser,
+  getOrderById,
+  subscribeOrder,
   getAllOrders,
   updateOrderStatus,
 } from './orders';

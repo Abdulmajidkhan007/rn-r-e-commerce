@@ -1,6 +1,7 @@
 import {
   type Unsubscribe,
   type WithFieldValue,
+  getDoc,
   getDocs,
   onSnapshot,
   orderBy,
@@ -52,7 +53,23 @@ export async function getAllOrders(): Promise<Order[]> {
   return snap.docs.map((d) => d.data());
 }
 
-/** Updates an order's status. Admin-only (enforced by rules). */
+/** One-shot fetch of a single order by id, or `null`. Owner/admin (per rules). */
+export async function getOrderById(id: string): Promise<Order | null> {
+  const snap = await getDoc(orderDoc(id));
+  return snap.exists() ? snap.data() : null;
+}
+
+/** Real-time subscription to a single order. Owner/admin (per rules). */
+export function subscribeOrder(id: string, cb: (order: Order | null) => void): Unsubscribe {
+  return onSnapshot(orderDoc(id), (snap) => {
+    cb(snap.exists() ? snap.data() : null);
+  });
+}
+
+/**
+ * Updates an order's status. Admin status changes are admin-only; an owner may
+ * only cancel a pending/deposit_paid order — both enforced by Firestore rules.
+ */
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
   await updateDoc(orderDoc(id), { status, updatedAt: serverTimestamp() });
 }
