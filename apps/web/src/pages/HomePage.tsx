@@ -10,9 +10,11 @@ import { useTranslation } from '@kidswear/i18n';
 import { Skeleton } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function HomePage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('nav.home'));
   const localized = useLocalized();
   const { products, isLoading } = useProducts({ sort: 'newest' });
   const categoriesQuery = useCategories();

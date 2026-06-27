@@ -16,9 +16,11 @@ import { useTranslation } from '@kidswear/i18n';
 import { Card } from '@/components';
 import { AddressDialog } from '@/components/profile/AddressDialog';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function CheckoutPage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('checkout.placeOrder'));
   const tk = useTranslateKey();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();

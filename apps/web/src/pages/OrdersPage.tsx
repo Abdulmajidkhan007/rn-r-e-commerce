@@ -10,9 +10,11 @@ import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { Card, Skeleton } from '@/components';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function OrdersPage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('orders.myOrders'));
   const { user } = useAuth();
   const language = useAppSelector((s) => s.ui.language);
   const { orders, loading } = useUserOrders(user?.uid);

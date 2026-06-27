@@ -15,6 +15,7 @@ import { Skeleton } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
 import { useDebounced } from '@/lib/useDebounced';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 const SORTS: ProductSort[] = ['newest', 'priceAsc', 'priceDesc'];
 const SORT_LABEL = {
@@ -25,6 +26,7 @@ const SORT_LABEL = {
 
 export default function CatalogPage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('nav.catalog'));
   const localized = useLocalized();
   const categoriesQuery = useCategories();
 
