@@ -261,3 +261,51 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
 - **Shared `slugify`** (`@kidswear/utils`, dependency-free, small uz transliteration map)
   powers the category slug auto-suggest on both platforms; category deletion is guarded in the
   UI when products still reference it.
+
+## Cloud Functions & Push (Phase 7)
+
+- **`/functions` is a separate workspace.** Its own `tsconfig.json` (Node 20, ESM), its own
+  `package.json`, no imports from `/apps` or `/packages`. Order/OrderStatus shapes are
+  intentionally duplicated inline in `functions/src/types.ts` to keep the deploy artifact
+  self-contained and avoid pulling the entire monorepo into the Functions container. The
+  duplication is small (the trigger only reads `userId`, `items`, `status`, `total`,
+  `shippingAddress.fullName`, `cancelReason`) and the cost is acceptable for the isolation.
+- **Region `us-central1`** (Firebase Functions v2 default). Documented for ops; can be
+  changed later by editing the global option, but pinning matches the default project region
+  most teams start with.
+- **Server-side stock decrement closes the Phase 5 deferral.** `onOrderCreate` runs a single
+  Firestore transaction: per unique productId, read current stock; if any line exceeds it,
+  update the order to `{ status:'cancelled', cancelReason:'out_of_stock' }` and skip the
+  decrements; otherwise decrement each product atomically. Client checkout still does a
+  read-only stock re-check (Phase 5) — Functions are the authoritative writer.
+- **Dual push channels.** Mobile uses the **Expo Push Service** (Expo SDK 56 standard
+  pipeline; tokens via `expo-notifications` + EAS projectId). Web uses **FCM** (Firebase
+  Messaging Web SDK + a `firebase-messaging-sw.js` service worker). Tokens are stored on
+  `users/{uid}.pushTokens.{expo|fcm}` — arrays so a single user can receive on multiple
+  devices. Functions' `sendToUid` fans out across both channels.
+- **Bad-token cleanup in the trigger.** Expo tickets returning `DeviceNotRegistered` and FCM
+  responses returning `messaging/(invalid-registration-token|registration-token-not-registered)`
+  are removed via `arrayRemove` on the user doc. Admin SDK writes bypass rules, so this is
+  safe to do server-side.
+- **Service Worker config duplication is deliberate.** `firebase-messaging-sw.js` can't read
+  `import.meta.env` — it runs outside Vite — so the Firebase config is duplicated inline.
+  Documented in the file itself; production deploys must edit it (or a build step can
+  generate it from `.env`; deferred).
+- **Admin discovery needs a Firestore mirror.** Rules use the `role:'admin'` custom claim,
+  but Functions can't query users by claim — only by Firestore field. `set-admin-claim.ts`
+  now writes BOTH the claim AND `users/{uid}.role = 'admin'` (admin SDK bypasses rules). The
+  claim remains the source of truth for rules; the doc field is for `sendToAdmins()` queries.
+- **Push UX is opt-in per device.** A `notifications` slice (`enabled`, `expoToken`,
+  `fcmToken`) is persisted alongside cart + ui. Registration only happens when
+  `enabled && authenticated && no cached token`; opt-out un-registers the token and clears
+  the cache. The local "test notification" button uses the OS API directly
+  (`Notifications.scheduleNotificationAsync` / `new Notification(...)`), so it verifies the
+  UI + handler without Functions deployed.
+- **Localized push copy.** Functions read `users/{uid}.language` (default `'uz'`) and pick
+  the right title/body from an inline `COPY` table. The apps mirror `uiSlice.language` to the
+  user doc on first auth after a language change so server-side copy follows the user's UI
+  choice.
+- **EAS dev build requirement (mobile).** `getExpoPushTokenAsync` doesn't work in Expo Go;
+  `apps/mobile/eas.json` defines a `development` profile. The setup steps are in the README;
+  no store submission this phase. iOS dev builds need a paid Apple Developer account —
+  documented so the user can skip iOS and test on Android only if needed.

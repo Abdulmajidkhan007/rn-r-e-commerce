@@ -1,6 +1,8 @@
 import {
   type DocumentData,
   type Unsubscribe,
+  arrayRemove,
+  arrayUnion,
   deleteField,
   doc,
   getDoc,
@@ -9,7 +11,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import type { UserProfile } from '@kidswear/core';
+import type { UserLanguage, UserProfile } from '@kidswear/core';
 import { getDb } from './app';
 import { COLLECTIONS, userDoc } from './collections';
 import type { UserProfileInput } from './types';
@@ -53,6 +55,35 @@ export async function setUserAvatar(uid: string, avatarUrl: string | null): Prom
     avatarUrl: avatarUrl ?? deleteField(),
     updatedAt: serverTimestamp(),
   });
+}
+
+/** Adds a push token under `pushTokens.{channel}` (arrayUnion = dedup). */
+export async function addPushToken(
+  uid: string,
+  channel: 'expo' | 'fcm',
+  token: string,
+): Promise<void> {
+  await updateDoc(userDoc(uid), {
+    [`pushTokens.${channel}`]: arrayUnion(token),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Removes a push token from `pushTokens.{channel}`. */
+export async function removePushToken(
+  uid: string,
+  channel: 'expo' | 'fcm',
+  token: string,
+): Promise<void> {
+  await updateDoc(userDoc(uid), {
+    [`pushTokens.${channel}`]: arrayRemove(token),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Mirrors the active UI language to the user doc so Functions can localize push copy. */
+export async function setUserLanguage(uid: string, language: UserLanguage): Promise<void> {
+  await updateDoc(userDoc(uid), { language, updatedAt: serverTimestamp() });
 }
 
 /** Real-time subscription to a user profile. */

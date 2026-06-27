@@ -15,6 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { cert, initializeApp, type ServiceAccount } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
 async function main(): Promise<void> {
   const uid = process.argv[2];
@@ -28,6 +29,10 @@ async function main(): Promise<void> {
 
   initializeApp({ credential: cert(serviceAccount) });
   await getAuth().setCustomUserClaims(uid, { role: 'admin' });
+
+  // Mirror the role onto the user doc so Cloud Functions can query admins for
+  // push fan-out. The custom claim stays the source of truth for rules.
+  await getFirestore().collection('users').doc(uid).set({ role: 'admin' }, { merge: true });
 
   console.log(`✓ Set role:admin for uid=${uid}. The user must re-login to refresh their token.`);
 }

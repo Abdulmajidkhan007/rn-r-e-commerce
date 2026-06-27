@@ -56,6 +56,9 @@ export {
   getUserProfile,
   upsertUserProfile,
   setUserAvatar,
+  addPushToken,
+  removePushToken,
+  setUserLanguage,
   subscribeUserProfile,
 } from './users';
 

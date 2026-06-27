@@ -22,8 +22,8 @@ export type PersistStorage = Storage;
 
 const PERSIST_KEY = 'kidswear';
 
-/** Only cart + ui are persisted; auth is rehydrated from the backend later. */
-const PERSIST_WHITELIST: (keyof RootState)[] = ['cart', 'ui'];
+/** cart + ui + notifications are persisted; auth is rehydrated from the backend. */
+const PERSIST_WHITELIST: (keyof RootState)[] = ['cart', 'ui', 'notifications'];
 
 export interface MakeStoreResult {
   store: Store<RootState>;

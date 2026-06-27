@@ -291,5 +291,31 @@
     "orderId": "Buyurtma",
     "total": "Jami",
     "viewDetail": "Batafsil"
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "enableNotifications": "Bildirishnomalarni yoqish",
+    "disableNotifications": "Bildirishnomalarni oʻchirish",
+    "enabled": "Yoqilgan",
+    "disabled": "Oʻchirilgan",
+    "permissionDenied": "Bildirishnoma uchun ruxsat berilmagan",
+    "openSystemSettings": "Tizim sozlamalarini ochish",
+    "testNotification": "Test bildirishnoma yuborish",
+    "testSent": "Test bildirishnoma yuborildi",
+    "testTitle": "KidsWear test",
+    "testBody": "Bildirishnomalar ishlayapti — tabriklaymiz!"
+  },
+  "pushTitles": {
+    "newOrder": "Yangi buyurtma",
+    "orderProcessing": "Buyurtma tayyorlanmoqda",
+    "orderShipped": "Buyurtma joʻnatildi",
+    "orderDelivered": "Buyurtma yetkazildi",
+    "orderCancelled": "Buyurtma bekor qilindi",
+    "orderOutOfStock": "Buyurtma bekor qilindi"
+  },
+  "pushBodies": {
+    "newOrderFromUser": "{{name}} dan {{total}} UZS lik yangi buyurtma",
+    "orderStatusChangedTo": "Buyurtmangiz holati: {{status}}",
+    "orderOutOfStockReason": "Mahsulot omborda qolmagan"
   }
 }
