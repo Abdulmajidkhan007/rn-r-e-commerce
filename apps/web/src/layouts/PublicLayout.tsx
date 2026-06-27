@@ -91,11 +91,50 @@ export function PublicLayout(): React.ReactElement {
         <Outlet />
       </Container>
 
-      <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 3 }}>
+      <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 3, mt: 'auto' }}>
         <Container maxWidth="lg">
-          <Typography variant="body2" color="text.secondary">
-            © {new Date().getFullYear()} {t('appName')}
-          </Typography>
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+              <Typography
+                variant="body2"
+                component={RouterLink}
+                to="/"
+                sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                {t('nav.home')}
+              </Typography>
+              <Typography
+                variant="body2"
+                component={RouterLink}
+                to="/catalog"
+                sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                {t('nav.catalog')}
+              </Typography>
+              <Typography
+                variant="body2"
+                component={RouterLink}
+                to="/privacy"
+                sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                {t('footer.privacy')}
+              </Typography>
+              <Typography
+                variant="body2"
+                component={RouterLink}
+                to="/terms"
+                sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                {t('footer.terms')}
+              </Typography>
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              {t('footer.copyright', { year: new Date().getFullYear() })}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {t('footer.tagline')}
+            </Typography>
+          </Stack>
         </Container>
       </Box>
     </Box>

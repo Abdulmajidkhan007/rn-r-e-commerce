@@ -60,6 +60,8 @@ export default function PublicTabsLayout(): React.ReactElement {
       />
       <Tabs.Screen name="orders" options={{ href: null, title: t('orders.myOrders') }} />
       <Tabs.Screen name="order/[id]" options={{ href: null }} />
+      <Tabs.Screen name="privacy" options={{ href: null, title: t('legal.privacyTitle') }} />
+      <Tabs.Screen name="terms" options={{ href: null, title: t('legal.termsTitle') }} />
     </Tabs>
   );
 }
