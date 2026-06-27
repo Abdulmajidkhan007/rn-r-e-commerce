@@ -52,7 +52,12 @@ export {
   deleteCategory,
 } from './admin';
 
-export { getUserProfile, upsertUserProfile, subscribeUserProfile } from './users';
+export {
+  getUserProfile,
+  upsertUserProfile,
+  setUserAvatar,
+  subscribeUserProfile,
+} from './users';
 
 export {
   storagePaths,

@@ -1,11 +1,13 @@
 import {
   type DocumentData,
   type Unsubscribe,
+  deleteField,
   doc,
   getDoc,
   onSnapshot,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import type { UserProfile } from '@kidswear/core';
 import { getDb } from './app';
@@ -43,6 +45,14 @@ export async function upsertUserProfile(profile: UserProfileInput): Promise<void
   };
 
   await setDoc(ref, payload, { merge: true });
+}
+
+/** Sets or clears the user's avatar URL (clear removes the field entirely). */
+export async function setUserAvatar(uid: string, avatarUrl: string | null): Promise<void> {
+  await updateDoc(userDoc(uid), {
+    avatarUrl: avatarUrl ?? deleteField(),
+    updatedAt: serverTimestamp(),
+  });
 }
 
 /** Real-time subscription to a user profile. */

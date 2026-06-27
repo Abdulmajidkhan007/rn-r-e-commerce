@@ -1,11 +1,12 @@
 import { ScrollView, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
-import { Avatar, Button, Card, Chip, Divider, List, Text } from 'react-native-paper';
+import { Button, Card, Chip, Divider, List, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth, useAuthActions } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AddressSection } from '@/components/profile/AddressSection';
+import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import { SecuritySection } from '@/components/profile/SecuritySection';
 
 export default function ProfileScreen(): React.ReactElement {
@@ -20,8 +21,6 @@ export default function ProfileScreen(): React.ReactElement {
     return <Redirect href="/(auth)/login" />;
   }
 
-  const initial = (user?.displayName || user?.email || '?').charAt(0).toUpperCase();
-
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 24 }}>
       <Text variant="headlineMedium" style={{ fontWeight: '800' }}>
@@ -30,14 +29,12 @@ export default function ProfileScreen(): React.ReactElement {
 
       <Card mode="outlined">
         <Card.Content style={{ gap: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <Avatar.Text size={48} label={initial} />
-            <View style={{ flex: 1 }}>
-              <Text variant="titleMedium">{user?.displayName || '—'}</Text>
-              <Text variant="bodySmall" style={{ opacity: 0.7 }}>
-                {user?.email}
-              </Text>
-            </View>
+          <AvatarUploader />
+          <View>
+            <Text variant="titleMedium">{user?.displayName || '—'}</Text>
+            <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+              {user?.email}
+            </Text>
           </View>
 
           <Divider />

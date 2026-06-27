@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { UserProfile } from '@kidswear/core';
-import { upsertUserProfile } from '@kidswear/firebase';
+import { setUserAvatar, upsertUserProfile } from '@kidswear/firebase';
 import { useAppDispatch, useAppSelector, setAuthenticated } from '@kidswear/store';
 import { mapAuthError } from './mapAuthError';
 import { toProfileInput } from './profileInput';
@@ -8,6 +8,8 @@ import type { ProfileValues } from './profileSchemas';
 
 export interface ProfileActions {
   updateProfile: (values: ProfileValues) => Promise<boolean>;
+  /** Sets (url) or clears (null) the avatar, syncing Firestore + the store. */
+  updateAvatar: (avatarUrl: string | null) => Promise<boolean>;
   saving: boolean;
   error: string | null;
 }
@@ -41,5 +43,25 @@ export function useProfileActions(): ProfileActions {
     [user, isAdmin, dispatch],
   );
 
-  return { updateProfile, saving, error };
+  const updateAvatar = useCallback(
+    async (avatarUrl: string | null): Promise<boolean> => {
+      if (!user) return false;
+      setSaving(true);
+      setError(null);
+      try {
+        await setUserAvatar(user.uid, avatarUrl);
+        const next: UserProfile = { ...user, avatarUrl: avatarUrl ?? undefined };
+        dispatch(setAuthenticated({ user: next, isAdmin }));
+        return true;
+      } catch (e) {
+        setError(mapAuthError(e));
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [user, isAdmin, dispatch],
+  );
+
+  return { updateProfile, updateAvatar, saving, error };
 }

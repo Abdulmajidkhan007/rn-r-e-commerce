@@ -6,9 +6,10 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import { useAuth, useAuthActions } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
-import { Avatar, Card } from '@/components';
+import { Card } from '@/components';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AddressSection } from '@/components/profile/AddressSection';
+import { AvatarUploader } from '@/components/profile/AvatarUploader';
 
 export default function ProfilePage(): React.ReactElement {
   const { t } = useTranslation();
@@ -21,8 +22,6 @@ export default function ProfilePage(): React.ReactElement {
     navigate('/login', { replace: true });
   };
 
-  const initial = (user?.displayName || user?.email || '?').charAt(0).toUpperCase();
-
   return (
     <Stack spacing={3} sx={{ maxWidth: 640 }}>
       <Typography variant="h4" sx={{ fontWeight: 800 }}>
@@ -31,14 +30,12 @@ export default function ProfilePage(): React.ReactElement {
 
       <Card>
         <Stack spacing={2}>
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-            <Avatar>{initial}</Avatar>
-            <Stack>
-              <Typography variant="h6">{user?.displayName || '—'}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {user?.email}
-              </Typography>
-            </Stack>
+          <AvatarUploader />
+          <Stack>
+            <Typography variant="h6">{user?.displayName || '—'}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {user?.email}
+            </Typography>
           </Stack>
 
           <Divider />
