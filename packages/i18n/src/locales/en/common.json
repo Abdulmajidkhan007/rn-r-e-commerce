@@ -164,5 +164,56 @@
     "home": "Home",
     "featured": "Featured",
     "newArrivals": "New arrivals"
+  },
+  "cart": {
+    "cart": "Cart",
+    "emptyCart": "Your cart is empty",
+    "continueShopping": "Continue shopping",
+    "subtotal": "Subtotal",
+    "deposit": "Deposit (50%)",
+    "depositNote": "Pay 50% now, the rest on delivery",
+    "total": "Total",
+    "remaining": "Remaining",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "quantity": "Quantity"
+  },
+  "checkout": {
+    "shippingAddress": "Shipping address",
+    "selectAddress": "Select an address",
+    "addNewAddress": "Add new address",
+    "paymentMethod": "Payment method",
+    "depositMock": "Deposit (50%) — mock",
+    "dueNow": "Due now",
+    "dueOnDelivery": "Due on delivery",
+    "placeOrder": "Place order",
+    "orderSummary": "Order summary",
+    "processing": "Processing...",
+    "orderPlaced": "Order placed",
+    "orderConfirmation": "Thank you for your order!",
+    "orderId": "Order ID",
+    "backToHome": "Back to home",
+    "errors": {
+      "emptyCart": "Your cart is empty",
+      "noAddress": "Please select a shipping address",
+      "outOfStock": "Some items are no longer in stock",
+      "generic": "Could not place the order. Please try again"
+    }
+  },
+  "orders": {
+    "myOrders": "My orders",
+    "noOrders": "No orders yet",
+    "orderDate": "Date",
+    "items": "Items",
+    "paid": "Paid",
+    "cancelOrder": "Cancel order",
+    "confirmCancel": "Cancel this order?",
+    "viewOrder": "View",
+    "cancelError": "Could not cancel the order"
+  },
+  "payment": {
+    "processing": "Processing payment...",
+    "success": "Payment successful",
+    "failed": "Payment failed"
   }
 }

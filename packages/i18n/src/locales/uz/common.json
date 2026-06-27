@@ -164,5 +164,56 @@
     "home": "Bosh sahifa",
     "featured": "Tanlangan",
     "newArrivals": "Yangi kelganlar"
+  },
+  "cart": {
+    "cart": "Savatcha",
+    "emptyCart": "Savatcha boʻsh",
+    "continueShopping": "Xaridni davom ettirish",
+    "subtotal": "Jami",
+    "deposit": "Oldindan toʻlov (50%)",
+    "depositNote": "Hozir 50% toʻlanadi, qolgani yetkazib berishda",
+    "total": "Umumiy",
+    "remaining": "Qolgan summa",
+    "checkout": "Buyurtma berish",
+    "remove": "Oʻchirish",
+    "quantity": "Miqdor"
+  },
+  "checkout": {
+    "shippingAddress": "Yetkazib berish manzili",
+    "selectAddress": "Manzilni tanlang",
+    "addNewAddress": "Yangi manzil qoʻshish",
+    "paymentMethod": "Toʻlov usuli",
+    "depositMock": "Oldindan toʻlov (50%) — test",
+    "dueNow": "Hozir toʻlanadi",
+    "dueOnDelivery": "Yetkazishda toʻlanadi",
+    "placeOrder": "Buyurtmani tasdiqlash",
+    "orderSummary": "Buyurtma tafsiloti",
+    "processing": "Amalga oshirilmoqda...",
+    "orderPlaced": "Buyurtma qabul qilindi",
+    "orderConfirmation": "Buyurtmangiz uchun rahmat!",
+    "orderId": "Buyurtma raqami",
+    "backToHome": "Bosh sahifaga",
+    "errors": {
+      "emptyCart": "Savatcha boʻsh",
+      "noAddress": "Yetkazish manzilini tanlang",
+      "outOfStock": "Baʼzi mahsulotlar omborda yetarli emas",
+      "generic": "Buyurtma berishda xatolik. Qayta urining"
+    }
+  },
+  "orders": {
+    "myOrders": "Buyurtmalarim",
+    "noOrders": "Buyurtmalar yoʻq",
+    "orderDate": "Sana",
+    "items": "Mahsulotlar",
+    "paid": "Toʻlangan",
+    "cancelOrder": "Bekor qilish",
+    "confirmCancel": "Buyurtmani bekor qilasizmi?",
+    "viewOrder": "Koʻrish",
+    "cancelError": "Bekor qilishda xatolik"
+  },
+  "payment": {
+    "processing": "Toʻlov amalga oshirilmoqda...",
+    "success": "Toʻlov muvaffaqiyatli",
+    "failed": "Toʻlov amalga oshmadi"
   }
 }

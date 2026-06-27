@@ -164,5 +164,56 @@
     "home": "Главная",
     "featured": "Рекомендуем",
     "newArrivals": "Новинки"
+  },
+  "cart": {
+    "cart": "Корзина",
+    "emptyCart": "Корзина пуста",
+    "continueShopping": "Продолжить покупки",
+    "subtotal": "Подытог",
+    "deposit": "Предоплата (50%)",
+    "depositNote": "Сейчас оплачивается 50%, остальное при доставке",
+    "total": "Итого",
+    "remaining": "Остаток",
+    "checkout": "Оформить заказ",
+    "remove": "Удалить",
+    "quantity": "Количество"
+  },
+  "checkout": {
+    "shippingAddress": "Адрес доставки",
+    "selectAddress": "Выберите адрес",
+    "addNewAddress": "Добавить адрес",
+    "paymentMethod": "Способ оплаты",
+    "depositMock": "Предоплата (50%) — тест",
+    "dueNow": "К оплате сейчас",
+    "dueOnDelivery": "К оплате при доставке",
+    "placeOrder": "Оформить заказ",
+    "orderSummary": "Детали заказа",
+    "processing": "Обработка...",
+    "orderPlaced": "Заказ оформлен",
+    "orderConfirmation": "Спасибо за заказ!",
+    "orderId": "Номер заказа",
+    "backToHome": "На главную",
+    "errors": {
+      "emptyCart": "Корзина пуста",
+      "noAddress": "Выберите адрес доставки",
+      "outOfStock": "Некоторых товаров больше нет в наличии",
+      "generic": "Не удалось оформить заказ. Повторите попытку"
+    }
+  },
+  "orders": {
+    "myOrders": "Мои заказы",
+    "noOrders": "Заказов пока нет",
+    "orderDate": "Дата",
+    "items": "Товары",
+    "paid": "Оплачено",
+    "cancelOrder": "Отменить заказ",
+    "confirmCancel": "Отменить этот заказ?",
+    "viewOrder": "Открыть",
+    "cancelError": "Не удалось отменить заказ"
+  },
+  "payment": {
+    "processing": "Обработка платежа...",
+    "success": "Платёж выполнен",
+    "failed": "Платёж не прошёл"
   }
 }
