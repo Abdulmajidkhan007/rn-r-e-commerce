@@ -5,13 +5,15 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 6** — image pipeline + admin. A cross-platform pick → resize → WebP → upload
-> pipeline (web canvas; mobile expo-image-picker + the new expo-image-manipulator contextual
-> API) powers avatar upload and a reusable `ImageUploadField`. The admin area (behind the
-> existing admin gate) adds product & category CRUD with multi-image upload, real-time order
-> management with status updates, and a dashboard (stat cards + a recharts chart on web).
-> Admin writes rely on the already-authored Firestore rules; the client never writes product
-> stock. No real payment gateway or Cloud Functions yet.
+> **Phase 7** — Cloud Functions + push notifications. A `/functions` workspace (outside the
+> monorepo TS build) adds two Firestore triggers: `onOrderCreate` (transactional server-side
+> stock decrement; auto-cancels and notifies the customer on out-of-stock; otherwise notifies
+> admins) and `onOrderUpdate` (notifies the customer on status changes). Push fan-out goes
+> through both the Expo Push Service (mobile) and FCM (web) with token cleanup on
+> DeviceNotRegistered. Each app registers its own token after sign-in (gated by a per-device
+> opt-in), the Profile screen has a Notifications section with a test button, and the user's
+> active language is mirrored to Firestore so push copy is localized. Mobile needs an EAS
+> dev build to receive real push (Expo Go can't); the test button works without it.
 
 ## Tech stack
 
@@ -107,6 +109,62 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node scripts/seed.ts
 
 Catalog reads go through `@kidswear/data` (TanStack Query); search and sort are client-side
 (small-catalog decision — see DECISIONS.md).
+
+## Cloud Functions (Phase 7)
+
+Server-side logic lives in `/functions/` — a **separate workspace** with its own
+`tsconfig.json` and `package.json` so it stays out of the monorepo TS build. Two Firestore
+triggers:
+
+- `onOrderCreate` — transactional stock decrement; if any line exceeds available stock the
+  order is auto-cancelled (`status:'cancelled', cancelReason:'out_of_stock'`) and the customer
+  is notified. Otherwise admins are pushed a "new order" notification.
+- `onOrderUpdate` — when `status` changes, the customer is notified (skip on the
+  out-of-stock cancellation, which `onOrderCreate` already handled).
+
+Deploy region: `us-central1` (Firebase default).
+
+```bash
+cd functions && npm install && npm run build
+firebase deploy --only functions
+```
+
+## Push notifications (Phase 7)
+
+Two channels: **Expo Push Service** for the mobile app and **FCM** for the web app. Tokens
+are stored on `users/{uid}.pushTokens.{expo|fcm}` (arrays — multi-device per user). Functions
+fan out by reading those arrays via the admin SDK and clean up `DeviceNotRegistered`
+tokens.
+
+Each app registers its token after sign-in, gated by a per-device opt-in flag in Redux
+(`notifications.enabled`, persisted alongside cart + ui). The Profile screen has a
+**Notifications** section — Switch + status indicator + a local "test notification" button
+that works without deploying Functions.
+
+### Web setup
+
+1. Firebase Console → Project Settings → Cloud Messaging → "Web Push certificates" → copy the
+   public key into `VITE_FIREBASE_VAPID_KEY` in `.env`.
+2. Edit `apps/web/public/firebase-messaging-sw.js` and replace the placeholder Firebase config
+   with the same values used in `.env` (Service Workers can't read `import.meta.env`).
+3. Build/deploy the site over HTTPS (required for Service Workers).
+
+### Mobile setup (EAS dev build)
+
+Push tokens cannot be retrieved under Expo Go — you need an Expo dev build. iOS additionally
+requires a paid Apple Developer account; Android works on any device.
+
+```bash
+npm i -g eas-cli         # or use npx eas-cli
+cd apps/mobile
+eas login
+eas build:configure      # writes extra.eas.projectId into app.json
+eas build --platform android --profile development
+# Install the resulting APK on a real Android device (or use Internal distribution).
+```
+
+Set the mirrored `role:'admin'` (via the script above — it now writes both the Auth claim and
+`users/{uid}.role = 'admin'`) so `sendToAdmins()` can find the admin user docs.
 
 ## Conventions
 
