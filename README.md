@@ -5,11 +5,10 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 4** — real Firestore-backed catalog on both platforms: product list/grid with
-> category filter, sort, and client-side search; product detail with size/color/qty +
-> add-to-cart; full loading/empty/error states. Adds the shared `@kidswear/data`
-> (TanStack Query) read layer. No checkout, admin, or image upload yet (seeded placeholder
-> image URLs).
+> **Phase 5** — cart management + full checkout with a 50% deposit model that writes a real
+> Firestore order, plus a real-time customer Order History (onSnapshot). Payment is stubbed
+> behind a `PaymentService` interface; stock is re-checked read-only (no client writes). No
+> admin, no real gateway, no Cloud Functions yet.
 
 ## Tech stack
 
@@ -23,17 +22,17 @@ look like the same Material Design product.
 
 ### Shared packages
 
-| Package              | Responsibility                                                                                                                         |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                                     |
-| `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, auth fns, typed Firestore converters/collections, data-access + storage helpers |
-| `@kidswear/auth`     | Auth orchestration (react): zod schemas, `mapAuthError`, `useAuthActions` / `useAuthBootstrap` / `useAuth`                             |
-| `@kidswear/data`     | Server-state reads (TanStack Query): `makeQueryClient`, `queryKeys`, `useCategories` / `useProducts` / `useProduct`                    |
-| `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                                         |
-| `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                           |
-| `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                             |
-| `@kidswear/utils`    | `formatPrice` (UZS), `formatDate`, etc.                                                                                                |
-| `@kidswear/config`   | Shared ESLint (flat) + Prettier + base tsconfig                                                                                        |
+| Package              | Responsibility                                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@kidswear/core`     | Domain model as Zod schemas; types inferred via `z.infer` (single source of truth)                                                                     |
+| `@kidswear/firebase` | Platform-agnostic Firebase data layer: `initFirebase`, auth fns, typed Firestore converters/collections, data-access + storage helpers                 |
+| `@kidswear/auth`     | Auth orchestration (react): zod schemas, `mapAuthError`, `useAuthActions` / `useAuthBootstrap` / `useAuth`                                             |
+| `@kidswear/data`     | Server-state (TanStack Query) + real-time orders: catalog hooks, `useCheckout`, `useUserOrders` / `useOrder` / `useCancelOrder`, `PaymentService` stub |
+| `@kidswear/store`    | Redux Toolkit slices (auth/cart/ui), `makeStore(storage)` factory, typed hooks                                                                         |
+| `@kidswear/i18n`     | react-i18next config, `initI18n(detector)`, uz/en/ru locales                                                                                           |
+| `@kidswear/theme`    | Pure-TS design tokens (colors, spacing, radii, typography)                                                                                             |
+| `@kidswear/utils`    | `formatPrice` (UZS), `formatDate`, etc.                                                                                                                |
+| `@kidswear/config`   | Shared ESLint (flat) + Prettier + base tsconfig                                                                                                        |
 
 ## Getting started
 

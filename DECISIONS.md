@@ -195,3 +195,30 @@ enableCssLayer>` puts MUI styles in the `mui` layer so **Tailwind utilities win*
   **placeholder image URLs** (picsum). Real images come in the admin/image phase.
 - Add-to-cart reuses the existing `cartSlice.addItem` (persisted), so the cart badge survives
   reload/restart. No checkout/admin/image-upload in this phase.
+
+## Cart & Checkout (Phase 5)
+
+- **50% deposit model.** `@kidswear/utils.computeOrderTotals` (pure): `subtotal =
+Σ price×qty`, `depositAmount = round(subtotal × DEPOSIT_RATE=0.5)`, `total = subtotal`
+  (remaining = total − deposit). UZS integer som throughout.
+- **Rules-aware "create-in-final-state".** Firestore rules forbid client order updates, so
+  checkout runs the (stubbed) payment FIRST, then `createOrder` in its final state
+  (`status:'deposit_paid'`, `paidAmount == depositAmount`) in a single create — never
+  create-then-update from the client. A real gateway would instead create a `pending` order
+  and confirm payment server-side via a webhook/Cloud Function; documented for Phase 7.
+- **Payment is a stub behind an interface.** `PaymentService.payDeposit(orderRef, amount)`
+  with `mockPaymentService` (resolves success after a short delay). No card data collected; a
+  real provider drops in without touching checkout logic.
+- **No client stock writes.** Rules forbid product writes; stock decrement is deferred to
+  Cloud Functions (Phase 7). Checkout does a READ-ONLY stock re-check (re-fetch each product)
+  and blocks the order if any requested qty exceeds current stock.
+- **Real-time orders vs cached catalog.** `useUserOrders` / `useOrder` use Firestore
+  `onSnapshot` (live), coexisting with the TanStack Query catalog hooks (cached one-shot
+  reads). Cancellation (`useCancelOrder`) is a Query mutation; owners may cancel only from
+  `pending`/`deposit_paid` (rules enforce a status-only change to `cancelled`).
+- **`@kidswear/data` stays store-agnostic.** `useCheckout` takes `{ userId, items,
+shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on success
+  (the data package never imports Redux). Thrown error keys are i18n keys resolved by the UI.
+- **Orders rules updated** (authored, not deployed): create requires a valid initial state
+  (deposit_paid ⇒ paidAmount == depositAmount; pending ⇒ paid 0) with required fields; update
+  is admin, or an owner cancelling a pending/deposit_paid order via a status-only change.
