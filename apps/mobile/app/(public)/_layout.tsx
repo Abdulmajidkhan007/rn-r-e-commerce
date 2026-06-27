@@ -53,6 +53,13 @@ export default function PublicTabsLayout(): React.ReactElement {
         options={{ title: t('nav.profile'), tabBarIcon: tabIcon('account-circle-outline') }}
       />
       <Tabs.Screen name="product/[id]" options={{ href: null }} />
+      <Tabs.Screen name="checkout" options={{ href: null, title: t('cart.checkout') }} />
+      <Tabs.Screen
+        name="checkout-success"
+        options={{ href: null, title: t('checkout.orderPlaced') }}
+      />
+      <Tabs.Screen name="orders" options={{ href: null, title: t('orders.myOrders') }} />
+      <Tabs.Screen name="order/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

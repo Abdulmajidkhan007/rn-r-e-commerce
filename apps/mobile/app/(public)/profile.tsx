@@ -1,6 +1,6 @@
 import { ScrollView, View } from 'react-native';
-import { Redirect } from 'expo-router';
-import { Avatar, Button, Card, Chip, Divider, Text } from 'react-native-paper';
+import { Redirect, useRouter } from 'expo-router';
+import { Avatar, Button, Card, Chip, Divider, List, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth, useAuthActions } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
@@ -10,6 +10,7 @@ import { SecuritySection } from '@/components/profile/SecuritySection';
 
 export default function ProfileScreen(): React.ReactElement {
   const { t } = useTranslation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, isAdmin, isAuthenticated, status } = useAuth();
   const { logout } = useAuthActions();
@@ -54,6 +55,15 @@ export default function ProfileScreen(): React.ReactElement {
             {t('auth.actions.logout')}
           </Button>
         </Card.Content>
+      </Card>
+
+      <Card mode="outlined">
+        <List.Item
+          title={t('orders.myOrders')}
+          left={(props) => <List.Icon {...props} icon="receipt" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => router.push('/orders')}
+        />
       </Card>
 
       <ProfileForm />
