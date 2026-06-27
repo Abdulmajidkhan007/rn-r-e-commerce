@@ -32,6 +32,13 @@
         {
           "faceIDPermission": "Allow KidsWear to use Face ID to unlock your account."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow KidsWear to access your photos to set product/profile images.",
+          "cameraPermission": "Allow KidsWear to use the camera to take product/profile photos."
+        }
       ]
     ],
     "experiments": {
