@@ -309,3 +309,38 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
   `apps/mobile/eas.json` defines a `development` profile. The setup steps are in the README;
   no store submission this phase. iOS dev builds need a paid Apple Developer account —
   documented so the user can skip iOS and test on Android only if needed.
+
+## Polish, web deploy & legal (Phase 8a)
+
+- **Audience policy is adult-buyers (parents).** KidsWear sells children's clothing but the
+  service is intended for users 18+. This framing runs through the privacy + terms copy,
+  the in-app wording, and (next phase) the Play Store listing — explicitly to stay OUT of
+  Google Play's Families program (which would impose COPPA-style child-app rules we don't
+  need to comply with because we don't market to children or knowingly collect their data).
+- **Brand assets are placeholders generated from one SVG.** `assets/source/kidswear-mark.svg`
+  → `scripts/generate-brand-assets.mjs` (sharp, root devDep) produces all PNGs: mobile
+  `icon`/`adaptive-icon`/`notification-icon`/`splash-icon`/`favicon`, web `favicon-32` /
+  `favicon.ico` / `apple-touch-icon-180` / `maskable-192/512` / `og-image`, plus the
+  `manifest.webmanifest`. The script is idempotent so re-running on a designer's SVG drop-in
+  produces fresh assets without code changes.
+- **Legal content lives in a shared package.** `@kidswear/legal` exports `getLegalDoc(kind,
+  locale)` returning the markdown string. Files are `.ts` template literals (not `.md`) so
+  the package works under both Vite and Metro without bundler-specific raw-import plugins.
+  Both web (`/privacy`, `/terms`) and mobile (in-app screens reachable from Profile) read
+  from the same source — single source of truth.
+- **Legal copy is grounded in the actual data flow** — no boilerplate clauses for features
+  we don't ship (no analytics, no advertising IDs, no payment-card processing because the
+  deposit is a stub). The third-party list is just Google Firebase + Expo Push Service with
+  links to their privacy policies. Contact email is flagged as a placeholder for real launch.
+- **SEO is meta-tag-level only this phase** — `index.html` head with OpenGraph + Twitter
+  Card, a `useDocumentTitle` hook for per-page titles, a static `sitemap.xml` (`/`,
+  `/catalog`, `/privacy`, `/terms`) with a comment flagging per-product entries as a future
+  improvement, and a permissive `robots.txt`. No `react-helmet`/SSR overhead — the small
+  hook is enough for a CSR SPA.
+- **Netlify monorepo strategy: `base = apps/web`.** Netlify cd's into the web app and runs
+  its `npm run build` directly, bypassing the root Turborepo pipeline at deploy time. That's
+  intentional — only the web app is hosted on Netlify; mobile (EAS) and Functions (Firebase)
+  ship elsewhere. SPA fallback redirect, no-cache for the FCM Service Worker (`/firebase-
+  messaging-sw.js`), and `immutable` cache for Vite's fingerprinted `/assets/*`.
+- **No production Android build or Play submission yet.** That's Phase 8b — and it needs the
+  live privacy-policy URL produced by this phase's Netlify deploy.
