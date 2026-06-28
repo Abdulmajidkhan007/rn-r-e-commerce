@@ -2,12 +2,13 @@ import { ScrollView, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useRouter } from 'expo-router';
-import { Button, HelperText, Text } from 'react-native-paper';
+import { Button, Divider, HelperText, Text } from 'react-native-paper';
 import { registerSchema, type RegisterValues, useAuthActions } from '@kidswear/auth';
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { FormTextInput } from '@/components/FormTextInput';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 export default function RegisterScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -31,19 +32,31 @@ export default function RegisterScreen(): React.ReactElement {
   });
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 24, gap: 8 }}>
-      <Text variant="headlineMedium" style={{ fontWeight: '800' }}>
-        {t('auth.register.title')}
-      </Text>
-      <Text variant="bodyMedium" style={{ opacity: 0.7, marginBottom: 8 }}>
-        {t('auth.register.subtitle')}
-      </Text>
+    <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
+      <View style={{ gap: 4 }}>
+        <Text variant="headlineMedium" style={{ fontWeight: '800' }}>
+          {t('auth.register.title')}
+        </Text>
+        <Text variant="bodyMedium" style={{ opacity: 0.7 }}>
+          {t('auth.register.subtitle')}
+        </Text>
+      </View>
 
       {serverError ? (
         <HelperText type="error" visible>
           {tk(serverError)}
         </HelperText>
       ) : null}
+
+      <GoogleSignInButton mode="register" />
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Divider style={{ flex: 1 }} />
+        <Text variant="bodySmall" style={{ opacity: 0.6 }}>
+          {t('auth.orContinueWith')}
+        </Text>
+        <Divider style={{ flex: 1 }} />
+      </View>
 
       <FormTextInput
         control={control}

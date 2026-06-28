@@ -1,10 +1,12 @@
 import {
   type User,
   type Unsubscribe,
+  type AuthCredential,
   createUserWithEmailAndPassword,
   getIdTokenResult,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -69,4 +71,22 @@ export async function getCurrentClaims(): Promise<AuthClaims> {
   return { role: typeof role === 'string' ? role : undefined };
 }
 
-export type { User } from 'firebase/auth';
+/** Completes a sign-in using a federated AuthCredential (Google / etc.).
+ *  First-time logins write a customer profile doc (rules enforce role). */
+export async function signInWithGoogleCredential(credential: AuthCredential): Promise<User> {
+  const { auth } = getFirebase();
+  const cred = await signInWithCredential(auth, credential);
+  const user = cred.user;
+  // Upsert the mirror profile if this is the user's first sign-in (or just refresh).
+  await upsertUserProfile({
+    uid: user.uid,
+    email: user.email ?? '',
+    displayName: user.displayName ?? (user.email?.split('@')[0] ?? 'User'),
+    role: 'customer',
+    addresses: [],
+    ...(user.photoURL ? { avatarUrl: user.photoURL } : {}),
+  });
+  return user;
+}
+
+export type { User, AuthCredential } from 'firebase/auth';

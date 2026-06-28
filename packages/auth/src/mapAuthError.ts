@@ -8,6 +8,10 @@ const CODE_TO_KEY: Record<string, string> = {
   'auth/too-many-requests': 'auth.errors.tooManyRequests',
   'auth/network-request-failed': 'auth.errors.network',
   'auth/invalid-credential': 'auth.errors.invalidCredential',
+  'auth/popup-closed-by-user': 'auth.errors.popupClosed',
+  'auth/cancelled-popup-request': 'auth.errors.popupClosed',
+  'auth/popup-blocked': 'auth.errors.popupBlocked',
+  'auth/account-exists-with-different-credential': 'auth.errors.accountExists',
 };
 
 const FALLBACK_KEY = 'auth.errors.generic';

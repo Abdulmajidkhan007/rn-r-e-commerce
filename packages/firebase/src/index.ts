@@ -74,12 +74,13 @@ export type { UploadData } from './storage';
 export {
   signUpWithEmail,
   signInWithEmail,
+  signInWithGoogleCredential,
   signOutUser,
   sendPasswordReset,
   onAuthChange,
   getCurrentClaims,
 } from './auth';
-export type { AuthClaims, User } from './auth';
+export type { AuthClaims, User, AuthCredential } from './auth';
 
 // Commonly needed Firebase types re-exported for app bootstrap / consumers.
 export type { FirebaseOptions } from 'firebase/app';
