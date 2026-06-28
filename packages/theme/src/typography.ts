@@ -8,6 +8,8 @@ export const fontSizes = {
   '2xl': 24,
   '3xl': 30,
   '4xl': 36,
+  '5xl': 48,
+  display: 60,
 } as const;
 
 export type FontSizeToken = keyof typeof fontSizes;
@@ -17,15 +19,27 @@ export const fontWeights = {
   medium: '500',
   semibold: '600',
   bold: '700',
+  extrabold: '800',
 } as const;
 
 export type FontWeightToken = keyof typeof fontWeights;
 
 export const lineHeights = {
-  tight: 1.2,
+  tight: 1.15,
+  snug: 1.3,
   normal: 1.5,
   relaxed: 1.7,
 } as const;
+
+/** Tracking — used sparingly on display/hero headings. */
+export const letterSpacings = {
+  tighter: -0.02,
+  tight: -0.01,
+  normal: 0,
+  wide: 0.02,
+} as const;
+
+export type LetterSpacingToken = keyof typeof letterSpacings;
 
 export type LineHeightToken = keyof typeof lineHeights;
 

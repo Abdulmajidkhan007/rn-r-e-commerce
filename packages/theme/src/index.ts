@@ -7,10 +7,20 @@
 export * from './colors';
 export * from './spacing';
 export * from './typography';
+export * from './motion';
+export * from './elevation';
 
 import { palette, semanticColors } from './colors';
 import { spacing, radii } from './spacing';
-import { fontSizes, fontWeights, lineHeights, fontFamilies } from './typography';
+import {
+  fontSizes,
+  fontWeights,
+  lineHeights,
+  fontFamilies,
+  letterSpacings,
+} from './typography';
+import { durations, easings } from './motion';
+import { elevations } from './elevation';
 
 /** Single aggregated token object, convenient for theme adapters. */
 export const tokens = {
@@ -21,7 +31,11 @@ export const tokens = {
   fontSizes,
   fontWeights,
   lineHeights,
+  letterSpacings,
   fontFamilies,
+  durations,
+  easings,
+  elevations,
 } as const;
 
 export type Tokens = typeof tokens;

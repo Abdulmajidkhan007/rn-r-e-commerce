@@ -1,6 +1,7 @@
 /** 4px-based spacing scale shared by both platforms. */
 export const spacing = {
   none: 0,
+  '2xs': 2,
   xs: 4,
   sm: 8,
   md: 12,
@@ -9,6 +10,8 @@ export const spacing = {
   '2xl': 32,
   '3xl': 48,
   '4xl': 64,
+  '5xl': 80,
+  '6xl': 120,
 } as const;
 
 export type SpacingToken = keyof typeof spacing;
