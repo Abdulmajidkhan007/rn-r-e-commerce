@@ -93,8 +93,14 @@
       "tooManyRequests": "Juda ko'p urinish. Birozdan keyin qayta urining",
       "network": "Tarmoq xatosi. Internetni tekshiring",
       "invalidCredential": "Email yoki parol noto'g'ri",
+      "popupClosed": "Kirish oynasi yopildi",
+      "popupBlocked": "Brauzer pop-up'larni bloklab qo'ydi",
+      "accountExists": "Bu email boshqa usul bilan ro'yxatdan o'tgan",
       "generic": "Xatolik yuz berdi. Qayta urining"
-    }
+    },
+    "signInWithGoogle": "Google bilan kirish",
+    "signUpWithGoogle": "Google bilan ro'yxatdan o'tish",
+    "orContinueWith": "yoki"
   },
   "profile": {
     "editProfile": "Profilni tahrirlash",

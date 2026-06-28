@@ -93,8 +93,14 @@
       "tooManyRequests": "Слишком много попыток. Повторите позже",
       "network": "Ошибка сети. Проверьте подключение",
       "invalidCredential": "Неверный email или пароль",
+      "popupClosed": "Окно входа закрыто",
+      "popupBlocked": "Браузер заблокировал всплывающее окно",
+      "accountExists": "Этот email уже зарегистрирован другим способом",
       "generic": "Что-то пошло не так. Повторите попытку"
-    }
+    },
+    "signInWithGoogle": "Войти через Google",
+    "signUpWithGoogle": "Регистрация через Google",
+    "orContinueWith": "или"
   },
   "profile": {
     "editProfile": "Редактировать профиль",
