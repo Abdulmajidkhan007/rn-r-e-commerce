@@ -344,3 +344,18 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
   messaging-sw.js`), and `immutable` cache for Vite's fingerprinted `/assets/*`.
 - **No production Android build or Play submission yet.** That's Phase 8b — and it needs the
   live privacy-policy URL produced by this phase's Netlify deploy.
+
+## Dual hosting: Netlify + Firebase Hosting (Phase 8a addendum)
+
+- **Both are configured; pick one per deploy.** `netlify.toml` and the `"hosting"` block in
+  `firebase.json` produce the same artifact (`apps/web/dist`), with the same SPA rewrite,
+  the same `no-cache` for the FCM Service Worker, and the same `immutable` cache for
+  fingerprinted `/assets/*`. Switching providers is a one-line CLI change, not a code change.
+- **Firebase Hosting unifies the stack.** The rest of the backend (Auth, Firestore, Storage,
+  Functions, FCM) already runs on Firebase; hosting the web app there means one console,
+  one billing line, and — crucially — the hosting domain (`*.web.app` /
+  `*.firebaseapp.com`) is **auto-authorized for Firebase Auth**, so no manual entry in the
+  Authorized-domains list is required for the popular default URL.
+- **Netlify stays as the fallback** for deploy previews per PR and as a quick A/B target if
+  Firebase Hosting hits a quota or limit. The two configs do not conflict; they're just two
+  ways of taking the same `dist` to a public URL.

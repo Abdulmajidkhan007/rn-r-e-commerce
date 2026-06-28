@@ -205,6 +205,23 @@ The repo ships a root `netlify.toml` that points Netlify at `apps/web/`:
 Every PR gets a Netlify deploy preview by default — useful for the next phase's
 Play-Store screenshots and for verifying privacy/terms URLs before submission.
 
+## Deploy (Firebase Hosting, web — alternative)
+
+`firebase.json` also configures Firebase Hosting (same `apps/web/dist`, the same SPA
+rewrite, the same SW no-cache / fingerprinted-asset headers). Deploying to Firebase
+Hosting alongside Netlify gives the rest of the Firebase stack (Auth/Firestore/Storage/
+Functions/FCM) ecosystem unity, and the hosting domain (`*.web.app`,
+`*.firebaseapp.com`) is auto-authorized for Firebase Auth so no manual "Authorized
+domains" entry is needed.
+
+```bash
+# from the repo root, with Firebase CLI installed + logged in
+cd apps/web && npm run build && cd ../..
+firebase deploy --only hosting --project <project-id>
+```
+
+Live URLs: `<project-id>.web.app` and `<project-id>.firebaseapp.com`.
+
 ## Conventions
 
 - **Types are derived from Zod schemas only** — never hand-write a duplicate interface.
