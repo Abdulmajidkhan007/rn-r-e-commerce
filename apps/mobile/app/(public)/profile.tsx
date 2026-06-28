@@ -68,6 +68,21 @@ export default function ProfileScreen(): React.ReactElement {
       <AddressSection />
       <SecuritySection />
       <NotificationsSection />
+
+      <Card mode="outlined">
+        <List.Item
+          title={t('footer.privacy')}
+          left={(props) => <List.Icon {...props} icon="shield-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => router.push('/privacy')}
+        />
+        <List.Item
+          title={t('footer.terms')}
+          left={(props) => <List.Icon {...props} icon="file-document-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => router.push('/terms')}
+        />
+      </Card>
     </ScrollView>
   );
 }

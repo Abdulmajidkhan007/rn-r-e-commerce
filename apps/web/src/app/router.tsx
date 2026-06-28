@@ -31,6 +31,8 @@ const routes: RouteObject[] = [
       },
       { path: 'blog', lazy: lazyPage(() => import('@/pages/BlogPage')) },
       { path: 'contact', lazy: lazyPage(() => import('@/pages/ContactPage')) },
+      { path: 'privacy', lazy: lazyPage(() => import('@/pages/PrivacyPage')) },
+      { path: 'terms', lazy: lazyPage(() => import('@/pages/TermsPage')) },
       { path: 'checkout/success', lazy: lazyPage(() => import('@/pages/CheckoutSuccessPage')) },
       {
         // Guarded route — kept eager so RequireAuth can wrap it directly.

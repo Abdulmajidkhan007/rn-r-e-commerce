@@ -11,9 +11,11 @@ import { useAuth } from '@kidswear/auth';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { Card, PriceTag, QuantityStepper } from '@/components';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function CartPage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('cart.cart'));
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAuth();

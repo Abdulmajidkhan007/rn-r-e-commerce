@@ -33,6 +33,7 @@
       "@kidswear/firebase": ["./packages/firebase/src/index.ts"],
       "@kidswear/store": ["./packages/store/src/index.ts"],
       "@kidswear/i18n": ["./packages/i18n/src/index.ts"],
+      "@kidswear/legal": ["./packages/legal/src/index.ts"],
       "@kidswear/theme": ["./packages/theme/src/index.ts"],
       "@kidswear/utils": ["./packages/utils/src/index.ts"],
       "@kidswear/config": ["./packages/config/src/index.ts"]

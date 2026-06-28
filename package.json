@@ -13,11 +13,13 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "brand:assets": "node scripts/generate-brand-assets.mjs"
   },
   "devDependencies": {
     "firebase-admin": "^14.1.0",
     "prettier": "^3.6.2",
+    "sharp": "^0.35.2",
     "turbo": "^2.10.0",
     "typescript": "^6.0.3"
   },

@@ -15,6 +15,7 @@ import { useTranslation } from '@kidswear/i18n';
 import { PriceTag, Rating, QuantityStepper, Skeleton } from '@/components';
 import { StockBadge } from '@/components/catalog/StockBadge';
 import { useLocalized } from '@/lib/useLocalized';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function ProductPage(): React.ReactElement {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export default function ProductPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const { id = '' } = useParams();
   const { data: product, isLoading, isError, refetch } = useProduct(id);
+  useDocumentTitle(product ? localized(product.name) : t('nav.catalog'));
 
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState<string | null>(null);

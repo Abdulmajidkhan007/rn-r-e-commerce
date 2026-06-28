@@ -11,9 +11,11 @@ import { registerSchema, type RegisterValues, useAuthActions } from '@kidswear/a
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function RegisterPage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('auth.register.title'));
   const tk = useTranslateKey();
   const navigate = useNavigate();
   const { register: registerUser } = useAuthActions();

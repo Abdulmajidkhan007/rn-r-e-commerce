@@ -11,9 +11,11 @@ import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AddressSection } from '@/components/profile/AddressSection';
 import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import NotificationsSection from '@/components/profile/NotificationsSection';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function ProfilePage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('auth.profile.title'));
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { logout } = useAuthActions();

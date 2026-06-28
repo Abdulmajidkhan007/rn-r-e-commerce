@@ -11,9 +11,11 @@ import { loginSchema, type LoginValues, useAuthActions } from '@kidswear/auth';
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function LoginPage(): React.ReactElement {
   const { t } = useTranslation();
+  useDocumentTitle(t('auth.login.title'));
   const tk = useTranslateKey();
   const navigate = useNavigate();
   const location = useLocation();

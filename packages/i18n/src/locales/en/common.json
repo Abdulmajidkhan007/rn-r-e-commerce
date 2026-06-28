@@ -317,5 +317,26 @@
     "newOrderFromUser": "New order from {{name}} for {{total}} UZS",
     "orderStatusChangedTo": "Your order status: {{status}}",
     "orderOutOfStockReason": "Item is out of stock"
+  },
+  "branding": {
+    "tagline": "Kids' Clothing"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© {{year}} KidsWear. All rights reserved.",
+    "tagline": "Quality clothing for kids"
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Service",
+    "lastUpdated": "Last updated",
+    "contactUs": "Contact us",
+    "dataWeCollect": "Data we collect",
+    "howWeUse": "How we use it",
+    "yourRights": "Your rights",
+    "children": "Children's policy",
+    "thirdParties": "Third parties",
+    "changes": "Changes"
   }
 }

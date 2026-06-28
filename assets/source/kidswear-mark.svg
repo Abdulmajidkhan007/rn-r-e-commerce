@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bold K: vertical bar on left, two diagonal arms on right, centered -->
+  <!-- Vertical bar: x=28..40, y=20..80 -->
+  <rect x="28" y="20" width="12" height="60" fill="white"/>
+  <!-- Upper arm: from midpoint (40,50) to top-right (72,20), with thickness -->
+  <polygon points="40,50 40,38 72,20 72,32" fill="white"/>
+  <!-- Lower arm: from midpoint (40,50) to bottom-right (72,80), with thickness -->
+  <polygon points="40,50 40,62 72,80 72,68" fill="white"/>
+</svg>

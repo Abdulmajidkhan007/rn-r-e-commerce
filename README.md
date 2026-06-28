@@ -5,15 +5,18 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 7** — Cloud Functions + push notifications. A `/functions` workspace (outside the
-> monorepo TS build) adds two Firestore triggers: `onOrderCreate` (transactional server-side
-> stock decrement; auto-cancels and notifies the customer on out-of-stock; otherwise notifies
-> admins) and `onOrderUpdate` (notifies the customer on status changes). Push fan-out goes
-> through both the Expo Push Service (mobile) and FCM (web) with token cleanup on
-> DeviceNotRegistered. Each app registers its own token after sign-in (gated by a per-device
-> opt-in), the Profile screen has a Notifications section with a test button, and the user's
-> active language is mirrored to Firestore so push copy is localized. Mobile needs an EAS
-> dev build to receive real push (Expo Go can't); the test button works without it.
+> **Phase 8a** — polish, web deploy, and legal. Brand identity finalized (placeholder
+> assets generated from a single SVG source via a sharp script — app icons, adaptive icon,
+> notification icon, splash, favicons, og-image, web app manifest). A
+> shared `@kidswear/legal` package now hosts real, audience-accurate Privacy Policy and
+> Terms of Service in uz/en/ru, rendered on web at `/privacy` and `/terms` and on mobile
+> from the Profile tab. SEO meta tags + OpenGraph + Twitter Card + `robots.txt` + a static
+> `sitemap.xml` are wired into the web app; per-page document titles use a tiny
+> `useDocumentTitle` hook. A root `netlify.toml` makes the web app Netlify-ready
+> (`base = apps/web`, SPA fallback, no-cache for the FCM Service Worker, immutable cache
+> for fingerprinted assets). **Audience policy:** the app is sold to ADULT buyers (parents);
+> it is not directed at children — this keeps it out of Play's Families program and is
+> reflected in the policy text.
 
 ## Tech stack
 
@@ -165,6 +168,42 @@ eas build --platform android --profile development
 
 Set the mirrored `role:'admin'` (via the script above — it now writes both the Auth claim and
 `users/{uid}.role = 'admin'`) so `sendToAdmins()` can find the admin user docs.
+
+## Brand assets (Phase 8a)
+
+The brand mark (`assets/source/kidswear-mark.svg`) is a placeholder generated programmatically
+into every required PNG via `sharp`:
+
+```bash
+npm run brand:assets
+```
+
+This produces mobile icons (`apps/mobile/assets/`), web favicons + maskable PWA icons
++ the OpenGraph image (`apps/web/public/`). The script is idempotent — re-running on a
+designer's SVG drop-in regenerates everything without code changes.
+
+## Deploy (Netlify, web)
+
+The repo ships a root `netlify.toml` that points Netlify at `apps/web/`:
+
+1. Netlify → **Add new site → Import from Git** → select this repo.
+2. Netlify auto-detects `netlify.toml` (base = `apps/web`, command = `npm run build`,
+   publish = `dist`, Node 20).
+3. **Add environment variables** in Netlify (Site settings → Environment variables):
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID` *(optional)*
+   - `VITE_FIREBASE_VAPID_KEY`
+4. Trigger a deploy. Live URL = `<site-name>.netlify.app` (or a custom domain).
+5. After deploy: `curl -I https://<site>.netlify.app/firebase-messaging-sw.js` to confirm
+   the no-cache headers, then send a test push from the Profile screen to verify FCM end-to-end.
+
+Every PR gets a Netlify deploy preview by default — useful for the next phase's
+Play-Store screenshots and for verifying privacy/terms URLs before submission.
 
 ## Conventions
 
