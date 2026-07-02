@@ -5,18 +5,36 @@ mobile** in a single monorepo. Everything except UI is shared; the UI is impleme
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 8a** — polish, web deploy, and legal. Brand identity finalized (placeholder
-> assets generated from a single SVG source via a sharp script — app icons, adaptive icon,
-> notification icon, splash, favicons, og-image, web app manifest). A
-> shared `@kidswear/legal` package now hosts real, audience-accurate Privacy Policy and
-> Terms of Service in uz/en/ru, rendered on web at `/privacy` and `/terms` and on mobile
-> from the Profile tab. SEO meta tags + OpenGraph + Twitter Card + `robots.txt` + a static
-> `sitemap.xml` are wired into the web app; per-page document titles use a tiny
-> `useDocumentTitle` hook. A root `netlify.toml` makes the web app Netlify-ready
-> (`base = apps/web`, SPA fallback, no-cache for the FCM Service Worker, immutable cache
-> for fingerprinted assets). **Audience policy:** the app is sold to ADULT buyers (parents);
-> it is not directed at children — this keeps it out of Play's Families program and is
-> reflected in the policy text.
+> **Phase 10** — UI overhaul + Google Sign-In. Design tokens tightened
+> (`tokens.durations`/`easings`, `tokens.elevations`, display typography, letterSpacings,
+> expanded spacing) and both platform adapters restyled (MUI: pill buttons, blurred glass
+> AppBar, refined display H1/H2 with negative letter-spacing; Paper: roundness 4 + full
+> MD3 slots). Web chrome went responsive: sticky two-state header + hamburger drawer on
+> mobile, admin sidebar collapsing to fixed BottomNavigation. Auth screens are now
+> split-screen on desktop with Google Sign-In above the email form, wired
+> platform-agnostically through `@kidswear/firebase.signInWithGoogleCredential`. Deposit
+> UX, product cards, orders timeline, and admin dashboard visuals all pull from the same
+> token system — zero hardcoded hexes/spacing left in touched components.
+
+## Google Sign-In setup
+
+1. **Firebase Console → Authentication → Sign-in method → Google → Enable** (sets a
+   support email, auto-generates the OAuth client, auto-authorizes the Firebase auth
+   domain).
+2. **Web:** the Firebase Hosting domain (`<project>.web.app` / `<project>.firebaseapp.com`)
+   is auto-authorized. If you host elsewhere (Netlify, custom domain), add the deploy URL
+   to **Authorized domains** in the Firebase Auth settings.
+3. **Mobile (later, requires an EAS dev build):** after `eas build:configure`, grab the
+   SHA-1 fingerprint from the dev build and register it under the Android app in the
+   Firebase Console. Then copy the Web, Android, and iOS OAuth client IDs from **Firebase
+   Console → Project Settings → General → Your apps** into `apps/mobile/.env`:
+   ```
+   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=…
+   EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=…
+   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=…
+   ```
+   Live Google sign-in on mobile only works in an EAS dev build (same constraint as
+   biometric AppLock and push).
 
 ## Tech stack
 
