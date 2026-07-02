@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import {
   Bar,
   BarChart,
@@ -14,9 +16,10 @@ import {
 import type { OrderStatus } from '@kidswear/core';
 import { summarizeDashboard, useAdminProducts, useAllOrders } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
-import { formatPrice } from '@kidswear/utils';
+import { formatDate, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
-import { Card } from '@/components';
+import { tokens } from '@kidswear/theme';
+import { StatCard } from '@/components/admin/StatCard';
 
 const STATUS_LABEL = {
   pending: 'orderStatus.pending',
@@ -27,23 +30,9 @@ const STATUS_LABEL = {
   cancelled: 'orderStatus.cancelled',
 } as const;
 
-function StatCard({ label, value }: { label: string; value: string }): React.ReactElement {
-  return (
-    <Card>
-      <Stack spacing={0.5}>
-        <Typography variant="body2" color="text.secondary">
-          {label}
-        </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>
-          {value}
-        </Typography>
-      </Stack>
-    </Card>
-  );
-}
-
 export default function AdminDashboardPage(): React.ReactElement {
   const { t } = useTranslation();
+  const theme = useTheme();
   const language = useAppSelector((s) => s.ui.language);
   const { orders } = useAllOrders();
   const { data: products = [] } = useAdminProducts();
@@ -59,11 +48,16 @@ export default function AdminDashboardPage(): React.ReactElement {
     [stats.byStatus, t],
   );
 
+  const today = useMemo(() => formatDate(new Date(), language), [language]);
+
   return (
     <Stack spacing={3}>
-      <Typography variant="h4" sx={{ fontWeight: 800 }}>
-        {t('admin.dashboard')}
-      </Typography>
+      <Box>
+        <Typography variant="h2">{t('admin.dashboard')}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {today}
+        </Typography>
+      </Box>
 
       <Box
         sx={{
@@ -72,27 +66,56 @@ export default function AdminDashboardPage(): React.ReactElement {
           gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
         }}
       >
-        <StatCard label={t('dashboardStats.totalProducts')} value={String(stats.totalProducts)} />
-        <StatCard label={t('dashboardStats.lowStock')} value={String(stats.lowStock)} />
-        <StatCard label={t('dashboardStats.totalOrders')} value={String(stats.totalOrders)} />
+        <StatCard
+          label={t('dashboardStats.totalProducts')}
+          value={String(stats.totalProducts)}
+          accent="primary"
+        />
+        <StatCard
+          label={t('dashboardStats.lowStock')}
+          value={String(stats.lowStock)}
+          accent="warning"
+        />
+        <StatCard
+          label={t('dashboardStats.totalOrders')}
+          value={String(stats.totalOrders)}
+          accent="secondary"
+        />
         <StatCard
           label={t('dashboardStats.depositsCollected')}
           value={formatPrice(stats.depositsCollected, language)}
+          accent="success"
         />
       </Box>
 
-      <Card>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+      <Card variant="outlined" sx={{ p: 3 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
           {t('dashboardStats.byStatus')}
         </Typography>
         <Box sx={{ width: '100%', height: 320 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="status" fontSize={12} interval={0} />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="count" fill="#1976d2" radius={[4, 4, 0, 0]} />
+            <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+              <XAxis
+                dataKey="status"
+                fontSize={12}
+                interval={0}
+                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                stroke={theme.palette.divider}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                stroke={theme.palette.divider}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: theme.palette.background.paper,
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: tokens.radii.md,
+                }}
+              />
+              <Bar dataKey="count" fill={theme.palette.primary.main} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
