@@ -1,17 +1,73 @@
 import { useState } from 'react';
-import { Dimensions, Image, ScrollView, View } from 'react-native';
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  View,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Button, Chip, Snackbar, Text } from 'react-native-paper';
+import { ActivityIndicator, Button, Chip, Snackbar, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useProduct } from '@kidswear/data';
+import { useProduct, useProducts } from '@kidswear/data';
 import { useAppDispatch, addItem } from '@kidswear/store';
 import { stockStatus } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
-import { PriceTag, QuantityStepper, Rating } from '@/components';
+import { PriceTag, QuantityStepper } from '@/components';
 import { StockBadge } from '@/components/catalog/StockBadge';
+import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
 
 const { width } = Dimensions.get('window');
+
+function ProductGallery({ images, alt }: { images: string[]; alt: string }): React.ReactElement {
+  const theme = useTheme();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>): void => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / width);
+    setActiveIndex(index);
+  };
+
+  return (
+    <View>
+      <FlatList
+        data={images}
+        keyExtractor={(img, i) => `${img}-${i}`}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        renderItem={({ item }) => (
+          <Image
+            source={{ uri: item }}
+            accessibilityLabel={alt}
+            style={{ width, aspectRatio: 4 / 5 }}
+            resizeMode="cover"
+          />
+        )}
+      />
+      {images.length > 1 ? (
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+          {images.map((img, i) => (
+            <View
+              key={img}
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor:
+                  i === activeIndex ? theme.colors.primary : theme.colors.outlineVariant,
+              }}
+            />
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
 
 export default function ProductScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -20,6 +76,7 @@ export default function ProductScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { id = '' } = useLocalSearchParams<{ id: string }>();
   const { data: product, isLoading, isError, refetch } = useProduct(id);
+  const { products: related } = useProducts({ categoryId: product?.categoryId });
 
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
@@ -59,6 +116,7 @@ export default function ProductScreen(): React.ReactElement {
   const needsColor = product.colors.length > 0;
   const canAdd =
     status !== 'out' && (!needsSize || size !== null) && (!needsColor || color !== null);
+  const relatedProducts = related.filter((p) => p.id !== product.id);
 
   const handleAdd = (): void => {
     dispatch(
@@ -78,28 +136,23 @@ export default function ProductScreen(): React.ReactElement {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
-        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-          {product.images.map((img) => (
-            <Image
-              key={img}
-              source={{ uri: img }}
-              style={{ width, aspectRatio: 3 / 4 }}
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
+        <ProductGallery images={product.images} alt={localized(product.name)} />
 
         <View style={{ padding: 16, gap: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text variant="headlineSmall" style={{ flex: 1, fontWeight: '800' }}>
+            <Text variant="headlineMedium" style={{ flex: 1 }}>
               {localized(product.name)}
             </Text>
             <StockBadge stock={product.stock} />
           </View>
 
-          <Rating value={product.rating} />
           <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
-          <Text style={{ opacity: 0.7 }}>{localized(product.description)}</Text>
+          <Text
+            variant="bodyMedium"
+            style={{ opacity: 0.7, lineHeight: 24 }}
+          >
+            {localized(product.description)}
+          </Text>
 
           {needsSize ? (
             <View style={{ gap: 6 }}>
@@ -142,9 +195,27 @@ export default function ProductScreen(): React.ReactElement {
             />
           </View>
 
-          <Button mode="contained" disabled={!canAdd} onPress={handleAdd}>
+          <Button mode="contained" disabled={!canAdd} onPress={handleAdd} style={{ width: '100%' }}>
             {t('catalog.addToCart')}
           </Button>
+
+          {relatedProducts.length > 0 ? (
+            <View style={{ gap: 12, marginTop: 12 }}>
+              <Text variant="titleMedium">{t('catalog.featured')}</Text>
+              <FlatList
+                data={relatedProducts}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 12 }}
+                renderItem={({ item }) => (
+                  <View style={{ width: width * 0.42 }}>
+                    <ProductCard product={item} />
+                  </View>
+                )}
+              />
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 

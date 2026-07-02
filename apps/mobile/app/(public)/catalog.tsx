@@ -32,16 +32,20 @@ export default function CatalogScreen(): React.ReactElement {
   const { products, isLoading, isError, isRefetching, refetch } = useProducts(params);
 
   const header = (
-    <View style={{ gap: 12, paddingBottom: 12 }}>
+    <View style={{ gap: 16, paddingBottom: 16 }}>
+      <Text variant="headlineLarge">{t('nav.catalog')}</Text>
+
       <Searchbar
+        mode="bar"
         placeholder={t('catalog.search')}
         value={searchInput}
         onChangeText={setSearchInput}
       />
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
+        contentContainerStyle={{ gap: 8, alignItems: 'center' }}
       >
         <Chip selected={categoryId === undefined} onPress={() => setCategoryId(undefined)}>
           {t('catalog.allCategories')}
@@ -55,13 +59,11 @@ export default function CatalogScreen(): React.ReactElement {
             {localized(category.name)}
           </Chip>
         ))}
-      </ScrollView>
-      <View style={{ flexDirection: 'row' }}>
         <Menu
           visible={menuOpen}
           onDismiss={() => setMenuOpen(false)}
           anchor={
-            <Button icon="sort" mode="outlined" onPress={() => setMenuOpen(true)}>
+            <Button compact icon="sort" mode="outlined" onPress={() => setMenuOpen(true)}>
               {t(SORT_LABEL[sort])}
             </Button>
           }
@@ -77,7 +79,7 @@ export default function CatalogScreen(): React.ReactElement {
             />
           ))}
         </Menu>
-      </View>
+      </ScrollView>
     </View>
   );
 
