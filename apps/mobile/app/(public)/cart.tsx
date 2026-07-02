@@ -1,15 +1,18 @@
 import { Image, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Card, Divider, IconButton, Text } from 'react-native-paper';
+import { Button, IconButton, Surface, Text, useTheme } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, updateQty, removeItem } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
-import { PriceTag, QuantityStepper } from '@/components';
+import { tokens } from '@kidswear/theme';
+import { Card, PriceTag, QuantityStepper } from '@/components';
 
 export default function CartScreen(): React.ReactElement {
   const { t } = useTranslation();
+  const theme = useTheme();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
@@ -22,11 +25,26 @@ export default function CartScreen(): React.ReactElement {
   if (items.length === 0) {
     return (
       <View
-        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 }}
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: tokens.spacing.md,
+          padding: tokens.spacing.xl,
+          paddingBottom: insets.bottom + tokens.spacing.xl,
+        }}
       >
-        <Text variant="titleMedium">{t('cart.emptyCart')}</Text>
+        <MaterialCommunityIcons name="shopping-outline" size={88} color={theme.colors.primary} />
+        <Text variant="titleLarge" style={{ fontWeight: '800', textAlign: 'center' }}>
+          {t('cart.emptyCart', { defaultValue: "Savatchangiz bo'sh" })}
+        </Text>
+        <Text style={{ opacity: 0.7, textAlign: 'center' }}>
+          {t('cart.emptyHint', {
+            defaultValue: "Sevimli mahsulotlaringizni tanlab, savatchaga qo'shing.",
+          })}
+        </Text>
         <Button mode="contained" onPress={() => router.push('/catalog')}>
-          {t('cart.continueShopping')}
+          {t('cart.continueShopping', { defaultValue: 'Xarid qilishni davom ettirish' })}
         </Button>
       </View>
     );
@@ -37,99 +55,128 @@ export default function CartScreen(): React.ReactElement {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}>
-      {items.map((item) => (
-        <Card key={`${item.productId}-${item.size}-${item.color}`} mode="outlined">
-          <Card.Content style={{ flexDirection: 'row', gap: 12 }}>
-            {item.image ? (
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: tokens.spacing.lg,
+          gap: tokens.spacing.md,
+          paddingBottom: insets.bottom + tokens.spacing['6xl'],
+        }}
+      >
+        <Text variant="headlineLarge" style={{ fontWeight: '800' }}>
+          {t('cart.cart')}
+        </Text>
+
+        {items.map((item) => (
+          <Card key={`${item.productId}-${item.size}-${item.color}`}>
+            <View style={{ flexDirection: 'row', gap: tokens.spacing.md }}>
               <Image
                 source={{ uri: item.image }}
-                style={{ width: 64, height: 84, borderRadius: 8 }}
+                style={{ width: 72, height: 92, borderRadius: tokens.radii.md }}
                 resizeMode="cover"
               />
-            ) : null}
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text variant="titleSmall" numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text variant="bodySmall" style={{ opacity: 0.7 }}>
-                {item.size} · {item.color}
-              </Text>
-              <PriceTag price={item.price} size="sm" />
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <QuantityStepper
-                  value={item.quantity}
-                  onChange={(q) =>
-                    dispatch(
-                      updateQty({
-                        productId: item.productId,
-                        size: item.size,
-                        color: item.color,
-                        quantity: q,
-                      }),
-                    )
-                  }
-                  min={1}
-                  max={99}
-                />
-                <IconButton
-                  icon="delete"
-                  size={20}
-                  accessibilityLabel={t('cart.remove')}
-                  onPress={() =>
-                    dispatch(
-                      removeItem({
-                        productId: item.productId,
-                        size: item.size,
-                        color: item.color,
-                      }),
-                    )
-                  }
-                />
+              <View style={{ flex: 1, gap: tokens.spacing.xs }}>
+                <Text variant="titleSmall" numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+                  {item.size} · {item.color}
+                </Text>
+                <PriceTag price={item.price} size="sm" />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <QuantityStepper
+                    value={item.quantity}
+                    onChange={(q) =>
+                      dispatch(
+                        updateQty({
+                          productId: item.productId,
+                          size: item.size,
+                          color: item.color,
+                          quantity: q,
+                        }),
+                      )
+                    }
+                    min={1}
+                    max={99}
+                  />
+                  <IconButton
+                    icon="delete-outline"
+                    size={20}
+                    accessibilityLabel={t('cart.remove')}
+                    onPress={() =>
+                      dispatch(
+                        removeItem({
+                          productId: item.productId,
+                          size: item.size,
+                          color: item.color,
+                        }),
+                      )
+                    }
+                  />
+                </View>
               </View>
             </View>
-          </Card.Content>
-        </Card>
-      ))}
+          </Card>
+        ))}
+      </ScrollView>
 
-      <Card mode="outlined">
-        <Card.Content style={{ gap: 8 }}>
-          <Row label={t('cart.subtotal')} value={formatPrice(totals.subtotal, language)} />
-          <Row label={t('cart.deposit')} value={formatPrice(totals.depositAmount, language)} />
-          <Text variant="bodySmall" style={{ opacity: 0.6 }}>
-            {t('cart.depositNote')}
-          </Text>
-          <Divider />
-          <Row label={t('cart.total')} value={formatPrice(totals.total, language)} strong />
-          <Button mode="contained" onPress={goCheckout}>
-            {t('cart.checkout')}
-          </Button>
-        </Card.Content>
-      </Card>
-    </ScrollView>
-  );
-}
-
-function Row({
-  label,
-  value,
-  strong,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}): React.ReactElement {
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-      <Text variant={strong ? 'titleMedium' : 'bodyMedium'} style={{ opacity: strong ? 1 : 0.7 }}>
-        {label}
-      </Text>
-      <Text
-        variant={strong ? 'titleMedium' : 'bodyMedium'}
-        style={{ fontWeight: strong ? '800' : '400' }}
+      <Surface
+        elevation={tokens.elevations.lg.level}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingHorizontal: tokens.spacing.lg,
+          paddingTop: tokens.spacing.md,
+          paddingBottom: insets.bottom + tokens.spacing.md,
+          borderTopLeftRadius: tokens.radii.lg,
+          borderTopRightRadius: tokens.radii.lg,
+        }}
       >
-        {value}
-      </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: tokens.spacing.xs,
+          }}
+        >
+          <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+            {t('cart.subtotal')}
+          </Text>
+          <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+            {formatPrice(totals.subtotal, language)}
+          </Text>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: tokens.spacing.md,
+          }}
+        >
+          <Text variant="titleMedium" style={{ fontWeight: '800' }}>
+            {t('cart.deposit')}
+          </Text>
+          <Text variant="titleMedium" style={{ fontWeight: '800' }}>
+            {formatPrice(totals.depositAmount, language)}
+          </Text>
+        </View>
+        <Button
+          mode="contained"
+          buttonColor={theme.colors.primary}
+          onPress={goCheckout}
+          style={{ width: '100%' }}
+        >
+          {t('cart.checkout')}
+        </Button>
+      </Surface>
     </View>
   );
 }
