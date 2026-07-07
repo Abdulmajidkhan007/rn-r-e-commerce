@@ -16,7 +16,12 @@ web-build/
 .expo-shared/
 *.orig.*
 apps/mobile/.expo/
-apps/mobile/android/
+# Bare RN native projects are source-of-truth; ignore only build outputs.
+apps/mobile/android/build/
+apps/mobile/android/app/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/local.properties
+apps/mobile/android/app/google-services.json
 apps/mobile/ios/
 
 # vite
