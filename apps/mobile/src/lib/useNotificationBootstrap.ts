@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@kidswear/auth';
-import { useAppDispatch, useAppSelector, setExpoPushToken } from '@kidswear/store';
+import { useAppDispatch, useAppSelector, setFcmPushToken } from '@kidswear/store';
 import { setUserLanguage } from '@kidswear/firebase';
 import type { SupportedLanguage } from '@kidswear/i18n';
 import type { UserLanguage } from '@kidswear/core';
@@ -19,7 +19,7 @@ export function useNotificationBootstrap(): void {
   const dispatch = useAppDispatch();
   const { status, user } = useAuth();
   const enabled = useAppSelector((s) => s.notifications.enabled);
-  const expoToken = useAppSelector((s) => s.notifications.expoToken);
+  const fcmToken = useAppSelector((s) => s.notifications.fcmToken);
   const uiLanguage = useAppSelector((s) => s.ui.language);
 
   // Track the last language we synced so we don't spam Firestore on every render.
@@ -31,10 +31,10 @@ export function useNotificationBootstrap(): void {
     const uid = user.uid;
 
     // 1. Register push token when enabled but not yet cached.
-    if (enabled && expoToken === null) {
+    if (enabled && fcmToken === null) {
       void registerForPushNotifications(uid).then((token) => {
         if (token !== null) {
-          dispatch(setExpoPushToken(token));
+          dispatch(setFcmPushToken(token));
         }
       });
     }
@@ -53,5 +53,5 @@ export function useNotificationBootstrap(): void {
         console.warn('[push] setUserLanguage failed:', err);
       });
     }
-  }, [status, user, enabled, expoToken, uiLanguage, dispatch]);
+  }, [status, user, enabled, fcmToken, uiLanguage, dispatch]);
 }

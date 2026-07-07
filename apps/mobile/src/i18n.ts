@@ -1,5 +1,5 @@
 import type { LanguageDetectorModule } from 'i18next';
-import { getLocales } from 'expo-localization';
+import { getLocales } from 'react-native-localize';
 import {
   initI18n,
   fallbackLanguage,
@@ -16,8 +16,8 @@ function pickDeviceLanguage(): SupportedLanguage {
   return match ?? fallbackLanguage;
 }
 
-/** Custom i18next detector backed by expo-localization. */
-const expoLocalizationDetector: LanguageDetectorModule = {
+/** Custom i18next detector backed by react-native-localize. */
+const rnLocalizeDetector: LanguageDetectorModule = {
   type: 'languageDetector',
   init: () => undefined,
   detect: () => pickDeviceLanguage(),
@@ -25,4 +25,4 @@ const expoLocalizationDetector: LanguageDetectorModule = {
 };
 
 /** Mobile i18n instance using the device locale. */
-export const i18n = initI18n({ detector: expoLocalizationDetector });
+export const i18n = initI18n({ detector: rnLocalizeDetector });

@@ -1,17 +1,15 @@
-import * as ImagePicker from 'expo-image-picker';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { Platform } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
 
 /**
- * Requests media-library (and optionally camera) permission BEFORE opening the
- * picker, avoiding the post-select iOS permission dialog.
+ * react-native-image-picker prompts for the relevant OS permission itself
+ * (media library / camera) when launched, so there is no separate
+ * pre-flight permission step to perform here. Kept as a no-op async function
+ * so callers that awaited a permission check before opening the picker keep
+ * compiling unchanged.
  */
-export async function ensurePermissions(camera = false): Promise<boolean> {
-  const lib = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!lib.granted) return false;
-  if (camera) {
-    const cam = await ImagePicker.requestCameraPermissionsAsync();
-    if (!cam.granted) return false;
-  }
+export async function ensurePermissions(_camera = false): Promise<boolean> {
   return true;
 }
 
@@ -21,25 +19,27 @@ export interface PickOptions {
 
 /** Picks an image from the library or camera; returns its uri (or null). */
 export async function pickImage({ camera = false }: PickOptions = {}): Promise<string | null> {
-  const ok = await ensurePermissions(camera);
-  if (!ok) return null;
+  try {
+    const result = camera
+      ? await launchCamera({ mediaType: 'photo' })
+      : await launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 });
 
-  const result = camera
-    ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 })
-    : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
-
-  if (result.canceled) return null;
-  return result.assets[0]?.uri ?? null;
+    if (result.didCancel) return null;
+    return result.assets?.[0]?.uri ?? null;
+  } catch (err) {
+    console.warn('[image] pickImage failed:', err);
+    return null;
+  }
 }
 
 /**
- * Resizes and re-encodes an image to WebP using the NEW contextual
- * ImageManipulator API. WebP also normalizes iOS HEIC/AVIF sources.
+ * Resizes and re-encodes an image to WebP. Falls back to JPEG on iOS, since
+ * WEBP output is Android-only in react-native-image-resizer (the project
+ * ships Android-only, so this is an acceptable caveat).
  */
 export async function processToWebp(uri: string, { maxW = 1080 } = {}): Promise<Blob> {
-  const context = ImageManipulator.manipulate(uri).resize({ width: maxW });
-  const image = await context.renderAsync();
-  const out = await image.saveAsync({ format: SaveFormat.WEBP, compress: 0.8 });
-  const response = await fetch(out.uri);
+  const format = Platform.OS === 'ios' ? 'JPEG' : 'WEBP';
+  const result = await ImageResizer.createResizedImage(uri, maxW, maxW * 1.25, format, 80);
+  const response = await fetch(result.uri);
   return response.blob();
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Linking, View } from 'react-native';
 import { Button, Card, HelperText, List, Snackbar, Switch, Text } from 'react-native-paper';
 import { useTranslation } from '@kidswear/i18n';
-import { useAppDispatch, useAppSelector, setNotificationsEnabled, setExpoPushToken } from '@kidswear/store';
+import { useAppDispatch, useAppSelector, setNotificationsEnabled, setFcmPushToken } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
 import {
   ensurePermission,
@@ -17,7 +17,7 @@ export function NotificationsSection(): React.ReactElement {
   const { user, status } = useAuth();
 
   const enabled = useAppSelector((s) => s.notifications.enabled);
-  const expoToken = useAppSelector((s) => s.notifications.expoToken);
+  const fcmToken = useAppSelector((s) => s.notifications.fcmToken);
 
   const [busy, setBusy] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -41,13 +41,13 @@ export function NotificationsSection(): React.ReactElement {
         dispatch(setNotificationsEnabled(true));
         const token = await registerForPushNotifications(user.uid);
         if (token !== null) {
-          dispatch(setExpoPushToken(token));
+          dispatch(setFcmPushToken(token));
         }
       } else {
-        if (expoToken !== null) {
-          await unregisterPushToken(user.uid, expoToken);
+        if (fcmToken !== null) {
+          await unregisterPushToken(user.uid, fcmToken);
         }
-        dispatch(setExpoPushToken(null));
+        dispatch(setFcmPushToken(null));
         dispatch(setNotificationsEnabled(false));
       }
     } finally {
@@ -67,11 +67,11 @@ export function NotificationsSection(): React.ReactElement {
     }
   };
 
-  const statusIcon = enabled && expoToken !== null ? 'bell' : 'bell-off';
+  const statusIcon = enabled && fcmToken !== null ? 'bell' : 'bell-off';
   const statusText =
     permissionDenied
       ? t('notifications.permissionDenied')
-      : enabled && expoToken !== null
+      : enabled && fcmToken !== null
         ? t('notifications.enabled')
         : t('notifications.disabled');
 
@@ -112,7 +112,7 @@ export function NotificationsSection(): React.ReactElement {
             </View>
           ) : null}
 
-          {enabled && expoToken !== null ? (
+          {enabled && fcmToken !== null ? (
             <View style={{ alignItems: 'flex-start' }}>
               <Button
                 icon="bell-ring"
