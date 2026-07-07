@@ -8,6 +8,7 @@ import { useAppSelector } from '@kidswear/store';
 import { formatDate, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
+import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 
 export default function OrderDetailScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -52,6 +53,12 @@ export default function OrderDetailScreen(): React.ReactElement {
         </Text>
         <OrderStatusChip status={order.status} />
       </View>
+
+      <Card mode="outlined">
+        <Card.Content>
+          <OrderStatusTimeline status={order.status} />
+        </Card.Content>
+      </Card>
 
       <Card mode="outlined">
         <Card.Content style={{ gap: 6 }}>

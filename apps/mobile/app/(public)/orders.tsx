@@ -1,6 +1,6 @@
 import { FlatList, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, Card, Text } from 'react-native-paper';
+import { ActivityIndicator, Button, Card, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Order } from '@kidswear/core';
 import { useAuth } from '@kidswear/auth';
@@ -59,8 +59,13 @@ export default function OrdersScreen(): React.ReactElement {
       renderItem={renderItem}
       contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}
       ListEmptyComponent={
-        <View style={{ paddingVertical: 48, alignItems: 'center' }}>
-          <Text style={{ opacity: 0.7 }}>{t('orders.noOrders')}</Text>
+        <View style={{ paddingVertical: 64, alignItems: 'center', gap: 12 }}>
+          <Text variant="titleMedium" style={{ fontWeight: '700' }}>
+            {t('orders.noOrders')}
+          </Text>
+          <Button mode="contained" onPress={() => router.push('/catalog')}>
+            {t('nav.catalog')}
+          </Button>
         </View>
       }
     />
