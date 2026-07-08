@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { ActivityIndicator, Button, Card, Dialog, Divider, Portal, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCancelOrder, useOrder } from '@kidswear/data';
@@ -9,11 +9,13 @@ import { formatDate, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
+import type { RootStackParamList } from '@/navigation/types';
 
-export default function OrderDetailScreen(): React.ReactElement {
+export function OrderDetailScreen(): React.ReactElement {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const { params } = useRoute<RouteProp<RootStackParamList, 'OrderDetail'>>();
+  const id = params?.id ?? '';
   const language = useAppSelector((s) => s.ui.language);
   const { order, loading } = useOrder(id);
   const { cancel, isPending } = useCancelOrder();

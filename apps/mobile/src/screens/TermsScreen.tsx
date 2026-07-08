@@ -4,7 +4,7 @@ import { useAppSelector } from '@kidswear/store';
 import { getLegalDoc } from '@kidswear/legal';
 import { MarkdownView } from '@/components/MarkdownView';
 
-export default function TermsScreen(): React.ReactElement {
+export function TermsScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
   const language = useAppSelector((s) => s.ui.language);
   const markdown = getLegalDoc('terms', language);

@@ -8,7 +8,7 @@ import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { ActivityIndicator, Button, Chip, Snackbar, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProduct, useProducts } from '@kidswear/data';
@@ -19,6 +19,7 @@ import { PriceTag, QuantityStepper } from '@/components';
 import { StockBadge } from '@/components/catalog/StockBadge';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
+import type { RootStackParamList } from '@/navigation/types';
 
 const { width } = Dimensions.get('window');
 
@@ -69,12 +70,13 @@ function ProductGallery({ images, alt }: { images: string[]; alt: string }): Rea
   );
 }
 
-export default function ProductScreen(): React.ReactElement {
+export function ProductDetailScreen(): React.ReactElement {
   const { t } = useTranslation();
   const localized = useLocalized();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const { params } = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
+  const id = params?.id ?? '';
   const { data: product, isLoading, isError, refetch } = useProduct(id);
   const { products: related } = useProducts({ categoryId: product?.categoryId });
 

@@ -8,5 +8,10 @@ module.exports = {
     ['module:@react-native/babel-preset', { jsxImportSource: 'nativewind' }],
     'nativewind/babel',
   ],
-  plugins: ['transform-inline-environment-variables'],
+  plugins: [
+    // '@/x' -> './src/x' (mirrors the tsconfig paths alias for Metro).
+    ['module-resolver', { root: ['.'], alias: { '@': './src' } }],
+    '@babel/plugin-transform-export-namespace-from',
+    'transform-inline-environment-variables',
+  ],
 };

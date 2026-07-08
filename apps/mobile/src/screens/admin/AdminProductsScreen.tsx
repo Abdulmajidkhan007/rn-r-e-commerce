@@ -19,7 +19,7 @@ import { useAppSelector } from '@kidswear/store';
 import { ProductFormDialog } from '@/components/admin/ProductFormDialog';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
-export default function AdminProductsScreen(): React.ReactElement {
+export function AdminProductsScreen(): React.ReactElement {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const language = useAppSelector((s) => s.ui.language);

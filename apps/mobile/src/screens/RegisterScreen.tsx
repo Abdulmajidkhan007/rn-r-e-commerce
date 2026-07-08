@@ -1,7 +1,7 @@
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Button, Divider, HelperText, Text } from 'react-native-paper';
 import { registerSchema, type RegisterValues, useAuthActions } from '@kidswear/auth';
 import { useAppSelector } from '@kidswear/store';
@@ -10,10 +10,10 @@ import { FormTextInput } from '@/components/FormTextInput';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
-export default function RegisterScreen(): React.ReactElement {
+export function RegisterScreen(): React.ReactElement {
   const { t } = useTranslation();
   const tk = useTranslateKey();
-  const router = useRouter();
+  const navigation = useNavigation();
   const { register } = useAuthActions();
   const serverError = useAppSelector((s) => s.auth.error);
 
@@ -28,7 +28,7 @@ export default function RegisterScreen(): React.ReactElement {
 
   const onSubmit = handleSubmit(async (values) => {
     const ok = await register(values);
-    if (ok) router.replace('/');
+    if (ok) navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
   });
 
   return (
@@ -95,11 +95,11 @@ export default function RegisterScreen(): React.ReactElement {
       </Button>
 
       <View style={{ marginTop: 8, alignItems: 'center' }}>
-        <Link href="/(auth)/login">
+        <Pressable onPress={() => navigation.navigate('Login')}>
           <Text>
             {t('auth.actions.haveAccount')} {t('auth.actions.login')}
           </Text>
-        </Link>
+        </Pressable>
       </View>
     </ScrollView>
   );

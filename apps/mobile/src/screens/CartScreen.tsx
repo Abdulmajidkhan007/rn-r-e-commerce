@@ -1,7 +1,7 @@
 import { Image, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Button, IconButton, Surface, Text, useTheme } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, updateQty, removeItem } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
@@ -10,10 +10,10 @@ import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { Card, PriceTag, QuantityStepper } from '@/components';
 
-export default function CartScreen(): React.ReactElement {
+export function CartScreen(): React.ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const router = useRouter();
+  const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
@@ -43,7 +43,7 @@ export default function CartScreen(): React.ReactElement {
             defaultValue: "Sevimli mahsulotlaringizni tanlab, savatchaga qo'shing.",
           })}
         </Text>
-        <Button mode="contained" onPress={() => router.push('/catalog')}>
+        <Button mode="contained" onPress={() => navigation.navigate('Tabs', { screen: 'Catalog' })}>
           {t('cart.continueShopping', { defaultValue: 'Xarid qilishni davom ettirish' })}
         </Button>
       </View>
@@ -51,7 +51,11 @@ export default function CartScreen(): React.ReactElement {
   }
 
   const goCheckout = (): void => {
-    router.push(isAuthenticated ? '/checkout' : '/(auth)/login');
+    if (isAuthenticated) {
+      navigation.navigate('Checkout');
+    } else {
+      navigation.navigate('Login');
+    }
   };
 
   return (

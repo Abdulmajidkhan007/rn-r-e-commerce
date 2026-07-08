@@ -1,17 +1,17 @@
 import { ScrollView, View } from 'react-native';
 import { Chip, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { useCategories, useProducts } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { LanguageSwitcher, Skeleton, ThemeToggle } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
 
-export default function HomeScreen(): React.ReactElement {
+export function HomeScreen(): React.ReactElement {
   const { t } = useTranslation();
   const localized = useLocalized();
-  const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { products, isLoading } = useProducts({ sort: 'newest' });
   const categoriesQuery = useCategories();
@@ -39,7 +39,10 @@ export default function HomeScreen(): React.ReactElement {
             contentContainerStyle={{ gap: 8 }}
           >
             {(categoriesQuery.data ?? []).map((category) => (
-              <Chip key={category.id} onPress={() => router.push('/catalog')}>
+              <Chip
+                key={category.id}
+                onPress={() => navigation.navigate('Tabs', { screen: 'Catalog' })}
+              >
                 {localized(category.name)}
               </Chip>
             ))}

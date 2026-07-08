@@ -1,15 +1,17 @@
 import { View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, Card, Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from 'react-native-paper';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Button, Card, Text, useTheme } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from '@kidswear/i18n';
+import type { RootStackParamList } from '@/navigation/types';
 
-export default function CheckoutSuccessScreen(): React.ReactElement {
+export function CheckoutSuccessScreen(): React.ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const router = useRouter();
-  const { orderId = '' } = useLocalSearchParams<{ orderId: string }>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { params } = useRoute<RouteProp<RootStackParamList, 'CheckoutSuccess'>>();
+  const orderId = params?.orderId ?? '';
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 }}>
@@ -34,11 +36,11 @@ export default function CheckoutSuccessScreen(): React.ReactElement {
 
       <View style={{ flexDirection: 'row', gap: 12 }}>
         {orderId ? (
-          <Button mode="contained" onPress={() => router.replace(`/order/${orderId}`)}>
+          <Button mode="contained" onPress={() => navigation.replace('OrderDetail', { id: orderId })}>
             {t('orders.viewOrder')}
           </Button>
         ) : null}
-        <Button mode="outlined" onPress={() => router.replace('/')}>
+        <Button mode="outlined" onPress={() => navigation.replace('Tabs')}>
           {t('checkout.backToHome')}
         </Button>
       </View>

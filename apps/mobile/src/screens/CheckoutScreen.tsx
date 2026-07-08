@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Redirect, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button, Card, Divider, HelperText, RadioButton, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
@@ -10,11 +11,12 @@ import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { AddressDialog } from '@/components/profile/AddressDialog';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import type { RootStackParamList } from '@/navigation/types';
 
-export default function CheckoutScreen(): React.ReactElement {
+export function CheckoutScreen(): React.ReactElement {
   const { t } = useTranslation();
   const tk = useTranslateKey();
-  const router = useRouter();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
   const { user, isAuthenticated, status } = useAuth();
@@ -26,8 +28,23 @@ export default function CheckoutScreen(): React.ReactElement {
   const [selectedId, setSelectedId] = useState('');
   const [dialogVisible, setDialogVisible] = useState(false);
 
-  if (status !== 'idle' && !isAuthenticated) return <Redirect href="/(auth)/login" />;
-  if (items.length === 0) return <Redirect href="/cart" />;
+  const needsAuth = status !== 'idle' && !isAuthenticated;
+  const cartEmpty = items.length === 0;
+
+  useEffect(() => {
+    if (needsAuth) {
+      navigation.navigate('Login');
+    }
+  }, [needsAuth, navigation]);
+
+  useEffect(() => {
+    if (cartEmpty) {
+      navigation.navigate('Tabs', { screen: 'Cart' });
+    }
+  }, [cartEmpty, navigation]);
+
+  if (needsAuth) return <View style={{ flex: 1 }} />;
+  if (cartEmpty) return <View style={{ flex: 1 }} />;
 
   const addresses = user?.addresses ?? [];
   const effectiveId = selectedId || addresses[0]?.id || '';
@@ -41,7 +58,7 @@ export default function CheckoutScreen(): React.ReactElement {
     try {
       const { orderId } = await checkout({ userId: user.uid, items, shippingAddress: selected });
       dispatch(clearCart());
-      router.replace(`/checkout-success?orderId=${orderId}`);
+      navigation.replace('CheckoutSuccess', { orderId });
     } catch {
       // surfaced via `error`
     }

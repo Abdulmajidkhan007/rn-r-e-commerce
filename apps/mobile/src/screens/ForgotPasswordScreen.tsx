@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Button, HelperText, Text } from 'react-native-paper';
 import { forgotSchema, type ForgotValues, useAuthActions } from '@kidswear/auth';
 import { useAppSelector } from '@kidswear/store';
@@ -10,9 +10,10 @@ import { useTranslation } from '@kidswear/i18n';
 import { FormTextInput } from '@/components/FormTextInput';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 
-export default function ForgotPasswordScreen(): React.ReactElement {
+export function ForgotPasswordScreen(): React.ReactElement {
   const { t } = useTranslation();
   const tk = useTranslateKey();
+  const navigation = useNavigation();
   const { resetPassword } = useAuthActions();
   const serverError = useAppSelector((s) => s.auth.error);
   const [sent, setSent] = useState(false);
@@ -65,9 +66,9 @@ export default function ForgotPasswordScreen(): React.ReactElement {
       </Button>
 
       <View style={{ marginTop: 8, alignItems: 'center' }}>
-        <Link href="/(auth)/login">
+        <Pressable onPress={() => navigation.navigate('Login')}>
           <Text>{t('auth.actions.backToLogin')}</Text>
-        </Link>
+        </Pressable>
       </View>
     </ScrollView>
   );

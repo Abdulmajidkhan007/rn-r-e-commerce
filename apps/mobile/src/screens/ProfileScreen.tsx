@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Redirect, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Button, Card, Chip, Divider, List, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth, useAuthActions } from '@kidswear/auth';
@@ -10,17 +11,23 @@ import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import { SecuritySection } from '@/components/profile/SecuritySection';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
 
-export default function ProfileScreen(): React.ReactElement {
+export function ProfileScreen(): React.ReactElement {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user, isAdmin, isAuthenticated, status } = useAuth();
   const { logout } = useAuthActions();
 
   // Protect the profile tab; catalog/home/cart stay public.
-  if (status !== 'idle' && !isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
-  }
+  const needsAuth = status !== 'idle' && !isAuthenticated;
+
+  useEffect(() => {
+    if (needsAuth) {
+      navigation.navigate('Login');
+    }
+  }, [needsAuth, navigation]);
+
+  if (needsAuth) return <View style={{ flex: 1 }} />;
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 24 }}>
@@ -60,7 +67,7 @@ export default function ProfileScreen(): React.ReactElement {
           title={t('orders.myOrders')}
           left={(props) => <List.Icon {...props} icon="receipt" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => router.push('/orders')}
+          onPress={() => navigation.navigate('Orders')}
         />
       </Card>
 
@@ -74,13 +81,13 @@ export default function ProfileScreen(): React.ReactElement {
           title={t('footer.privacy')}
           left={(props) => <List.Icon {...props} icon="shield-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => router.push('/privacy')}
+          onPress={() => navigation.navigate('Privacy')}
         />
         <List.Item
           title={t('footer.terms')}
           left={(props) => <List.Icon {...props} icon="file-document-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => router.push('/terms')}
+          onPress={() => navigation.navigate('Terms')}
         />
       </Card>
     </ScrollView>

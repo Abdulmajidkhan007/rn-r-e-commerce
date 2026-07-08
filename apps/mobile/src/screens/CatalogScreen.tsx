@@ -16,7 +16,7 @@ const SORT_LABEL = {
   priceDesc: 'catalog.priceHighLow',
 } as const;
 
-export default function CatalogScreen(): React.ReactElement {
+export function CatalogScreen(): React.ReactElement {
   const { t } = useTranslation();
   const localized = useLocalized();
   const insets = useSafeAreaInsets();

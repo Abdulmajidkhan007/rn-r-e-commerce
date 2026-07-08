@@ -8,7 +8,7 @@ import { useTranslation } from '@kidswear/i18n';
 import { CategoryFormDialog } from '@/components/admin/CategoryFormDialog';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
-export default function AdminCategoriesScreen(): React.ReactElement {
+export function AdminCategoriesScreen(): React.ReactElement {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { data: categories = [] } = useCategories();

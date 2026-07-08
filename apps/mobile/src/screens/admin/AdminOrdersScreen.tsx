@@ -76,7 +76,7 @@ function OrderRow({
   );
 }
 
-export default function AdminOrdersScreen(): React.ReactElement {
+export function AdminOrdersScreen(): React.ReactElement {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const language = useAppSelector((s) => s.ui.language);

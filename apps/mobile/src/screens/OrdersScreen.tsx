@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { FlatList, View } from 'react-native';
-import { Redirect, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { ActivityIndicator, Button, Card, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Order } from '@kidswear/core';
@@ -10,15 +11,23 @@ import { formatDate, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 
-export default function OrdersScreen(): React.ReactElement {
+export function OrdersScreen(): React.ReactElement {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user, isAuthenticated, status } = useAuth();
   const language = useAppSelector((s) => s.ui.language);
   const { orders, loading } = useUserOrders(user?.uid);
 
-  if (status !== 'idle' && !isAuthenticated) return <Redirect href="/(auth)/login" />;
+  const needsAuth = status !== 'idle' && !isAuthenticated;
+
+  useEffect(() => {
+    if (needsAuth) {
+      navigation.navigate('Login');
+    }
+  }, [needsAuth, navigation]);
+
+  if (needsAuth) return <View style={{ flex: 1 }} />;
 
   if (loading) {
     return (
@@ -31,7 +40,7 @@ export default function OrdersScreen(): React.ReactElement {
   const renderItem = ({ item }: { item: Order }): React.ReactElement => {
     const count = item.items.reduce((n, i) => n + i.quantity, 0);
     return (
-      <Card mode="outlined" onPress={() => router.push(`/order/${item.id}`)}>
+      <Card mode="outlined" onPress={() => navigation.navigate('OrderDetail', { id: item.id })}>
         <Card.Content style={{ gap: 6 }}>
           <View
             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
@@ -63,7 +72,7 @@ export default function OrdersScreen(): React.ReactElement {
           <Text variant="titleMedium" style={{ fontWeight: '700' }}>
             {t('orders.noOrders')}
           </Text>
-          <Button mode="contained" onPress={() => router.push('/catalog')}>
+          <Button mode="contained" onPress={() => navigation.navigate('Tabs', { screen: 'Catalog' })}>
             {t('nav.catalog')}
           </Button>
         </View>

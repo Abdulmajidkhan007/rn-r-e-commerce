@@ -1,7 +1,7 @@
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Button, Divider, HelperText, Text } from 'react-native-paper';
 import { loginSchema, type LoginValues, useAuthActions } from '@kidswear/auth';
 import { useAppSelector } from '@kidswear/store';
@@ -10,10 +10,10 @@ import { FormTextInput } from '@/components/FormTextInput';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
-export default function LoginScreen(): React.ReactElement {
+export function LoginScreen(): React.ReactElement {
   const { t } = useTranslation();
   const tk = useTranslateKey();
-  const router = useRouter();
+  const navigation = useNavigation();
   const { login } = useAuthActions();
   const serverError = useAppSelector((s) => s.auth.error);
 
@@ -28,7 +28,7 @@ export default function LoginScreen(): React.ReactElement {
 
   const onSubmit = handleSubmit(async (values) => {
     const ok = await login(values);
-    if (ok) router.replace('/');
+    if (ok) navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
   });
 
   return (
@@ -80,14 +80,14 @@ export default function LoginScreen(): React.ReactElement {
       </Button>
 
       <View style={{ marginTop: 8, gap: 4, alignItems: 'center' }}>
-        <Link href="/(auth)/forgot-password">
+        <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={{ opacity: 0.8 }}>{t('auth.actions.forgotPassword')}</Text>
-        </Link>
-        <Link href="/(auth)/register">
+        </Pressable>
+        <Pressable onPress={() => navigation.navigate('Register')}>
           <Text>
             {t('auth.actions.noAccount')} {t('auth.actions.register')}
           </Text>
-        </Link>
+        </Pressable>
       </View>
     </ScrollView>
   );

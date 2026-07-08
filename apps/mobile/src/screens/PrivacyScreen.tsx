@@ -4,7 +4,7 @@ import { useAppSelector } from '@kidswear/store';
 import { getLegalDoc } from '@kidswear/legal';
 import { MarkdownView } from '@/components/MarkdownView';
 
-export default function PrivacyScreen(): React.ReactElement {
+export function PrivacyScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
   const language = useAppSelector((s) => s.ui.language);
   const markdown = getLegalDoc('privacy', language);
