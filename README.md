@@ -1,7 +1,7 @@
 # KidsWear
 
-A universal kids' clothing e-commerce platform — **React web** + **React Native (Expo)
-mobile** in a single monorepo. Everything except UI is shared; the UI is implemented
+A universal kids' clothing e-commerce platform — **React web** + **React Native (bare
+CLI) mobile** in a single monorepo. Everything except UI is shared; the UI is implemented
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
@@ -24,27 +24,24 @@ look like the same Material Design product.
 2. **Web:** the Firebase Hosting domain (`<project>.web.app` / `<project>.firebaseapp.com`)
    is auto-authorized. If you host elsewhere (Netlify, custom domain), add the deploy URL
    to **Authorized domains** in the Firebase Auth settings.
-3. **Mobile (later, requires an EAS dev build):** after `eas build:configure`, grab the
-   SHA-1 fingerprint from the dev build and register it under the Android app in the
-   Firebase Console. Then copy the Web, Android, and iOS OAuth client IDs from **Firebase
-   Console → Project Settings → General → Your apps** into `apps/mobile/.env`:
+3. **Mobile:** register your debug/release SHA-1 fingerprints
+   (`cd apps/mobile/android && ./gradlew signingReport`) under the Android app in the
+   Firebase Console, then put the **Web** OAuth client id (Firebase Console → Project
+   Settings → General → Your apps) into `apps/mobile/.env`:
    ```
    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=…
-   EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=…
-   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=…
    ```
-   Live Google sign-in on mobile only works in an EAS dev build (same constraint as
-   biometric AppLock and push).
+   (The variable keeps its historical name; babel inlines `.env` values at bundle time.)
 
 ## Tech stack
 
 | Concern       | Web (`apps/web`)                             | Mobile (`apps/mobile`)                       |
 | ------------- | -------------------------------------------- | -------------------------------------------- |
-| Framework     | Vite + React + TypeScript (strict)           | Expo SDK 56 + Expo Router + TS (strict)      |
+| Framework     | Vite + React + TypeScript (strict)           | React Native 0.85 (bare CLI) + TS (strict)   |
 | UI / Material | MUI + Tailwind v4 (CSS-first)                | React Native Paper (MD3) + NativeWind v4     |
-| Routing       | react-router-dom (createBrowserRouter)       | Expo Router (file-based)                     |
+| Routing       | react-router-dom (createBrowserRouter)       | React Navigation v7 (typed stacks + tabs)    |
 | State         | Redux Toolkit + redux-persist (localStorage) | Redux Toolkit + redux-persist (AsyncStorage) |
-| i18n          | react-i18next + browser detector             | react-i18next + expo-localization            |
+| i18n          | react-i18next + browser detector             | react-i18next + react-native-localize        |
 
 ### Shared packages
 
@@ -80,12 +77,12 @@ npm run dev --workspace @kidswear/web
 
 ```bash
 cd apps/mobile
-npx expo start
-# press i / a for iOS / Android, or scan the QR with Expo Go
+npx react-native start          # Metro bundler
+npx react-native run-android    # build + install on a device/emulator (needs Android SDK)
 ```
 
-> Always install Expo/React Native dependencies with `npx expo install <pkg>` (run from
-> `apps/mobile`) so versions stay compatible with the Expo SDK.
+> Native dependency versions are pinned in `apps/mobile/package.json`; after adding one,
+> rebuild the Android app (`npx react-native run-android`) so autolinking picks it up.
 
 ## Monorepo scripts (root)
 
@@ -116,8 +113,8 @@ The user must sign out/in afterward to refresh their token.
 **Biometric AppLock (mobile only).** When enabled in Profile → Security, the mobile app
 locks the already-signed-in session on cold launch and unlocks with Face ID / fingerprint
 (device-passcode fallback). SecureStore holds only an enabled flag — never a credential —
-and the Firebase session stays the source of truth. Live biometric requires a **development
-build** (EAS); it can't run in Expo Go or the sandbox.
+and the Firebase session stays the source of truth. Live biometric requires a real
+device build (`react-native-biometrics`); it can't run in a plain JS sandbox.
 
 ## Seeding the catalog
 
@@ -152,7 +149,8 @@ firebase deploy --only functions
 
 ## Push notifications (Phase 7)
 
-Two channels: **Expo Push Service** for the mobile app and **FCM** for the web app. Tokens
+One provider — **FCM** — on both platforms: `@react-native-firebase/messaging` on mobile
+(bare RN) and the Firebase Messaging Web SDK on web. Tokens
 are stored on `users/{uid}.pushTokens.{expo|fcm}` (arrays — multi-device per user). Functions
 fan out by reading those arrays via the admin SDK and clean up `DeviceNotRegistered`
 tokens.
@@ -170,18 +168,18 @@ that works without deploying Functions.
    with the same values used in `.env` (Service Workers can't read `import.meta.env`).
 3. Build/deploy the site over HTTPS (required for Service Workers).
 
-### Mobile setup (EAS dev build)
+### Mobile setup (bare React Native)
 
-Push tokens cannot be retrieved under Expo Go — you need an Expo dev build. iOS additionally
-requires a paid Apple Developer account; Android works on any device.
+1. Download `google-services.json` for the Android app from the Firebase Console and place
+   it at `apps/mobile/android/app/google-services.json`.
+2. Uncomment `apply plugin: 'com.google.gms.google-services'` in
+   `apps/mobile/android/app/build.gradle` (the classpath is already wired).
+3. Build on a machine with the Android SDK:
 
 ```bash
-npm i -g eas-cli         # or use npx eas-cli
 cd apps/mobile
-eas login
-eas build:configure      # writes extra.eas.projectId into app.json
-eas build --platform android --profile development
-# Install the resulting APK on a real Android device (or use Internal distribution).
+npx react-native run-android          # debug build on a connected device/emulator
+# or: cd android && ./gradlew assembleRelease
 ```
 
 Set the mirrored `role:'admin'` (via the script above — it now writes both the Auth claim and

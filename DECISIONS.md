@@ -370,3 +370,40 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
 - **`mapAuthError` now covers popup edge cases.** `auth/popup-closed-by-user`, `cancelled-popup-request`, `popup-blocked`, and `account-exists-with-different-credential` map to dedicated `auth.errors.*` keys so users get clear localized copy instead of the "generic" fallback.
 - **Mobile Google Sign-In needs the EAS dev build.** `Google.useAuthRequest` compiles fine in Expo Go but won't return a real id_token there — the same constraint that already applies to biometric AppLock and push (Phase 3/7). Documented in the mobile `googleSignIn.ts` and README's setup section.
 - **Wishlist / favorites deferred.** Explicit product decision — the user mentioned it but it's a separate feature (new Firestore collection, new hooks, new UI). Not part of "polish"; can be picked up as its own phase.
+
+## Expo → bare React Native CLI migration
+
+- **Why**: full ownership of the native projects (no EAS dependency, no Expo Go
+  constraints); Play-Store builds run straight through `./gradlew` on any machine with the
+  Android SDK. Requested explicitly after Phase 10.
+- **What stays**: React Native 0.85.3 (the same core Expo SDK 56 wrapped), React Native
+  Paper + NativeWind, the entire shared package layer, the Firebase **JS SDK** for
+  auth/firestore/storage. What changes is the shell around them.
+- **Navigation**: Expo Router (file-based `app/`) → **React Navigation v7** with typed
+  param lists (`RootStackParamList`), a bottom-tab navigator for the four public tabs and
+  native-stack screens for everything else. Push-tap deep links go through a
+  `navigationRef` so `attachNotificationListeners` can navigate outside the tree.
+- **Push**: Expo Push Service dropped on mobile — **FCM only, both platforms** via
+  `@react-native-firebase/messaging` (+ `@notifee/react-native` for foreground display,
+  channels, and the local test notification). The user doc keeps
+  `pushTokens.{expo,fcm}`; mobile now registers into `fcm`. Cloud Functions' Expo sender
+  stays in place (harmless — the expo array just goes empty for migrated devices).
+- **Module swaps** (signature-preserving so components didn't change):
+  image-picker/manipulator → `react-native-image-picker` + `@bam.tech/react-native-image-
+  resizer` (WEBP on Android; JPEG fallback on iOS — Android-only delivery, documented);
+  secure-store → `react-native-keychain`; local-authentication →
+  `react-native-biometrics`; localization → `react-native-localize`; auth-session →
+  `@react-native-google-signin/google-signin` (needs SHA-1 in Firebase Console);
+  `@expo/vector-icons` → `react-native-vector-icons` (fonts bundled via fonts.gradle).
+- **Env inlining**: bare RN has no `EXPO_PUBLIC_*` magic. `babel.config.js` loads
+  `apps/mobile/.env` via dotenv and `babel-plugin-transform-inline-environment-variables`
+  bakes the values into the bundle. Variable NAMES keep the `EXPO_PUBLIC_` prefix so
+  existing `.env` files and code stay valid — the prefix is now just a naming convention.
+- **Android project**: generated from `@react-native-community/template@0.85.3` and
+  adapted for the monorepo (gradle plugin + react{} paths point at the hoisted root
+  `node_modules`). `google-services.json` is NOT committed; the google-services gradle
+  plugin ships commented-out so the first build succeeds without it — enabling push =
+  drop the json in `android/app/` and uncomment one line.
+- **Verification limits**: this environment has no Android SDK, so the CI-able gate is
+  now `tsc + eslint + react-native bundle` (Metro production bundle). The first
+  `./gradlew assembleDebug` must run on a developer machine — called out in the README.
