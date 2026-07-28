@@ -186,6 +186,44 @@ that works without deploying Functions.
    with the same values used in `.env` (Service Workers can't read `import.meta.env`).
 3. Build/deploy the site over HTTPS (required for Service Workers).
 
+## Release signing (Android)
+
+Debug builds use the shared `debug.keystore` that ships with the template. A
+**release** build needs your own upload key — Play rejects debug-signed uploads.
+
+1. Generate the upload keystore. Do this **once**, and back the file up: losing
+   it means you can never publish an update under the same package name.
+
+   ```bash
+   keytool -genkeypair -v \
+     -keystore apps/mobile/android/kidswear-upload.keystore \
+     -alias kidswear-upload \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. Copy `apps/mobile/android/keystore.properties.example` to
+   `apps/mobile/android/keystore.properties` and fill in the passwords. Both the
+   keystore and that file are gitignored — never commit either.
+
+3. Build:
+
+   ```bash
+   cd apps/mobile/android
+   ./gradlew bundleRelease     # .aab for Play
+   ./gradlew assembleRelease   # .apk for sideloading
+   ```
+
+`app/build.gradle` only declares the release signing config when
+`keystore.properties` exists. Without it the release build falls back to the
+debug key so `assembleRelease` still runs locally — that artifact is for testing
+only and cannot be uploaded.
+
+Register the resulting SHA-1/SHA-256 fingerprints in the Firebase Console
+(`./gradlew signingReport`) or Google Sign-In will fail in release builds.
+
+**Version bumps** are manual in `app/build.gradle`: raise `versionCode` (integer,
+must increase on every upload) and `versionName` (the string users see).
+
 ### Mobile setup (bare React Native)
 
 1. Download `google-services.json` for the Android app from the Firebase Console and place
