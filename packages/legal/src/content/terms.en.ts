@@ -60,7 +60,7 @@ We may update these terms from time to time. Continued use of the service after 
 
 For questions about these terms:
 
-support@kidswear.example
+santexnika.atoyo@gmail.com
 
 *(Placeholder address — to be replaced before production launch.)*
 `;

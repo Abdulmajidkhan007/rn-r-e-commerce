@@ -37,7 +37,7 @@ export default defineConfig({
           environment: 'jsdom',
           globals: true,
           setupFiles: [r('test/setup.web.ts')],
-          include: ['apps/web/**/*.test.tsx'],
+          include: ['apps/web/**/*.test.{ts,tsx}'],
         },
       },
       // Firestore security rules. `firebase emulators:exec` sets

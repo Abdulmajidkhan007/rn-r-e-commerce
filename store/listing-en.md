@@ -74,8 +74,8 @@ privacy policy and terms in the app under Profile.
 
 ## Contact details
 
-- **Email:** ⚠️ replace the `support@kidswear.example` placeholder throughout
-  `packages/legal` and here with a real, monitored address before submitting.
+- **Email:** `santexnika.atoyo@gmail.com` (also used in the privacy policy and
+  terms). Play shows this address publicly on the listing.
 - **Privacy policy URL:** `https://<your-domain>/privacy` — must be publicly
   reachable before you can submit. It is produced by deploying the web app.
 - **Website:** `https://<your-domain>`
@@ -132,7 +132,6 @@ no location, no contacts, no messages, no health data, no payment card details
 
 ## Pre-submission checklist
 
-- [ ] Real support email replacing `support@kidswear.example` everywhere
 - [ ] Web app deployed, so the privacy policy URL resolves publicly
 - [ ] Real brand assets replacing the generated placeholder mark
 - [ ] Upload keystore generated and backed up (see README → Release signing)

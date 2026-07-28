@@ -13,6 +13,9 @@ interface ImportMetaEnv {
   /** UX-only hint for which email is the admin; real authority is the custom claim. */
   readonly VITE_ADMIN_EMAIL?: string;
 
+  /** "true" points the SDK at local Firebase emulators instead of the project. */
+  readonly VITE_USE_FIREBASE_EMULATORS?: string;
+
   /** Payme merchant id. Absent = Payme is not offered at checkout. */
   readonly VITE_PAYME_MERCHANT_ID?: string;
   /** Account field configured in the Payme cabinet; defaults to order_id. */

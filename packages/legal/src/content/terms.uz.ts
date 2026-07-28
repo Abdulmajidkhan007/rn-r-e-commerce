@@ -60,7 +60,7 @@ Biz ushbu shartlarni vaqti-vaqti bilan yangilashimiz mumkin. O'zgarishlardan so'
 
 Ushbu shartlar bo'yicha savollar uchun:
 
-support@kidswear.example
+santexnika.atoyo@gmail.com
 
 *(To'ldiruvchi manzil — ishlab chiqarishga chiqarishdan oldin almashtirilishi kerak.)*
 `;

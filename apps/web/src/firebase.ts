@@ -13,10 +13,17 @@ const config: FirebaseOptions = {
   ...(env.VITE_FIREBASE_MEASUREMENT_ID ? { measurementId: env.VITE_FIREBASE_MEASUREMENT_ID } : {}),
 };
 
-/** Initializes Firebase for the web app using browser localStorage persistence. */
+/**
+ * Initializes Firebase for the web app using browser localStorage persistence.
+ *
+ * With VITE_USE_FIREBASE_EMULATORS=true the SDK is pointed at local emulators
+ * instead — the app then runs on seeded data with no cloud project, and cannot
+ * write to production by accident.
+ */
 export const firebase = initFirebase({
   config,
   persistence: browserLocalPersistence,
+  ...(env.VITE_USE_FIREBASE_EMULATORS === 'true' ? { emulators: {} } : {}),
 });
 
 // Phase 1 wiring smoke (dev only): proves the shared data layer is callable.

@@ -576,3 +576,27 @@ collection). That was honest for a demo catalog and became the documented risk; 
 - **Eleven composite indexes** cover the category × search × sort combinations. They must be
   deployed (`firebase deploy --only firestore:indexes`) before the queries work; Firestore
   fails such a query with a console link rather than returning partial results.
+
+## Local emulator preview
+
+- **`initFirebase` takes an optional `emulators` option.** Both apps can point the SDK at local
+  Firestore/Auth/Storage emulators, which makes the app runnable with seeded data and no cloud
+  credentials — and removes any chance a dev session writes to production.
+- **`scripts/seed-emulator.mjs` talks to the emulator REST API**, not the Admin SDK, so it needs
+  no service-account key and runs anywhere the emulator does. It sends `Authorization: Bearer
+  owner`, the emulator's superuser token, because seeding is an administrative act — the first
+  attempt without it was correctly rejected by the rules, which was a useful signal that the
+  rules are doing their job.
+
+**This exercise found a bug that no automated gate could see.** `import storage from
+'redux-persist/lib/storage'` resolved, under Vite 8's CommonJS interop, to the module *exports
+object* (`{ __esModule: true, default: engine }`) instead of the engine. `makeStore` then threw
+inside `StoreProvider`, React unmounted the tree, and the app rendered a blank page. `tsc`,
+`eslint` and `vite build` all passed — the types are structurally compatible and the failure is
+purely at runtime. It surfaced within seconds of actually loading the page.
+
+The fix (`apps/web/src/app/webStorage.ts`) unwraps the interop, throws a diagnostic error rather
+than a cryptic one if the shape changes again, and is covered by a regression test. The lesson is
+recorded here because it argues for something the CI does not yet do: **load the app and assert it
+renders**. A smoke test driving a real browser would have caught this on the commit that
+introduced it.

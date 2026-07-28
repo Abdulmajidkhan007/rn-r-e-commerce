@@ -54,7 +54,7 @@ Sizda quyidagi huquqlar mavjud:
 - **To'g'irlash** — noto'g'ri ma'lumotlarni tuzatishimizni so'rashingiz mumkin.
 - **O'chirish** — hisobingiz va shaxsiy ma'lumotlaringizni o'chirishimizni so'rashingiz mumkin.
 
-Ushbu huquqlardan foydalanish uchun support@kidswear.example manziliga murojaat qiling. Qo'llaniladigan qonun talab qilgan taqdirda 30 kun ichida javob beramiz.
+Ushbu huquqlardan foydalanish uchun santexnika.atoyo@gmail.com manziliga murojaat qiling. Qo'llaniladigan qonun talab qilgan taqdirda 30 kun ichida javob beramiz.
 
 ## Bolalar siyosati
 
@@ -68,7 +68,7 @@ Ushbu siyosatni vaqti-vaqti bilan yangilashimiz mumkin. Ushbu sahifaning yuqoris
 
 Maxfiylik savollari yoki ma'lumotlar bo'yicha so'rovlar uchun:
 
-support@kidswear.example
+santexnika.atoyo@gmail.com
 
 *(To'ldiruvchi manzil — ishlab chiqarishga chiqarishdan oldin almashtirilishi kerak.)*
 `;

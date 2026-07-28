@@ -54,7 +54,7 @@ You have the right to:
 - **Correction** — ask us to correct inaccurate data.
 - **Deletion** — ask us to delete your account and personal data.
 
-To exercise these rights, contact us at support@kidswear.example. We will respond within 30 days where applicable law requires.
+To exercise these rights, contact us at santexnika.atoyo@gmail.com. We will respond within 30 days where applicable law requires.
 
 ## Children's Policy
 
@@ -68,7 +68,7 @@ We may update this policy from time to time. The "Last updated" date at the top 
 
 For privacy questions or data requests:
 
-support@kidswear.example
+santexnika.atoyo@gmail.com
 
 *(Placeholder address — to be replaced before production launch.)*
 `;

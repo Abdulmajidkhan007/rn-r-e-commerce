@@ -65,6 +65,19 @@ Requires Node 20+ and npm 10+.
 npm install
 ```
 
+### Local backend (Firebase emulators)
+
+Runs both apps against local emulators with seeded demo data — no cloud project,
+no credentials, and no way to write to production by accident:
+
+```bash
+npx firebase emulators:start --only firestore,auth --project kidswear-local
+node scripts/seed-emulator.mjs kidswear-local     # 4 categories, 12 products
+```
+
+Then set `VITE_USE_FIREBASE_EMULATORS=true` in `apps/web/.env.local` (the other
+`VITE_FIREBASE_*` values can be dummies) and start the web app as below.
+
 ### Web
 
 ```bash
