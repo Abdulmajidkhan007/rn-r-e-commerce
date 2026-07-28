@@ -442,3 +442,44 @@ Renames and corrections after the port settled. Behavior is unchanged except whe
 - `firebase-admin@^14` conflicted with `firebase-functions@^6`, whose peer range stops at
   admin 13 — `npm install` in `functions/` failed outright. Bumped to
   `firebase-functions@^7.3.0`, which accepts admin 14. `expo-server-sdk` dropped.
+
+## Tests & CI
+
+- **One root Vitest config with three projects, not a config per package.** Ten near-identical
+  configs would drift; a single `vitest.config.ts` with `projects` keeps environment
+  differences (node vs jsdom) explicit in one file. Workspace aliases point at `src/index.ts`
+  so tests exercise the same entrypoints the apps import — no build step in the test path.
+- **The `rules` project is conditional on `FIRESTORE_EMULATOR_HOST`.** `firebase
+  emulators:exec` sets that variable, so the project registers itself only when an emulator
+  is actually up. A bare `npm test` therefore stays green instead of failing with a
+  connection error, while `npm run test:rules` runs the full set.
+- **Web components render through the real providers.** `renderWithProviders` wires the
+  actual store (`makeStore` with in-memory persist storage), i18n instance and theme rather
+  than mocking them, so a broken provider contract fails a test instead of passing against
+  a mock. In-memory storage keeps redux-persist from leaking state between files.
+- **Assertions avoid Intl glyphs.** `Intl.NumberFormat` emits locale- and ICU-version-specific
+  separators (often NBSP). Price tests compare extracted digits and structural properties
+  instead, so an ICU upgrade in CI does not turn the suite red.
+- **Fixtures are fully typed, with no `as` casts.** `packages/data/src/testFixtures.ts`
+  exports `makeProduct`/`makeOrder` builders. The first draft used `as Product` on partial
+  objects, which compiled while silently diverging from the schema (`Date` where the model
+  says epoch millis, four missing fields). Requiring complete fixtures makes schema drift a
+  compile error.
+
+**Two real defects surfaced while writing these tests, both fixed:**
+
+- `pickLocalized` fell back only on `null`/`undefined`, but the admin forms default `en`/`ru`
+  to `''` and submit them as-is. A category saved without an English name rendered a blank
+  label for English users. Blank now counts as missing.
+- `slugify`'s transliteration map held only the Uzbek-specific Cyrillic letters. Since every
+  unmapped letter is not `[a-z0-9]`, it collapsed to a dash and got trimmed — `"шапка"`
+  slugged to `"sh"`, and a fully-Cyrillic name could slug to the empty string. Uzbek is
+  routinely written in Cyrillic and the slug feeds `name.uz`, so the map now covers the full
+  alphabet.
+
+- **CI is three parallel jobs** (`.github/workflows/ci.yml`): the monorepo verify job
+  (type-check, lint, tests, web build, **Metro production bundle**), a Cloud Functions job
+  (its own install/type-check/lint/build, since it is a separate workspace), and a rules job
+  with a JDK for the emulator. The Metro bundle step is deliberate: it is the only gate that
+  catches bad module aliases and unresolvable native modules, which tsc and eslint cannot see
+  — exactly the class of bug that let an `expo-router` import survive the migration.

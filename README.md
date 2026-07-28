@@ -91,7 +91,24 @@ npm run type-check   # turbo run type-check — tsc --noEmit everywhere
 npm run lint         # turbo run lint — eslint everywhere
 npm run build        # turbo run build
 npm run format       # prettier --write
+npm test             # vitest — unit + web component tests
+npm run test:rules   # Firestore rules tests (starts the emulator; needs Java)
+npm run test:all     # both of the above
 ```
+
+### Tests
+
+One root Vitest config with three projects:
+
+| Project | Environment | Covers                                                          |
+| ------- | ----------- | --------------------------------------------------------------- |
+| `unit`  | node        | Pure logic in `packages/*` and `functions/src` — money, stock, slugs, catalog search/sort, dashboard aggregation, zod schemas, push copy |
+| `web`   | jsdom       | `apps/web` components through the real store + i18n + theme providers (`renderWithProviders`) |
+| `rules` | node        | `firestore.rules` against the Firestore emulator                 |
+
+The `rules` project activates only when `FIRESTORE_EMULATOR_HOST` is set, which
+`firebase emulators:exec` does — so a bare `npm test` never fails on a missing
+emulator. CI runs all three (see `.github/workflows/ci.yml`).
 
 ## Authentication
 

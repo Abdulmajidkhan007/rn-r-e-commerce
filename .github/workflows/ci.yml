@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Type-check, lint & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm test
+
+      - name: Build web
+        run: npm run build --workspace @kidswear/web
+
+      - name: Metro production bundle (Android)
+        # Catches Metro-only breakage — bad aliases, unresolvable native
+        # modules — that tsc and eslint cannot see.
+        run: |
+          mkdir -p dist
+          npm run bundle:android
+        working-directory: apps/mobile
+
+  functions:
+    name: Cloud Functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install
+        run: npm ci
+        working-directory: functions
+
+      - run: npm run type-check
+        working-directory: functions
+      - run: npm run lint
+        working-directory: functions
+      - run: npm run build
+        working-directory: functions
+
+  rules:
+    name: Firestore security rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # The Firestore emulator is a Java process.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      - name: Run rules tests against the emulator
+        run: npm run test:rules

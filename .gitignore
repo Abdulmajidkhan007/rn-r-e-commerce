@@ -54,3 +54,8 @@ Thumbs.db
 # misc
 coverage/
 .cache/
+
+# Firebase emulator logs
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
