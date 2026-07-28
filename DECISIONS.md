@@ -385,9 +385,10 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
   `navigationRef` so `attachNotificationListeners` can navigate outside the tree.
 - **Push**: Expo Push Service dropped on mobile — **FCM only, both platforms** via
   `@react-native-firebase/messaging` (+ `@notifee/react-native` for foreground display,
-  channels, and the local test notification). The user doc keeps
-  `pushTokens.{expo,fcm}`; mobile now registers into `fcm`. Cloud Functions' Expo sender
-  stays in place (harmless — the expo array just goes empty for migrated devices).
+  channels, and the local test notification). `pushTokens` now has a single `fcm` array;
+  the legacy `expo` key was dropped from the schema. Zod strips unknown keys, so profiles
+  written before the migration keep a stale `expo` array that is simply never read — no
+  migration script needed.
 - **Module swaps** (signature-preserving so components didn't change):
   image-picker/manipulator → `react-native-image-picker` + `@bam.tech/react-native-image-
   resizer` (WEBP on Android; JPEG fallback on iOS — Android-only delivery, documented);
@@ -397,8 +398,10 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
   `@expo/vector-icons` → `react-native-vector-icons` (fonts bundled via fonts.gradle).
 - **Env inlining**: bare RN has no `EXPO_PUBLIC_*` magic. `babel.config.js` loads
   `apps/mobile/.env` via dotenv and `babel-plugin-transform-inline-environment-variables`
-  bakes the values into the bundle. Variable NAMES keep the `EXPO_PUBLIC_` prefix so
-  existing `.env` files and code stay valid — the prefix is now just a naming convention.
+  bakes the values into the bundle. Variables are named **`RN_PUBLIC_*`** — the Expo prefix
+  was kept briefly during the port, then renamed so nothing implies an Expo runtime. The
+  plugin runs with an explicit `include` allowlist: without one it substitutes *every*
+  `process.env` read, which would bake unrelated host/CI values into the shipped bundle.
 - **Android project**: generated from `@react-native-community/template@0.85.3` and
   adapted for the monorepo (gradle plugin + react{} paths point at the hoisted root
   `node_modules`). `google-services.json` is NOT committed; the google-services gradle
@@ -407,3 +410,35 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
 - **Verification limits**: this environment has no Android SDK, so the CI-able gate is
   now `tsc + eslint + react-native bundle` (Metro production bundle). The first
   `./gradlew assembleDebug` must run on a developer machine — called out in the README.
+
+### Follow-up: Expo naming cleanup
+
+Renames and corrections after the port settled. Behavior is unchanged except where noted.
+
+- `EXPO_PUBLIC_*` → `RN_PUBLIC_*` across `.env.example`, babel, `src/firebase.ts`,
+  `src/lib/googleSignIn.ts`, and the README. `.env.example` also dropped the unused
+  `GOOGLE_ANDROID_CLIENT_ID` / `GOOGLE_IOS_CLIENT_ID` entries: native sign-in only needs
+  the Web client id, and reads the Android client from `google-services.json`.
+- `pushTokens.expo` removed from the schema, from `addPushToken`/`removePushToken`
+  (now typed `PushChannel = 'fcm'`), and from the privacy policies, which had listed
+  **Expo Push Service** as a third-party processor — inaccurate once FCM became the only
+  channel, and a legal document is the wrong place to leave that stale.
+- Redux `notifications.expoToken` / `setExpoPushToken` deleted — dead since the mobile app
+  switched to `fcmToken`. Installs that persisted the old key keep it as inert data.
+- README said the AppLock flag lives in "SecureStore". It never did after the port —
+  it is `react-native-keychain` under service `kidswear.applock`. Corrected.
+- `ProductCard` still imported `useRouter` from `expo-router`. It resolved only because
+  `expo-router` was reachable transitively through `@react-native-firebase/app`'s
+  dependency on `expo`, so the bundle built and hid the bug. Now on `useNavigation`.
+
+**Cloud Functions were never actually buildable** — two independent faults, both fixed here:
+
+- `functions/.gitignore` had a bare `lib/`. Gitignore patterns without a leading slash
+  match at any depth, so it also matched `functions/src/lib/`, and `admin.ts`, `push.ts`,
+  `i18n.ts` were silently never committed. The pattern is now `/lib/` (build output only)
+  and the three modules are restored, with the fan-out rewritten FCM-only: it reads
+  `pushTokens.fcm`, sends via `sendEachForMulticast`, and prunes tokens FCM reports as
+  permanently unregistered.
+- `firebase-admin@^14` conflicted with `firebase-functions@^6`, whose peer range stops at
+  admin 13 — `npm install` in `functions/` failed outright. Bumped to
+  `firebase-functions@^7.3.0`, which accepts admin 14. `expo-server-sdk` dropped.

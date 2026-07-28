@@ -10,9 +10,13 @@ export type UserRole = z.infer<typeof UserRoleSchema>;
 export const UserLanguageSchema = z.enum(['uz', 'en', 'ru']);
 export type UserLanguage = z.infer<typeof UserLanguageSchema>;
 
-/** Per-user push tokens, fanned out by Cloud Functions. */
+/**
+ * Per-user push tokens, fanned out by Cloud Functions. FCM is the only channel
+ * on both platforms. Profiles written before the Expo removal may still carry a
+ * legacy `expo` array; zod strips unknown keys, so those are ignored on read
+ * and simply go stale — no migration needed.
+ */
 export const PushTokensSchema = z.object({
-  expo: z.array(z.string()).default([]),
   fcm: z.array(z.string()).default([]),
 });
 export type PushTokens = z.infer<typeof PushTokensSchema>;

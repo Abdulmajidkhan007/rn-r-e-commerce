@@ -5,7 +5,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider } from 'firebase/auth';
 import { useAuthActions } from '@kidswear/auth';
 
-const WEB_CLIENT_ID = process.env['EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'] ?? '';
+const WEB_CLIENT_ID = process.env['RN_PUBLIC_GOOGLE_WEB_CLIENT_ID'] ?? '';
 
 let configured = false;
 
@@ -23,7 +23,7 @@ export function useGoogleSignIn(): { promptAsync: () => Promise<void>; ready: bo
 
   if (!ready) {
     console.warn(
-      '[GoogleSignIn] EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID env var is missing. Google Sign-In will be disabled.',
+      '[GoogleSignIn] RN_PUBLIC_GOOGLE_WEB_CLIENT_ID env var is missing. Google Sign-In will be disabled.',
     );
   }
 

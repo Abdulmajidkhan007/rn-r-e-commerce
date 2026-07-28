@@ -37,7 +37,6 @@ We collect only what is needed to run the service:
 We use the following infrastructure providers:
 
 - **Google Firebase** (Auth, Firestore, Storage, Cloud Functions, FCM) — [https://policies.google.com/privacy](https://policies.google.com/privacy)
-- **Expo Push Service** — used to relay mobile push tokens to Firebase Cloud Messaging — [https://expo.dev/privacy](https://expo.dev/privacy)
 
 No other third-party analytics, advertising networks, or data brokers are used.
 

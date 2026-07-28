@@ -57,10 +57,13 @@ export async function setUserAvatar(uid: string, avatarUrl: string | null): Prom
   });
 }
 
+/** Push delivery channel. FCM serves both web and native since the Expo removal. */
+export type PushChannel = 'fcm';
+
 /** Adds a push token under `pushTokens.{channel}` (arrayUnion = dedup). */
 export async function addPushToken(
   uid: string,
-  channel: 'expo' | 'fcm',
+  channel: PushChannel,
   token: string,
 ): Promise<void> {
   await updateDoc(userDoc(uid), {
@@ -72,7 +75,7 @@ export async function addPushToken(
 /** Removes a push token from `pushTokens.{channel}`. */
 export async function removePushToken(
   uid: string,
-  channel: 'expo' | 'fcm',
+  channel: PushChannel,
   token: string,
 ): Promise<void> {
   await updateDoc(userDoc(uid), {

@@ -29,7 +29,7 @@ look like the same Material Design product.
    Firebase Console, then put the **Web** OAuth client id (Firebase Console → Project
    Settings → General → Your apps) into `apps/mobile/.env`:
    ```
-   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=…
+   RN_PUBLIC_GOOGLE_WEB_CLIENT_ID=…
    ```
    (The variable keeps its historical name; babel inlines `.env` values at bundle time.)
 
@@ -96,7 +96,7 @@ npm run format       # prettier --write
 ## Authentication
 
 Email/password via Firebase Auth. Copy each app's `.env.example` to `.env` and fill in your
-Firebase project's web-app config (`VITE_FIREBASE_*` for web, `EXPO_PUBLIC_FIREBASE_*` for
+Firebase project's web-app config (`VITE_FIREBASE_*` for web, `RN_PUBLIC_FIREBASE_*` for
 mobile) so login/register actually talk to Firebase.
 
 **Granting admin.** Admin authority is the Firebase custom claim `role: 'admin'` — the
@@ -112,9 +112,10 @@ The user must sign out/in afterward to refresh their token.
 
 **Biometric AppLock (mobile only).** When enabled in Profile → Security, the mobile app
 locks the already-signed-in session on cold launch and unlocks with Face ID / fingerprint
-(device-passcode fallback). SecureStore holds only an enabled flag — never a credential —
-and the Firebase session stays the source of truth. Live biometric requires a real
-device build (`react-native-biometrics`); it can't run in a plain JS sandbox.
+(device-passcode fallback). The Keychain (`react-native-keychain`, service
+`kidswear.applock`) holds only an enabled flag — never a credential — and the Firebase
+session stays the source of truth. Live biometric requires a real device build
+(`react-native-biometrics`); it can't run in a plain JS sandbox.
 
 ## Seeding the catalog
 
@@ -151,9 +152,9 @@ firebase deploy --only functions
 
 One provider — **FCM** — on both platforms: `@react-native-firebase/messaging` on mobile
 (bare RN) and the Firebase Messaging Web SDK on web. Tokens
-are stored on `users/{uid}.pushTokens.{expo|fcm}` (arrays — multi-device per user). Functions
-fan out by reading those arrays via the admin SDK and clean up `DeviceNotRegistered`
-tokens.
+are stored on `users/{uid}.pushTokens.fcm` (an array — multi-device per user). Functions
+fan out by reading that array via the admin SDK and prune tokens FCM reports as
+permanently invalid.
 
 Each app registers its token after sign-in, gated by a per-device opt-in flag in Redux
 (`notifications.enabled`, persisted alongside cart + ui). The Profile screen has a

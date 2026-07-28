@@ -37,7 +37,6 @@ Biz faqat xizmatni ko'rsatish uchun zarur bo'lgan ma'lumotlarni to'playmiz:
 Biz quyidagi infratuzilma provayderlaridan foydalanamiz:
 
 - **Google Firebase** (Auth, Firestore, Storage, Cloud Functions, FCM) — [https://policies.google.com/privacy](https://policies.google.com/privacy)
-- **Expo Push Service** — mobil push-tokenlarni Firebase Cloud Messaging-ga yo'naltirish uchun ishlatiladi — [https://expo.dev/privacy](https://expo.dev/privacy)
 
 Boshqa uchinchi tomon tahlil tizimlari, reklama tarmoqlari yoki ma'lumotlar brokerlaridan foydalanilmaydi.
 

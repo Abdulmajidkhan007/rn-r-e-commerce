@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import type { Product } from '@kidswear/core';
 import { stockStatus } from '@kidswear/utils';
@@ -8,7 +8,7 @@ import { useLocalized } from '@/lib/useLocalized';
 import { StockBadge } from './StockBadge';
 
 export function ProductCard({ product }: { product: Product }): React.ReactElement {
-  const router = useRouter();
+  const navigation = useNavigation();
   const localized = useLocalized();
   const theme = useTheme();
   const image = product.images[0];
@@ -17,7 +17,7 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
   return (
     <Card
       mode="contained"
-      onPress={() => router.push(`/product/${product.id}`)}
+      onPress={() => navigation.navigate('ProductDetail', { id: product.id })}
       style={{ backgroundColor: theme.colors.surface }}
     >
       <View style={{ position: 'relative' }}>

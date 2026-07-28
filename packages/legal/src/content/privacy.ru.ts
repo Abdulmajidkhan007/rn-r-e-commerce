@@ -37,7 +37,6 @@ KidsWear продаёт детскую одежду. Наши клиенты —
 Мы используем следующих поставщиков инфраструктуры:
 
 - **Google Firebase** (Auth, Firestore, Storage, Cloud Functions, FCM) — [https://policies.google.com/privacy](https://policies.google.com/privacy)
-- **Expo Push Service** — используется для передачи мобильных push-токенов в Firebase Cloud Messaging — [https://expo.dev/privacy](https://expo.dev/privacy)
 
 Другие сторонние аналитические системы, рекламные сети или брокеры данных не используются.
 
