@@ -34,11 +34,18 @@ service cloud.firestore {
     // unpaid). Owners/admins read. Admins update freely; an owner may ONLY
     // cancel a pending/deposit_paid order (status-only change). Never deleted.
     match /orders/{orderId} {
+      // A client may only create an order it has not paid for (status
+      // 'pending'), or one settled by the in-app mock gateway. Hosted gateways
+      // (payme/click) confirm server-side: their orders must start 'pending'
+      // and are flipped by the webhook, which runs with admin credentials and
+      // bypasses these rules. Without this, a client could POST itself a
+      // 'deposit_paid' order and claim a Payme payment that never happened.
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status in ['pending', 'deposit_paid']
         && (request.resource.data.status == 'deposit_paid'
               ? request.resource.data.paidAmount == request.resource.data.depositAmount
+                  && request.resource.data.payment.provider == 'mock'
               : request.resource.data.paidAmount == 0)
         && request.resource.data.keys().hasAll(
               ['items', 'subtotal', 'depositAmount', 'total', 'shippingAddress']);

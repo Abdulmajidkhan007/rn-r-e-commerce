@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Linking, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button, Card, Divider, HelperText, RadioButton, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
-import { useCheckout } from '@kidswear/data';
+import type { PaymentProvider } from '@kidswear/core';
+import { availableProviders, useCheckout } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { AddressDialog } from '@/components/profile/AddressDialog';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { checkoutReturnUrl, paymentProviders } from '@/payments';
 import type { RootStackParamList } from '@/navigation/types';
 
 export function CheckoutScreen(): React.ReactElement {
@@ -23,7 +25,15 @@ export function CheckoutScreen(): React.ReactElement {
   const items = useAppSelector((s) => s.cart.items);
   const language = useAppSelector((s) => s.ui.language);
   const { addAddress, saving } = useAddressActions();
-  const { checkout, isPending, error } = useCheckout();
+  const { checkout, isPending, error } = useCheckout({ providers: paymentProviders });
+
+  // 'mock' stays available so the flow works before any gateway contract is
+  // signed; a configured gateway takes precedence as the default.
+  const providers = useMemo<PaymentProvider[]>(() => {
+    const hosted = availableProviders(paymentProviders);
+    return hosted.length > 0 ? hosted : ['mock'];
+  }, []);
+  const [provider, setProvider] = useState<PaymentProvider>(() => providers[0] ?? 'mock');
 
   const [selectedId, setSelectedId] = useState('');
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -56,8 +66,23 @@ export function CheckoutScreen(): React.ReactElement {
   const placeOrder = async (): Promise<void> => {
     if (!user || !selected) return;
     try {
-      const { orderId } = await checkout({ userId: user.uid, items, shippingAddress: selected });
+      const { orderId, checkoutUrl } = await checkout({
+        userId: user.uid,
+        items,
+        shippingAddress: selected,
+        provider,
+        returnUrl: checkoutReturnUrl,
+      });
       dispatch(clearCart());
+
+      if (checkoutUrl) {
+        // Hosted gateway: hand off to the browser. The order stays 'pending'
+        // until their webhook confirms it, and the orders screen — which is a
+        // live snapshot listener — reflects that without any polling here.
+        await Linking.openURL(checkoutUrl);
+        navigation.replace('Orders');
+        return;
+      }
       navigation.replace('CheckoutSuccess', { orderId });
     } catch {
       // surfaced via `error`
@@ -120,7 +145,20 @@ export function CheckoutScreen(): React.ReactElement {
       <Card mode="outlined">
         <Card.Content style={{ gap: 8 }}>
           <Text variant="titleMedium">{t('checkout.paymentMethod')}</Text>
-          <Text variant="bodySmall">{t('checkout.depositMock')}</Text>
+          <Text variant="bodySmall">{t('payment.depositNote')}</Text>
+
+          {/* Only shown when there is an actual choice to make. */}
+          {providers.length > 1 ? (
+            <RadioButton.Group
+              onValueChange={(v) => setProvider(v as PaymentProvider)}
+              value={provider}
+            >
+              {providers.map((p) => (
+                <RadioButton.Item key={p} value={p} label={t(`payment.${p}`)} />
+              ))}
+            </RadioButton.Group>
+          ) : null}
+
           <Divider />
           <Row label={t('cart.subtotal')} value={formatPrice(totals.subtotal, language)} />
           <Row

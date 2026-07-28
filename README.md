@@ -186,6 +186,66 @@ that works without deploying Functions.
    with the same values used in `.env` (Service Workers can't read `import.meta.env`).
 3. Build/deploy the site over HTTPS (required for Service Workers).
 
+## Payments
+
+The 50% deposit runs through one of three providers, selected at checkout.
+
+| Provider | Settles | Confirmed by |
+| -------- | ------- | ------------ |
+| `payme`  | Hosted checkout (checkout.paycom.uz) | `paymeWebhook` Cloud Function |
+| `click`  | Hosted checkout (my.click.uz) | `clickWebhook` Cloud Function |
+| `mock`   | In-app, instantly | nothing — development only |
+
+**A client never declares itself paid.** For the hosted gateways the app creates
+the order as `pending` with `paidAmount: 0`, sends the customer to the provider,
+and the provider then calls our Cloud Function, which flips the order to
+`deposit_paid` using admin credentials. Firestore rules enforce this: a client
+may only create a paid order when `payment.provider == 'mock'`. The orders
+screens are snapshot listeners, so the status updates itself with no polling.
+
+`mock` remains the default when no gateway is configured, so the whole flow
+works before any merchant contract exists.
+
+### Setup
+
+1. **Client ids** (public, per app) — a provider is offered only when set:
+
+   ```
+   # apps/web/.env
+   VITE_PAYME_MERCHANT_ID=…
+   VITE_CLICK_MERCHANT_ID=…
+   VITE_CLICK_SERVICE_ID=…
+
+   # apps/mobile/.env
+   RN_PUBLIC_PAYME_MERCHANT_ID=…
+   RN_PUBLIC_CLICK_MERCHANT_ID=…
+   RN_PUBLIC_CLICK_SERVICE_ID=…
+   ```
+
+2. **Server keys** (secret, never in the bundle):
+
+   ```bash
+   firebase functions:secrets:set PAYME_MERCHANT_KEY
+   firebase functions:secrets:set CLICK_SECRET_KEY
+   firebase deploy --only functions
+   ```
+
+3. **Register the webhook URLs** in each merchant cabinet, using the deployed
+   function URLs:
+
+   - Payme: `https://<region>-<project>.cloudfunctions.net/paymeWebhook`
+   - Click: `https://<region>-<project>.cloudfunctions.net/clickWebhook`
+
+Payme authenticates with HTTP Basic (`Paycom:<merchant key>`); Click signs each
+callback with an MD5 over a fixed field order. Both are verified before any
+order is touched, and both confirmations are idempotent — the gateways retry, and
+a repeat must not double-count.
+
+> **Not verified end-to-end.** The protocol logic (signatures, amount
+> conversion, error codes, idempotency) is unit-tested, but no request has been
+> made against a real Payme or Click sandbox from this environment. Run each
+> provider's sandbox suite before going live.
+
 ## Release signing (Android)
 
 Debug builds use the shared `debug.keystore` that ships with the template. A

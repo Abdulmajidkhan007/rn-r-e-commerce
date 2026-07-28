@@ -13,5 +13,9 @@ declare const process: {
     readonly RN_PUBLIC_FIREBASE_MEASUREMENT_ID?: string;
     readonly RN_PUBLIC_ADMIN_EMAIL?: string;
     readonly RN_PUBLIC_GOOGLE_WEB_CLIENT_ID?: string;
+    readonly RN_PUBLIC_PAYME_MERCHANT_ID?: string;
+    readonly RN_PUBLIC_PAYME_ACCOUNT_FIELD?: string;
+    readonly RN_PUBLIC_CLICK_MERCHANT_ID?: string;
+    readonly RN_PUBLIC_CLICK_SERVICE_ID?: string;
   };
 };

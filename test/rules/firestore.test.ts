@@ -38,6 +38,7 @@ function orderData(overrides: Record<string, unknown> = {}): Record<string, unkn
     paidAmount: 50_000,
     total: 100_000,
     status: 'deposit_paid',
+    payment: { provider: 'mock', state: 'paid' },
     shippingAddress: address,
     ...overrides,
   };
@@ -135,6 +136,33 @@ describe('orders — create', () => {
 
   it('rejects anonymous order creation', async () => {
     await assertFails(setDoc(doc(anonDb(), 'orders/o1'), orderData()));
+  });
+
+  it('rejects a client claiming a hosted-gateway payment', async () => {
+    // Payme and Click confirm server-side. A client that could create its own
+    // deposit_paid order with provider 'payme' would get free goods.
+    for (const provider of ['payme', 'click']) {
+      await assertFails(
+        setDoc(
+          doc(customerDb(), 'orders/ohosted'),
+          orderData({ payment: { provider, state: 'paid' } }),
+        ),
+      );
+    }
+  });
+
+  it('rejects a paid order with no payment block at all', async () => {
+    const { payment: _omit, ...noPayment } = orderData();
+    await assertFails(setDoc(doc(customerDb(), 'orders/onp'), noPayment));
+  });
+
+  it('allows a pending hosted-gateway order — the webhook settles it later', async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(customerDb(), 'orders/opending'),
+        orderData({ status: 'pending', paidAmount: 0, payment: { provider: 'payme', state: 'created' } }),
+      ),
+    );
   });
 });
 

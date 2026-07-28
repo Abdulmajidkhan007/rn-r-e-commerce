@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -11,7 +11,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
-import { useCheckout } from '@kidswear/data';
+import type { PaymentProvider } from '@kidswear/core';
+import { availableProviders, useCheckout } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
@@ -19,6 +20,8 @@ import { Card } from '@/components';
 import { AddressDialog } from '@/components/profile/AddressDialog';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { PaymentMethodPicker } from '@/components/checkout/PaymentMethodPicker';
+import { checkoutReturnUrl, paymentProviders } from '@/payments';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
 export default function CheckoutPage(): React.ReactElement {
@@ -32,7 +35,15 @@ export default function CheckoutPage(): React.ReactElement {
   const items = useAppSelector((s) => s.cart.items);
   const language = useAppSelector((s) => s.ui.language);
   const { addAddress, saving } = useAddressActions();
-  const { checkout, isPending, error } = useCheckout();
+  const { checkout, isPending, error } = useCheckout({ providers: paymentProviders });
+
+  // 'mock' stays available so the flow works before any gateway contract is
+  // signed; a configured gateway takes precedence as the default.
+  const providers = useMemo<PaymentProvider[]>(() => {
+    const hosted = availableProviders(paymentProviders);
+    return hosted.length > 0 ? hosted : ['mock'];
+  }, []);
+  const [provider, setProvider] = useState<PaymentProvider>(() => providers[0] ?? 'mock');
 
   const addresses = user?.addresses ?? [];
   const [selectedId, setSelectedId] = useState<string>('');
@@ -57,8 +68,21 @@ export default function CheckoutPage(): React.ReactElement {
   const placeOrder = async (): Promise<void> => {
     if (!user || !selected) return;
     try {
-      const { orderId } = await checkout({ userId: user.uid, items, shippingAddress: selected });
+      const { orderId, checkoutUrl } = await checkout({
+        userId: user.uid,
+        items,
+        shippingAddress: selected,
+        provider,
+        returnUrl: checkoutReturnUrl,
+      });
       dispatch(clearCart());
+
+      if (checkoutUrl) {
+        // Hosted gateway: the order is 'pending' until their webhook confirms.
+        // Leave the SPA entirely — this is an external payment page.
+        window.location.assign(checkoutUrl);
+        return;
+      }
       navigate(`/checkout/success?orderId=${orderId}`, { replace: true });
     } catch {
       // error is surfaced via the `error` key below.
@@ -136,7 +160,14 @@ export default function CheckoutPage(): React.ReactElement {
             </Stack>
           </Card>
 
-          {/* 3. Review */}
+          {/* 3. Payment method — rendered only when there is a choice. */}
+          <PaymentMethodPicker
+            providers={providers}
+            value={provider}
+            onChange={setProvider}
+          />
+
+          {/* 4. Review */}
           <Card>
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">{t('checkout.placeOrder')}</Typography>

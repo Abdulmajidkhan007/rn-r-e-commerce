@@ -220,7 +220,15 @@
   "payment": {
     "processing": "Processing payment...",
     "success": "Payment successful",
-    "failed": "Payment failed"
+    "failed": "Payment failed",
+    "title": "Payment method",
+    "payme": "Payme",
+    "click": "Click",
+    "mock": "Test mode",
+    "redirecting": "Opening the payment page…",
+    "awaitingConfirmation": "Waiting for payment confirmation. Your order updates as soon as it clears.",
+    "providerUnavailable": "That payment method is not available right now",
+    "depositNote": "Pay 50% now, the rest on delivery"
   },
   "admin": {
     "dashboard": "Dashboard",

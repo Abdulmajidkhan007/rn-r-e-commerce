@@ -1,13 +1,22 @@
+import type { PaymentProvider } from '@kidswear/core';
+
 export interface PaymentResult {
   success: boolean;
   transactionId?: string;
 }
 
 /**
- * Payment gateway abstraction. The deposit is charged through this interface so
- * a real provider (Payme/Click/Stripe) can replace the mock without touching
- * checkout logic. A real impl would typically create a 'pending' order and have
- * a server webhook/Function confirm payment — see DECISIONS.md.
+ * In-app payment abstraction.
+ *
+ * This covers only providers that settle *inside* the app. Payme and Click do
+ * not: the customer leaves for a hosted checkout and the money is confirmed
+ * afterwards by the gateway calling our Cloud Function. A client can never
+ * declare itself paid for those, so they take the redirect path instead — see
+ * `paymentProviders.ts` for the checkout URLs and `functions/src/payments` for
+ * the confirmation side.
+ *
+ * The mock remains useful: it lets the whole flow run with no gateway account
+ * and keeps tests offline.
  */
 export interface PaymentService {
   payDeposit(orderRef: string, amount: number): Promise<PaymentResult>;
@@ -23,3 +32,8 @@ export const mockPaymentService: PaymentService = {
     });
   },
 };
+
+/** True when the provider settles inside the app rather than via a webhook. */
+export function isInAppProvider(provider: PaymentProvider): boolean {
+  return provider === 'mock';
+}

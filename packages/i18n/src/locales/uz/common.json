@@ -220,7 +220,15 @@
   "payment": {
     "processing": "Toʻlov amalga oshirilmoqda...",
     "success": "Toʻlov muvaffaqiyatli",
-    "failed": "Toʻlov amalga oshmadi"
+    "failed": "To'lov amalga oshmadi",
+    "title": "To'lov usuli",
+    "payme": "Payme",
+    "click": "Click",
+    "mock": "Sinov rejimi (test)",
+    "redirecting": "To'lov sahifasiga o'tilmoqda…",
+    "awaitingConfirmation": "To'lov tasdiqlanishi kutilmoqda. Tasdiqlangach buyurtmangiz holati yangilanadi.",
+    "providerUnavailable": "Bu to'lov usuli hozircha mavjud emas",
+    "depositNote": "Hozir 50% oldindan to'lov, qolgani yetkazib berishda"
   },
   "admin": {
     "dashboard": "Boshqaruv paneli",

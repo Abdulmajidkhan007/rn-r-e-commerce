@@ -18,6 +18,15 @@ export interface Order {
   total: number;
   status: OrderStatus;
   cancelReason?: string;
+  payment?: {
+    provider: 'payme' | 'click' | 'mock';
+    state: 'created' | 'paid' | 'cancelled';
+    transactionId?: string;
+    createdAt?: number;
+    paidAt?: number;
+    cancelledAt?: number;
+    cancelReason?: number;
+  };
   shippingAddress: {
     fullName: string;
     phone: string;

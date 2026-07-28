@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { AddressSchema } from './address';
 import { CartItemSchema } from './cart';
 import { TimestampSchema } from './product';
+import { OrderPaymentSchema } from './payment';
 
 export const OrderStatusSchema = z.enum([
   'pending',
@@ -29,6 +30,9 @@ export const OrderSchema = z.object({
   paidAmount: z.number().int().nonnegative(),
   total: z.number().int().nonnegative(),
   status: OrderStatusSchema,
+  /** Deposit charge tracking. Absent on legacy orders placed via the stub. */
+  payment: OrderPaymentSchema.optional(),
+  cancelReason: z.string().optional(),
   shippingAddress: AddressSchema,
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,

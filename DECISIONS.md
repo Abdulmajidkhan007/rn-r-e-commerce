@@ -483,3 +483,56 @@ Renames and corrections after the port settled. Behavior is unchanged except whe
   with a JDK for the emulator. The Metro bundle step is deliberate: it is the only gate that
   catches bad module aliases and unresolvable native modules, which tsc and eslint cannot see
   — exactly the class of bug that let an `expo-router` import survive the migration.
+
+## Payments: Payme + Click (real gateways)
+
+- **The client never declares itself paid.** This is the whole architectural
+  change from the stub. Previously checkout ran the (mock) payment first and then
+  created the order already `deposit_paid` — fine for a stub that cannot lie, but
+  fatal with a real gateway, since anyone able to write an order could claim a
+  payment that never happened. Hosted gateways now get: create `pending` with
+  `paidAmount: 0` → redirect → the provider calls our Cloud Function → the
+  function flips the order with admin credentials.
+- **Firestore rules enforce it rather than trusting the client code.** The create
+  rule allows a `deposit_paid` order only when `payment.provider == 'mock'`. A
+  client POSTing itself a `deposit_paid` order with `provider: 'payme'` is
+  rejected server-side, and there is a rules test for exactly that.
+- **The old create-in-final-state path is kept for `mock`.** It is what makes the
+  app runnable with no merchant contract, and what keeps tests offline. Both
+  paths still end in a single client create — the rules never permit a client
+  order update, so create-then-update remains impossible.
+- **No polling after the redirect.** The orders screens are already Firestore
+  snapshot listeners, so the status flip arrives on its own. The mobile app
+  navigates to Orders after handing off to the browser, rather than to a success
+  screen that would be lying at that moment.
+- **Confirmation is idempotent and transactional.** Both gateways retry
+  callbacks; `confirmDeposit` re-reads the order inside a transaction and returns
+  `already-confirmed` instead of writing again, so two concurrent retries cannot
+  both pass the check. Each provider maps that outcome to the response its
+  protocol expects — Payme repeats the success payload, Click returns its
+  `AlreadyPaid` code.
+- **Errors go in the response body, never as HTTP status codes.** Both providers
+  treat a non-200 as a transport failure and retry indefinitely. Payme gets
+  JSON-RPC error objects with its documented negative codes; Click gets its
+  `error`/`error_note` fields. The webhook returns 200 even for "unauthorized".
+- **Amount units are the highest-risk detail.** Payme bills in tiyin (×100),
+  Click in som. Sending som to Payme would undercharge by 100×, so the
+  conversion is a named function with tests asserting the unit on both sides.
+- **Click's signature differs between Prepare and Complete** — the
+  `merchant_prepare_id` slot participates only in Complete. A single naive
+  concatenation would reject every Complete callback, so the builder branches on
+  the action and both variants are tested, including a replay of a Prepare
+  signature as Complete.
+- **`base64Encode` is hand-rolled.** Payme's checkout URL is a base64 payload,
+  and neither `Buffer` (Node-only) nor `btoa` (missing from some Hermes builds,
+  and byte-oriented) is safe in a package shared by web and React Native.
+  Encoding the UTF-8 bytes directly keeps output identical on both platforms —
+  verified against the platform encoder for ASCII and round-tripped for Cyrillic.
+- **Secrets stay server-side.** Merchant and service ids are public and live in
+  each app's env; `PAYME_MERCHANT_KEY` and `CLICK_SECRET_KEY` are Cloud Functions
+  secrets and never enter a bundle. A provider whose ids are absent is simply not
+  offered, so a deployment without a contract shows no broken option.
+- **Not verified end-to-end.** Signature construction, amount conversion, error
+  codes, auth parsing and idempotency are unit-tested, and the rules change has
+  emulator coverage. No request has been made against a real Payme or Click
+  sandbox from this environment — that has to happen before launch.
