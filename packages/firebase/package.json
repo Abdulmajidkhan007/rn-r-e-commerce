@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "firebase": "^12.15.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@kidswear/utils": "*"
   },
   "devDependencies": {
     "@kidswear/config": "*",

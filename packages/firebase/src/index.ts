@@ -25,8 +25,14 @@ export {
 
 export type { ProductInput, CategoryInput, OrderInput, UserProfileInput } from './types';
 
-export { getProducts, subscribeProducts, getProductById, subscribeProduct } from './products';
-export type { ProductFilters } from './products';
+export {
+  getProducts,
+  getProductPage,
+  subscribeProducts,
+  getProductById,
+  subscribeProduct,
+} from './products';
+export type { ProductFilters, ProductPage, ProductSortField } from './products';
 
 export { getCategories, subscribeCategories } from './categories';
 

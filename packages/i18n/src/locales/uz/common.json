@@ -169,7 +169,9 @@
     "products": "Mahsulotlar",
     "home": "Bosh sahifa",
     "featured": "Tanlangan",
-    "newArrivals": "Yangi kelganlar"
+    "newArrivals": "Yangi kelganlar",
+    "loadMore": "Yana yuklash",
+    "loading": "Yuklanmoqda…"
   },
   "cart": {
     "cart": "Savatcha",

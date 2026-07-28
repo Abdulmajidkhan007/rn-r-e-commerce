@@ -25,6 +25,12 @@ export const ProductSchema = z.object({
   rating: z.number().min(0).max(5),
   reviewCount: z.number().int().nonnegative(),
   isActive: z.boolean(),
+  /**
+   * Denormalized word prefixes across all localized names, maintained by the
+   * admin mutations (`buildSearchTokens`). Optional because products written
+   * before server-side search have none — run scripts/backfill-search-tokens.ts.
+   */
+  searchTokens: z.array(z.string()).optional(),
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
 });

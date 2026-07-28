@@ -52,7 +52,8 @@ export default function CatalogPage(): React.ReactElement {
   const search = useDebounced(searchInput);
 
   const params = useMemo(() => ({ categoryId, search, sort }), [categoryId, search, sort]);
-  const { products, isLoading, isError, refetch } = useProducts(params);
+  const { products, isLoading, isError, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useProducts(params);
 
   const handleSort = (e: SelectChangeEvent): void => {
     setSort(e.target.value as ProductSort);
@@ -98,11 +99,26 @@ export default function CatalogPage(): React.ReactElement {
       <Typography color="text.secondary">{t('catalog.noProducts')}</Typography>
     </Box>
   ) : (
-    <Box sx={PRODUCT_GRID_SX}>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </Box>
+    <>
+      <Box sx={PRODUCT_GRID_SX}>
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </Box>
+
+      {hasNextPage && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={fetchNextPage}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? t('catalog.loading') : t('catalog.loadMore')}
+          </Button>
+        </Box>
+      )}
+    </>
   );
 
   return (

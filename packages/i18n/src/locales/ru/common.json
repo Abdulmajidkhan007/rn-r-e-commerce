@@ -169,7 +169,9 @@
     "products": "Товары",
     "home": "Главная",
     "featured": "Рекомендуем",
-    "newArrivals": "Новинки"
+    "newArrivals": "Новинки",
+    "loadMore": "Показать ещё",
+    "loading": "Загрузка…"
   },
   "cart": {
     "cart": "Корзина",

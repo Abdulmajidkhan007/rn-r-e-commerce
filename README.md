@@ -143,8 +143,34 @@ gitignored service-account key:
 GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node scripts/seed.ts
 ```
 
-Catalog reads go through `@kidswear/data` (TanStack Query); search and sort are client-side
-(small-catalog decision — see DECISIONS.md).
+Catalog reads go through `@kidswear/data` (TanStack Query). Search, sort and paging are all
+resolved by Firestore — see **Catalog search** below.
+
+## Catalog search
+
+Firestore has no substring or full-text operator, so search matches a denormalized array of
+word prefixes (`searchTokens`) built by `@kidswear/utils.buildSearchTokens` and maintained by
+the admin create/update mutations. A query becomes one indexed `array-contains` lookup
+regardless of catalog size, and results are paged (`getProductPage`, keyset pagination via
+`startAfter`) instead of downloading the collection.
+
+This matches word **prefixes** — "koy" finds "koʻylak" — not arbitrary infixes. Uzbek
+apostrophes (ʻ ‘ ’ ' `) are stripped on both sides so what a shopper types matches what the
+catalogue stores. Real infix search would need a dedicated engine (Algolia/Typesense).
+
+After deploying, backfill products written before this existed, and deploy the indexes:
+
+```bash
+firebase deploy --only firestore:indexes
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
+  node scripts/backfill-search-tokens.ts --dry-run   # inspect first
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
+  node scripts/backfill-search-tokens.ts
+```
+
+The script is idempotent, so it is also how you repair the index after changing
+`buildSearchTokens`. Products without tokens are simply not returned by a search — they stay
+browsable by category.
 
 ## Cloud Functions (Phase 7)
 

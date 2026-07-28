@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { Category, Product } from '@kidswear/core';
-import { getCategories, getProductById, getProducts } from '@kidswear/firebase';
-import { queryKeys, type ProductsParams } from './queryKeys';
-import { filterAndSortProducts } from './catalogFilter';
+import { getCategories, getProductById, getProductPage, type ProductPage } from '@kidswear/firebase';
+import { searchQueryToken } from '@kidswear/utils';
+import { PRODUCTS_PAGE_SIZE, queryKeys, type ProductsParams } from './queryKeys';
 
 export function useCategories(): UseQueryResult<Category[]> {
   return useQuery({
@@ -12,27 +12,70 @@ export function useCategories(): UseQueryResult<Category[]> {
   });
 }
 
-/** Query result plus the client-side search + sort derived list. */
-export type UseProductsResult = UseQueryResult<Product[]> & {
+export interface UseProductsResult {
   products: Product[];
-};
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  /** True while an additional page is in flight. */
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  /** Pull-to-refresh support. */
+  isRefetching: boolean;
+  refetch: () => void;
+}
 
 /**
- * Fetches active products (optionally category-filtered server-side), then
- * applies client-side search + sort. Search/sort are memoized and do not refetch.
+ * Paginated catalog query.
+ *
+ * Category filter, free-text search and sort are all resolved by Firestore, and
+ * results arrive one page at a time — the catalog is never downloaded whole.
+ * Search matches the denormalized `searchTokens` array (see
+ * `@kidswear/utils.buildSearchTokens`), which is what makes it indexable at all:
+ * Firestore has no substring operator.
  */
 export function useProducts(params: ProductsParams = {}): UseProductsResult {
-  const query = useQuery({
+  const searchToken = useMemo(
+    () => (params.search ? searchQueryToken(params.search) : null),
+    [params.search],
+  );
+
+  const query = useInfiniteQuery<ProductPage>({
     queryKey: queryKeys.products(params),
-    queryFn: () => getProducts({ categoryId: params.categoryId, isActive: true }),
+    initialPageParam: undefined,
+    queryFn: ({ pageParam }) =>
+      getProductPage({
+        ...(params.categoryId !== undefined ? { categoryId: params.categoryId } : {}),
+        isActive: true,
+        ...(searchToken ? { searchToken } : {}),
+        ...(params.sort ? { sort: params.sort } : {}),
+        limit: PRODUCTS_PAGE_SIZE,
+        cursor: (pageParam as ProductPage['cursor']) ?? undefined,
+      }),
+    getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
   });
 
   const products = useMemo(
-    () => filterAndSortProducts(query.data ?? [], params.search, params.sort),
-    [query.data, params.search, params.sort],
+    () => query.data?.pages.flatMap((page) => page.products) ?? [],
+    [query.data],
   );
 
-  return { ...query, products };
+  return {
+    products,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    isFetchingNextPage: query.isFetchingNextPage,
+    hasNextPage: query.hasNextPage,
+    fetchNextPage: () => {
+      void query.fetchNextPage();
+    },
+    isRefetching: query.isRefetching,
+    refetch: () => {
+      void query.refetch();
+    },
+  };
 }
 
 export function useProduct(id: string): UseQueryResult<Product | null> {

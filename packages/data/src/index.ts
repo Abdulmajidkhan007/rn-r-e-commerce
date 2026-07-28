@@ -54,7 +54,6 @@ export type {
 } from './useAdmin';
 
 export { summarizeDashboard, LOW_STOCK_THRESHOLD } from './dashboard';
-export { matchesSearch, sortProducts, filterAndSortProducts } from './catalogFilter';
 export type { DashboardStats } from './dashboard';
 
 export { QueryClientProvider } from '@tanstack/react-query';

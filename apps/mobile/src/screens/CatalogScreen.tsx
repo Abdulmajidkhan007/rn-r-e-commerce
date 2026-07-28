@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, View } from 'react-native';
-import { Button, Chip, Menu, Searchbar, Text } from 'react-native-paper';
+import { ActivityIndicator, Button, Chip, Menu, Searchbar, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Product } from '@kidswear/core';
 import { useCategories, useProducts, type ProductSort } from '@kidswear/data';
@@ -29,7 +29,8 @@ export function CatalogScreen(): React.ReactElement {
   const search = useDebounced(searchInput);
 
   const params = useMemo(() => ({ categoryId, search, sort }), [categoryId, search, sort]);
-  const { products, isLoading, isError, isRefetching, refetch } = useProducts(params);
+  const { products, isLoading, isError, isRefetching, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useProducts(params);
 
   const header = (
     <View style={{ gap: 16, paddingBottom: 16 }}>
@@ -99,6 +100,17 @@ export function CatalogScreen(): React.ReactElement {
       contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}
       ListHeaderComponent={header}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />}
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <View style={{ paddingVertical: 24 }}>
+            <ActivityIndicator />
+          </View>
+        ) : null
+      }
       ListEmptyComponent={
         <View style={{ paddingVertical: 48, alignItems: 'center', gap: 8 }}>
           {isError ? (

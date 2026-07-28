@@ -536,3 +536,43 @@ Renames and corrections after the port settled. Behavior is unchanged except whe
   codes, auth parsing and idempotency are unit-tested, and the rules change has
   emulator coverage. No request has been made against a real Payme or Click
   sandbox from this environment — that has to happen before launch.
+
+## Server-side catalog search, sort & pagination
+
+Supersedes the Phase 4 "small-catalog decision" (search and sort in memory over the whole
+collection). That was honest for a demo catalog and became the documented risk; this closes it.
+
+- **Search is a denormalized prefix-token array, not a scan.** Firestore has no substring or
+  full-text operator, so `buildSearchTokens` stores every word prefix of every localized name
+  and `array-contains` matches one token. Cost is now independent of catalog size. The
+  trade-off is explicit: word **prefixes** ("koy" → "koʻylak"), not infixes ("ylak" → nothing).
+  Infix search needs a separate engine; prefixes are what shoppers type.
+- **Apostrophes are normalized on both sides.** Uzbek is written with ʻ, ‘, ’, ' and ` more or
+  less interchangeably, and nobody types the right one. Both the stored tokens and the query
+  strip them, so "ko'ylak", "koʻylak" and "koylak" are the same search.
+- **Only the longest query word is used.** `array-contains` takes a single value, so the most
+  selective word wins; the rest would need `array-contains-any` (an OR, which is wider, not
+  narrower) or client-side re-filtering.
+- **Prefixes are capped at 12 characters and start at 2.** One-letter prefixes match most of
+  the catalog and are useless as a filter; uncapped prefixes bloat the document on long names.
+  A query longer than the cap is truncated to match what was actually stored.
+- **Keyset pagination, not offsets.** `startAfter(lastDoc)` rather than an offset: Firestore
+  bills for documents an offset skips, and offsets drift when rows are inserted between page
+  loads. Price sorts carry a `createdAt` tie-break so equal prices cannot skip or repeat rows
+  across a page boundary.
+- **`searchTokens` is optional in the schema, and the mutations maintain it.** Products
+  predating this have none and are invisible to search until `scripts/backfill-search-tokens.ts`
+  runs — they stay browsable by category, so the failure mode is degraded, not broken. Any edit
+  touching a name rebuilds the array (re-reading fields the patch does not carry), because a
+  stale token array silently makes a product unfindable.
+- **`useProducts` moved to `useInfiniteQuery` and its return type changed.** Search and sort are
+  now part of the query key — they are server queries and must refetch, where before they were
+  deliberately excluded as client-only. Callers get `products` plus `hasNextPage` /
+  `fetchNextPage`; web renders a "load more" button, mobile uses `onEndReached`.
+- **`catalogFilter.ts` was deleted rather than left in place.** Its client-side search/sort had
+  no callers once the server took over, and a tested module that nothing imports reads as live
+  code. The admin products page keeps its own in-memory filter — it deliberately loads all
+  products, including inactive ones, for a much smaller audience.
+- **Eleven composite indexes** cover the category × search × sort combinations. They must be
+  deployed (`firebase deploy --only firestore:indexes`) before the queries work; Firestore
+  fails such a query with a console link rather than returning partial results.
