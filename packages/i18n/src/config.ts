@@ -9,7 +9,7 @@ export interface InitI18nOptions {
   /**
    * Platform-specific language detector.
    * - Web: `i18next-browser-languagedetector`
-   * - Mobile: a custom expo-localization detector
+   * - Mobile: a custom react-native-localize detector
    */
   detector?: I18nDetector;
   /** Force an initial language, bypassing detection. */

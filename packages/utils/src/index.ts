@@ -8,3 +8,4 @@ export * from './localized';
 export * from './stock';
 export * from './order';
 export * from './slug';
+export * from './search';

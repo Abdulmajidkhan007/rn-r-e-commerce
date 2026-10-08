@@ -1,32 +1,47 @@
 # KidsWear
 
-A universal kids' clothing e-commerce platform — **React web** + **React Native (Expo)
-mobile** in a single monorepo. Everything except UI is shared; the UI is implemented
+A universal kids' clothing e-commerce platform — **React web** + **React Native (bare
+CLI) mobile** in a single monorepo. Everything except UI is shared; the UI is implemented
 separately per platform but driven by one shared design-token system, so both platforms
 look like the same Material Design product.
 
-> **Phase 8a** — polish, web deploy, and legal. Brand identity finalized (placeholder
-> assets generated from a single SVG source via a sharp script — app icons, adaptive icon,
-> notification icon, splash, favicons, og-image, web app manifest). A
-> shared `@kidswear/legal` package now hosts real, audience-accurate Privacy Policy and
-> Terms of Service in uz/en/ru, rendered on web at `/privacy` and `/terms` and on mobile
-> from the Profile tab. SEO meta tags + OpenGraph + Twitter Card + `robots.txt` + a static
-> `sitemap.xml` are wired into the web app; per-page document titles use a tiny
-> `useDocumentTitle` hook. A root `netlify.toml` makes the web app Netlify-ready
-> (`base = apps/web`, SPA fallback, no-cache for the FCM Service Worker, immutable cache
-> for fingerprinted assets). **Audience policy:** the app is sold to ADULT buyers (parents);
-> it is not directed at children — this keeps it out of Play's Families program and is
-> reflected in the policy text.
+> **Phase 10** — UI overhaul + Google Sign-In. Design tokens tightened
+> (`tokens.durations`/`easings`, `tokens.elevations`, display typography, letterSpacings,
+> expanded spacing) and both platform adapters restyled (MUI: pill buttons, blurred glass
+> AppBar, refined display H1/H2 with negative letter-spacing; Paper: roundness 4 + full
+> MD3 slots). Web chrome went responsive: sticky two-state header + hamburger drawer on
+> mobile, admin sidebar collapsing to fixed BottomNavigation. Auth screens are now
+> split-screen on desktop with Google Sign-In above the email form, wired
+> platform-agnostically through `@kidswear/firebase.signInWithGoogleCredential`. Deposit
+> UX, product cards, orders timeline, and admin dashboard visuals all pull from the same
+> token system — zero hardcoded hexes/spacing left in touched components.
+
+## Google Sign-In setup
+
+1. **Firebase Console → Authentication → Sign-in method → Google → Enable** (sets a
+   support email, auto-generates the OAuth client, auto-authorizes the Firebase auth
+   domain).
+2. **Web:** the Firebase Hosting domain (`<project>.web.app` / `<project>.firebaseapp.com`)
+   is auto-authorized. If you host elsewhere (Netlify, custom domain), add the deploy URL
+   to **Authorized domains** in the Firebase Auth settings.
+3. **Mobile:** register your debug/release SHA-1 fingerprints
+   (`cd apps/mobile/android && ./gradlew signingReport`) under the Android app in the
+   Firebase Console, then put the **Web** OAuth client id (Firebase Console → Project
+   Settings → General → Your apps) into `apps/mobile/.env`:
+   ```
+   RN_PUBLIC_GOOGLE_WEB_CLIENT_ID=…
+   ```
+   (The variable keeps its historical name; babel inlines `.env` values at bundle time.)
 
 ## Tech stack
 
 | Concern       | Web (`apps/web`)                             | Mobile (`apps/mobile`)                       |
 | ------------- | -------------------------------------------- | -------------------------------------------- |
-| Framework     | Vite + React + TypeScript (strict)           | Expo SDK 56 + Expo Router + TS (strict)      |
+| Framework     | Vite + React + TypeScript (strict)           | React Native 0.85 (bare CLI) + TS (strict)   |
 | UI / Material | MUI + Tailwind v4 (CSS-first)                | React Native Paper (MD3) + NativeWind v4     |
-| Routing       | react-router-dom (createBrowserRouter)       | Expo Router (file-based)                     |
+| Routing       | react-router-dom (createBrowserRouter)       | React Navigation v7 (typed stacks + tabs)    |
 | State         | Redux Toolkit + redux-persist (localStorage) | Redux Toolkit + redux-persist (AsyncStorage) |
-| i18n          | react-i18next + browser detector             | react-i18next + expo-localization            |
+| i18n          | react-i18next + browser detector             | react-i18next + react-native-localize        |
 
 ### Shared packages
 
@@ -50,6 +65,19 @@ Requires Node 20+ and npm 10+.
 npm install
 ```
 
+### Local backend (Firebase emulators)
+
+Runs both apps against local emulators with seeded demo data — no cloud project,
+no credentials, and no way to write to production by accident:
+
+```bash
+npx firebase emulators:start --only firestore,auth --project kidswear-local
+node scripts/seed-emulator.mjs kidswear-local     # 4 categories, 12 products
+```
+
+Then set `VITE_USE_FIREBASE_EMULATORS=true` in `apps/web/.env.local` (the other
+`VITE_FIREBASE_*` values can be dummies) and start the web app as below.
+
 ### Web
 
 ```bash
@@ -62,12 +90,12 @@ npm run dev --workspace @kidswear/web
 
 ```bash
 cd apps/mobile
-npx expo start
-# press i / a for iOS / Android, or scan the QR with Expo Go
+npx react-native start          # Metro bundler
+npx react-native run-android    # build + install on a device/emulator (needs Android SDK)
 ```
 
-> Always install Expo/React Native dependencies with `npx expo install <pkg>` (run from
-> `apps/mobile`) so versions stay compatible with the Expo SDK.
+> Native dependency versions are pinned in `apps/mobile/package.json`; after adding one,
+> rebuild the Android app (`npx react-native run-android`) so autolinking picks it up.
 
 ## Monorepo scripts (root)
 
@@ -76,12 +104,29 @@ npm run type-check   # turbo run type-check — tsc --noEmit everywhere
 npm run lint         # turbo run lint — eslint everywhere
 npm run build        # turbo run build
 npm run format       # prettier --write
+npm test             # vitest — unit + web component tests
+npm run test:rules   # Firestore rules tests (starts the emulator; needs Java)
+npm run test:all     # both of the above
 ```
+
+### Tests
+
+One root Vitest config with three projects:
+
+| Project | Environment | Covers                                                          |
+| ------- | ----------- | --------------------------------------------------------------- |
+| `unit`  | node        | Pure logic in `packages/*` and `functions/src` — money, stock, slugs, catalog search/sort, dashboard aggregation, zod schemas, push copy |
+| `web`   | jsdom       | `apps/web` components through the real store + i18n + theme providers (`renderWithProviders`) |
+| `rules` | node        | `firestore.rules` against the Firestore emulator                 |
+
+The `rules` project activates only when `FIRESTORE_EMULATOR_HOST` is set, which
+`firebase emulators:exec` does — so a bare `npm test` never fails on a missing
+emulator. CI runs all three (see `.github/workflows/ci.yml`).
 
 ## Authentication
 
 Email/password via Firebase Auth. Copy each app's `.env.example` to `.env` and fill in your
-Firebase project's web-app config (`VITE_FIREBASE_*` for web, `EXPO_PUBLIC_FIREBASE_*` for
+Firebase project's web-app config (`VITE_FIREBASE_*` for web, `RN_PUBLIC_FIREBASE_*` for
 mobile) so login/register actually talk to Firebase.
 
 **Granting admin.** Admin authority is the Firebase custom claim `role: 'admin'` — the
@@ -97,9 +142,10 @@ The user must sign out/in afterward to refresh their token.
 
 **Biometric AppLock (mobile only).** When enabled in Profile → Security, the mobile app
 locks the already-signed-in session on cold launch and unlocks with Face ID / fingerprint
-(device-passcode fallback). SecureStore holds only an enabled flag — never a credential —
-and the Firebase session stays the source of truth. Live biometric requires a **development
-build** (EAS); it can't run in Expo Go or the sandbox.
+(device-passcode fallback). The Keychain (`react-native-keychain`, service
+`kidswear.applock`) holds only an enabled flag — never a credential — and the Firebase
+session stays the source of truth. Live biometric requires a real device build
+(`react-native-biometrics`); it can't run in a plain JS sandbox.
 
 ## Seeding the catalog
 
@@ -110,8 +156,34 @@ gitignored service-account key:
 GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node scripts/seed.ts
 ```
 
-Catalog reads go through `@kidswear/data` (TanStack Query); search and sort are client-side
-(small-catalog decision — see DECISIONS.md).
+Catalog reads go through `@kidswear/data` (TanStack Query). Search, sort and paging are all
+resolved by Firestore — see **Catalog search** below.
+
+## Catalog search
+
+Firestore has no substring or full-text operator, so search matches a denormalized array of
+word prefixes (`searchTokens`) built by `@kidswear/utils.buildSearchTokens` and maintained by
+the admin create/update mutations. A query becomes one indexed `array-contains` lookup
+regardless of catalog size, and results are paged (`getProductPage`, keyset pagination via
+`startAfter`) instead of downloading the collection.
+
+This matches word **prefixes** — "koy" finds "koʻylak" — not arbitrary infixes. Uzbek
+apostrophes (ʻ ‘ ’ ' `) are stripped on both sides so what a shopper types matches what the
+catalogue stores. Real infix search would need a dedicated engine (Algolia/Typesense).
+
+After deploying, backfill products written before this existed, and deploy the indexes:
+
+```bash
+firebase deploy --only firestore:indexes
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
+  node scripts/backfill-search-tokens.ts --dry-run   # inspect first
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
+  node scripts/backfill-search-tokens.ts
+```
+
+The script is idempotent, so it is also how you repair the index after changing
+`buildSearchTokens`. Products without tokens are simply not returned by a search — they stay
+browsable by category.
 
 ## Cloud Functions (Phase 7)
 
@@ -134,10 +206,11 @@ firebase deploy --only functions
 
 ## Push notifications (Phase 7)
 
-Two channels: **Expo Push Service** for the mobile app and **FCM** for the web app. Tokens
-are stored on `users/{uid}.pushTokens.{expo|fcm}` (arrays — multi-device per user). Functions
-fan out by reading those arrays via the admin SDK and clean up `DeviceNotRegistered`
-tokens.
+One provider — **FCM** — on both platforms: `@react-native-firebase/messaging` on mobile
+(bare RN) and the Firebase Messaging Web SDK on web. Tokens
+are stored on `users/{uid}.pushTokens.fcm` (an array — multi-device per user). Functions
+fan out by reading that array via the admin SDK and prune tokens FCM reports as
+permanently invalid.
 
 Each app registers its token after sign-in, gated by a per-device opt-in flag in Redux
 (`notifications.enabled`, persisted alongside cart + ui). The Profile screen has a
@@ -152,18 +225,116 @@ that works without deploying Functions.
    with the same values used in `.env` (Service Workers can't read `import.meta.env`).
 3. Build/deploy the site over HTTPS (required for Service Workers).
 
-### Mobile setup (EAS dev build)
+## Payments
 
-Push tokens cannot be retrieved under Expo Go — you need an Expo dev build. iOS additionally
-requires a paid Apple Developer account; Android works on any device.
+The 50% deposit runs through one of three providers, selected at checkout.
+
+| Provider | Settles | Confirmed by |
+| -------- | ------- | ------------ |
+| `payme`  | Hosted checkout (checkout.paycom.uz) | `paymeWebhook` Cloud Function |
+| `click`  | Hosted checkout (my.click.uz) | `clickWebhook` Cloud Function |
+| `mock`   | In-app, instantly | nothing — development only |
+
+**A client never declares itself paid.** For the hosted gateways the app creates
+the order as `pending` with `paidAmount: 0`, sends the customer to the provider,
+and the provider then calls our Cloud Function, which flips the order to
+`deposit_paid` using admin credentials. Firestore rules enforce this: a client
+may only create a paid order when `payment.provider == 'mock'`. The orders
+screens are snapshot listeners, so the status updates itself with no polling.
+
+`mock` remains the default when no gateway is configured, so the whole flow
+works before any merchant contract exists.
+
+### Setup
+
+1. **Client ids** (public, per app) — a provider is offered only when set:
+
+   ```
+   # apps/web/.env
+   VITE_PAYME_MERCHANT_ID=…
+   VITE_CLICK_MERCHANT_ID=…
+   VITE_CLICK_SERVICE_ID=…
+
+   # apps/mobile/.env
+   RN_PUBLIC_PAYME_MERCHANT_ID=…
+   RN_PUBLIC_CLICK_MERCHANT_ID=…
+   RN_PUBLIC_CLICK_SERVICE_ID=…
+   ```
+
+2. **Server keys** (secret, never in the bundle):
+
+   ```bash
+   firebase functions:secrets:set PAYME_MERCHANT_KEY
+   firebase functions:secrets:set CLICK_SECRET_KEY
+   firebase deploy --only functions
+   ```
+
+3. **Register the webhook URLs** in each merchant cabinet, using the deployed
+   function URLs:
+
+   - Payme: `https://<region>-<project>.cloudfunctions.net/paymeWebhook`
+   - Click: `https://<region>-<project>.cloudfunctions.net/clickWebhook`
+
+Payme authenticates with HTTP Basic (`Paycom:<merchant key>`); Click signs each
+callback with an MD5 over a fixed field order. Both are verified before any
+order is touched, and both confirmations are idempotent — the gateways retry, and
+a repeat must not double-count.
+
+> **Not verified end-to-end.** The protocol logic (signatures, amount
+> conversion, error codes, idempotency) is unit-tested, but no request has been
+> made against a real Payme or Click sandbox from this environment. Run each
+> provider's sandbox suite before going live.
+
+## Release signing (Android)
+
+Debug builds use the shared `debug.keystore` that ships with the template. A
+**release** build needs your own upload key — Play rejects debug-signed uploads.
+
+1. Generate the upload keystore. Do this **once**, and back the file up: losing
+   it means you can never publish an update under the same package name.
+
+   ```bash
+   keytool -genkeypair -v \
+     -keystore apps/mobile/android/kidswear-upload.keystore \
+     -alias kidswear-upload \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. Copy `apps/mobile/android/keystore.properties.example` to
+   `apps/mobile/android/keystore.properties` and fill in the passwords. Both the
+   keystore and that file are gitignored — never commit either.
+
+3. Build:
+
+   ```bash
+   cd apps/mobile/android
+   ./gradlew bundleRelease     # .aab for Play
+   ./gradlew assembleRelease   # .apk for sideloading
+   ```
+
+`app/build.gradle` only declares the release signing config when
+`keystore.properties` exists. Without it the release build falls back to the
+debug key so `assembleRelease` still runs locally — that artifact is for testing
+only and cannot be uploaded.
+
+Register the resulting SHA-1/SHA-256 fingerprints in the Firebase Console
+(`./gradlew signingReport`) or Google Sign-In will fail in release builds.
+
+**Version bumps** are manual in `app/build.gradle`: raise `versionCode` (integer,
+must increase on every upload) and `versionName` (the string users see).
+
+### Mobile setup (bare React Native)
+
+1. Download `google-services.json` for the Android app from the Firebase Console and place
+   it at `apps/mobile/android/app/google-services.json`.
+2. Uncomment `apply plugin: 'com.google.gms.google-services'` in
+   `apps/mobile/android/app/build.gradle` (the classpath is already wired).
+3. Build on a machine with the Android SDK:
 
 ```bash
-npm i -g eas-cli         # or use npx eas-cli
 cd apps/mobile
-eas login
-eas build:configure      # writes extra.eas.projectId into app.json
-eas build --platform android --profile development
-# Install the resulting APK on a real Android device (or use Internal distribution).
+npx react-native run-android          # debug build on a connected device/emulator
+# or: cd android && ./gradlew assembleRelease
 ```
 
 Set the mirrored `role:'admin'` (via the script above — it now writes both the Auth claim and
@@ -204,6 +375,23 @@ The repo ships a root `netlify.toml` that points Netlify at `apps/web/`:
 
 Every PR gets a Netlify deploy preview by default — useful for the next phase's
 Play-Store screenshots and for verifying privacy/terms URLs before submission.
+
+## Deploy (Firebase Hosting, web — alternative)
+
+`firebase.json` also configures Firebase Hosting (same `apps/web/dist`, the same SPA
+rewrite, the same SW no-cache / fingerprinted-asset headers). Deploying to Firebase
+Hosting alongside Netlify gives the rest of the Firebase stack (Auth/Firestore/Storage/
+Functions/FCM) ecosystem unity, and the hosting domain (`*.web.app`,
+`*.firebaseapp.com`) is auto-authorized for Firebase Auth so no manual "Authorized
+domains" entry is needed.
+
+```bash
+# from the repo root, with Firebase CLI installed + logged in
+cd apps/web && npm run build && cd ../..
+firebase deploy --only hosting --project <project-id>
+```
+
+Live URLs: `<project-id>.web.app` and `<project-id>.firebaseapp.com`.
 
 ## Conventions
 

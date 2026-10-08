@@ -10,7 +10,21 @@ export type { ProductsParams, ProductSort } from './queryKeys';
 export { useCategories, useProducts, useProduct } from './hooks';
 export type { UseProductsResult } from './hooks';
 
-export { mockPaymentService } from './payment';
+export { mockPaymentService, isInAppProvider } from './payment';
+export {
+  buildCheckoutUrl,
+  buildPaymeCheckoutUrl,
+  buildClickCheckoutUrl,
+  availableProviders,
+  somToTiyin,
+  tiyinToSom,
+} from './paymentProviders';
+export type {
+  PaymentProviderConfig,
+  PaymeConfig,
+  ClickConfig,
+  CheckoutUrlInput,
+} from './paymentProviders';
 export type { PaymentService, PaymentResult } from './payment';
 
 export { useCheckout } from './useCheckout';

@@ -2,11 +2,13 @@ import {
   type WithFieldValue,
   deleteDoc,
   doc,
+  getDoc,
   serverTimestamp,
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
 import type { Category, Product } from '@kidswear/core';
+import { buildSearchTokens } from '@kidswear/utils';
 import { categoriesCol, categoryDoc, productDoc, productsCol } from './collections';
 import type { CategoryInput, ProductInput } from './types';
 
@@ -29,6 +31,9 @@ export async function createProduct(id: string, input: ProductInput): Promise<vo
   const value: WithFieldValue<Product> = {
     ...input,
     id,
+    // Denormalized so catalog search is a single indexed lookup rather than a
+    // full-collection scan — Firestore has no substring operator.
+    searchTokens: buildSearchTokens(input.name, input.description),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -36,7 +41,25 @@ export async function createProduct(id: string, input: ProductInput): Promise<vo
 }
 
 export async function updateProduct(id: string, patch: Partial<ProductInput>): Promise<void> {
-  await updateDoc(productDoc(id), { ...patch, updatedAt: serverTimestamp() });
+  // Names drive the tokens, so any edit touching them has to rebuild the array;
+  // a stale one would silently make the product unfindable. The patch may be
+  // partial, so re-read whatever it does not carry.
+  const touchesText = patch.name !== undefined || patch.description !== undefined;
+  let tokens: string[] | undefined;
+
+  if (touchesText) {
+    const current = (await getDoc(productDoc(id))).data();
+    tokens = buildSearchTokens(
+      patch.name ?? current?.name,
+      patch.description ?? current?.description,
+    );
+  }
+
+  await updateDoc(productDoc(id), {
+    ...patch,
+    ...(tokens ? { searchTokens: tokens } : {}),
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function deleteProduct(id: string): Promise<void> {

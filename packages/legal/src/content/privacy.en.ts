@@ -37,7 +37,6 @@ We collect only what is needed to run the service:
 We use the following infrastructure providers:
 
 - **Google Firebase** (Auth, Firestore, Storage, Cloud Functions, FCM) — [https://policies.google.com/privacy](https://policies.google.com/privacy)
-- **Expo Push Service** — used to relay mobile push tokens to Firebase Cloud Messaging — [https://expo.dev/privacy](https://expo.dev/privacy)
 
 No other third-party analytics, advertising networks, or data brokers are used.
 
@@ -55,7 +54,7 @@ You have the right to:
 - **Correction** — ask us to correct inaccurate data.
 - **Deletion** — ask us to delete your account and personal data.
 
-To exercise these rights, contact us at support@kidswear.example. We will respond within 30 days where applicable law requires.
+To exercise these rights, contact us at santexnika.atoyo@gmail.com. We will respond within 30 days where applicable law requires.
 
 ## Children's Policy
 
@@ -69,7 +68,7 @@ We may update this policy from time to time. The "Last updated" date at the top 
 
 For privacy questions or data requests:
 
-support@kidswear.example
+santexnika.atoyo@gmail.com
 
 *(Placeholder address — to be replaced before production launch.)*
 `;

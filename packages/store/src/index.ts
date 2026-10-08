@@ -32,7 +32,6 @@ export type { UiState, ThemePreference } from './slices/uiSlice';
 export {
   notificationsReducer,
   setNotificationsEnabled,
-  setExpoPushToken,
   setFcmPushToken,
 } from './slices/notificationsSlice';
 export type { NotificationsState } from './slices/notificationsSlice';

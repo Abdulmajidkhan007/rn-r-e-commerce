@@ -2,7 +2,7 @@
   "name": "kidswear",
   "version": "0.0.0",
   "private": true,
-  "description": "KidsWear — universal kids' clothing e-commerce platform (React web + React Native mobile)",
+  "description": "KidsWear \u2014 universal kids' clothing e-commerce platform (React web + React Native mobile)",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -14,14 +14,27 @@
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "brand:assets": "node scripts/generate-brand-assets.mjs"
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:rules": "firebase emulators:exec --only firestore --project kidswear-rules-test \"vitest run --project rules\"",
+    "test:all": "npm run test && npm run test:rules"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitest/coverage-v8": "^4.1.10",
     "firebase-admin": "^14.1.0",
+    "firebase-tools": "^15.24.0",
+    "jsdom": "^30.0.0",
     "prettier": "^3.6.2",
     "sharp": "^0.35.2",
     "turbo": "^2.10.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=20"

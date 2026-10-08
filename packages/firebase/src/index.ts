@@ -25,8 +25,14 @@ export {
 
 export type { ProductInput, CategoryInput, OrderInput, UserProfileInput } from './types';
 
-export { getProducts, subscribeProducts, getProductById, subscribeProduct } from './products';
-export type { ProductFilters } from './products';
+export {
+  getProducts,
+  getProductPage,
+  subscribeProducts,
+  getProductById,
+  subscribeProduct,
+} from './products';
+export type { ProductFilters, ProductPage, ProductSortField } from './products';
 
 export { getCategories, subscribeCategories } from './categories';
 
@@ -74,12 +80,13 @@ export type { UploadData } from './storage';
 export {
   signUpWithEmail,
   signInWithEmail,
+  signInWithGoogleCredential,
   signOutUser,
   sendPasswordReset,
   onAuthChange,
   getCurrentClaims,
 } from './auth';
-export type { AuthClaims, User } from './auth';
+export type { AuthClaims, User, AuthCredential } from './auth';
 
 // Commonly needed Firebase types re-exported for app bootstrap / consumers.
 export type { FirebaseOptions } from 'firebase/app';

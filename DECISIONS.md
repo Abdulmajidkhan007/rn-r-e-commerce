@@ -344,3 +344,259 @@ shippingAddress }` and returns `{ orderId }`; the app layer clears the cart on s
   messaging-sw.js`), and `immutable` cache for Vite's fingerprinted `/assets/*`.
 - **No production Android build or Play submission yet.** That's Phase 8b — and it needs the
   live privacy-policy URL produced by this phase's Netlify deploy.
+
+## Dual hosting: Netlify + Firebase Hosting (Phase 8a addendum)
+
+- **Both are configured; pick one per deploy.** `netlify.toml` and the `"hosting"` block in
+  `firebase.json` produce the same artifact (`apps/web/dist`), with the same SPA rewrite,
+  the same `no-cache` for the FCM Service Worker, and the same `immutable` cache for
+  fingerprinted `/assets/*`. Switching providers is a one-line CLI change, not a code change.
+- **Firebase Hosting unifies the stack.** The rest of the backend (Auth, Firestore, Storage,
+  Functions, FCM) already runs on Firebase; hosting the web app there means one console,
+  one billing line, and — crucially — the hosting domain (`*.web.app` /
+  `*.firebaseapp.com`) is **auto-authorized for Firebase Auth**, so no manual entry in the
+  Authorized-domains list is required for the popular default URL.
+- **Netlify stays as the fallback** for deploy previews per PR and as a quick A/B target if
+  Firebase Hosting hits a quota or limit. The two configs do not conflict; they're just two
+  ways of taking the same `dist` to a public URL.
+
+## UI overhaul + Google Sign-In (Phase 10)
+
+- **Kept MUI (web) + Paper (mobile).** Switching UI libraries mid-project would have been a rewrite risk with no user-facing win. Instead: tightened `@kidswear/theme` and let the tokens ripple through every adapter and component. Result: same libraries, materially better perceived quality.
+- **Design tokens grew four new axes.** `tokens.durations` (fast/normal/slow) + `tokens.easings` (Material curves) give consistent motion; `tokens.elevations.{sm,md,lg,xl}.shadow` replace ad-hoc box-shadows; typography gains `fontSizes.5xl/display`, `fontWeights.extrabold`, and `letterSpacings.{tighter, tight, wide}` so headlines can breathe; spacing scales to `2xs..6xl` for hero and empty-state padding. Both adapters (`muiTheme.ts`, `paperTheme.ts`) pull from these — components stay clean.
+- **MUI adapter is now opinionated.** Pill buttons (`borderRadius: radii.full`), blurred transparent `AppBar` (`backdropFilter: 'saturate(180%) blur(12px)'`), refined H1/H2 with negative letter-spacing and near-1.0 line-height, `body` at 1.6 line-height, full-radius `Chip`, large outlined `TextField` — all default styling comes from the theme so pages don't hand-roll.
+- **Global chrome mobile-first responsive.** `PublicLayout` sticky `AppBar` has a two-state design (transparent at top, blurred surface after `scrollY > 8`), collapsing into a hamburger + `MobileNavDrawer` under `md`. `AdminLayout` shows a persistent sidebar on desktop and a fixed `BottomNavigation` on mobile — no dead space, no broken layouts at 360/768/1024/1440.
+- **Google Sign-In wired platform-agnostically through `@kidswear/firebase`.** New `signInWithGoogleCredential(credential)` takes any `AuthCredential`, calls `signInWithCredential`, and `upsertUserProfile` so first-time federated logins land as `role: 'customer'` — the profile row admins can find via `sendToAdmins`. `useAuthActions` exposes `loginWithGoogleCredential(credential)`; the PROVIDER-specific dance (popup on web, `expo-auth-session` on mobile) stays in each app's `lib/googleSignIn.ts`. `AuthCredential` is imported directly from `firebase/auth` at each callsite — not re-exported through `@kidswear/auth` — because both apps already depend on `firebase` and pushing the type through the shared layer would leak Firebase types into an otherwise Firebase-agnostic contract.
+- **`mapAuthError` now covers popup edge cases.** `auth/popup-closed-by-user`, `cancelled-popup-request`, `popup-blocked`, and `account-exists-with-different-credential` map to dedicated `auth.errors.*` keys so users get clear localized copy instead of the "generic" fallback.
+- **Mobile Google Sign-In needs the EAS dev build.** `Google.useAuthRequest` compiles fine in Expo Go but won't return a real id_token there — the same constraint that already applies to biometric AppLock and push (Phase 3/7). Documented in the mobile `googleSignIn.ts` and README's setup section.
+- **Wishlist / favorites deferred.** Explicit product decision — the user mentioned it but it's a separate feature (new Firestore collection, new hooks, new UI). Not part of "polish"; can be picked up as its own phase.
+
+## Expo → bare React Native CLI migration
+
+- **Why**: full ownership of the native projects (no EAS dependency, no Expo Go
+  constraints); Play-Store builds run straight through `./gradlew` on any machine with the
+  Android SDK. Requested explicitly after Phase 10.
+- **What stays**: React Native 0.85.3 (the same core Expo SDK 56 wrapped), React Native
+  Paper + NativeWind, the entire shared package layer, the Firebase **JS SDK** for
+  auth/firestore/storage. What changes is the shell around them.
+- **Navigation**: Expo Router (file-based `app/`) → **React Navigation v7** with typed
+  param lists (`RootStackParamList`), a bottom-tab navigator for the four public tabs and
+  native-stack screens for everything else. Push-tap deep links go through a
+  `navigationRef` so `attachNotificationListeners` can navigate outside the tree.
+- **Push**: Expo Push Service dropped on mobile — **FCM only, both platforms** via
+  `@react-native-firebase/messaging` (+ `@notifee/react-native` for foreground display,
+  channels, and the local test notification). `pushTokens` now has a single `fcm` array;
+  the legacy `expo` key was dropped from the schema. Zod strips unknown keys, so profiles
+  written before the migration keep a stale `expo` array that is simply never read — no
+  migration script needed.
+- **Module swaps** (signature-preserving so components didn't change):
+  image-picker/manipulator → `react-native-image-picker` + `@bam.tech/react-native-image-
+  resizer` (WEBP on Android; JPEG fallback on iOS — Android-only delivery, documented);
+  secure-store → `react-native-keychain`; local-authentication →
+  `react-native-biometrics`; localization → `react-native-localize`; auth-session →
+  `@react-native-google-signin/google-signin` (needs SHA-1 in Firebase Console);
+  `@expo/vector-icons` → `react-native-vector-icons` (fonts bundled via fonts.gradle).
+- **Env inlining**: bare RN has no `EXPO_PUBLIC_*` magic. `babel.config.js` loads
+  `apps/mobile/.env` via dotenv and `babel-plugin-transform-inline-environment-variables`
+  bakes the values into the bundle. Variables are named **`RN_PUBLIC_*`** — the Expo prefix
+  was kept briefly during the port, then renamed so nothing implies an Expo runtime. The
+  plugin runs with an explicit `include` allowlist: without one it substitutes *every*
+  `process.env` read, which would bake unrelated host/CI values into the shipped bundle.
+- **Android project**: generated from `@react-native-community/template@0.85.3` and
+  adapted for the monorepo (gradle plugin + react{} paths point at the hoisted root
+  `node_modules`). `google-services.json` is NOT committed; the google-services gradle
+  plugin ships commented-out so the first build succeeds without it — enabling push =
+  drop the json in `android/app/` and uncomment one line.
+- **Verification limits**: this environment has no Android SDK, so the CI-able gate is
+  now `tsc + eslint + react-native bundle` (Metro production bundle). The first
+  `./gradlew assembleDebug` must run on a developer machine — called out in the README.
+
+### Follow-up: Expo naming cleanup
+
+Renames and corrections after the port settled. Behavior is unchanged except where noted.
+
+- `EXPO_PUBLIC_*` → `RN_PUBLIC_*` across `.env.example`, babel, `src/firebase.ts`,
+  `src/lib/googleSignIn.ts`, and the README. `.env.example` also dropped the unused
+  `GOOGLE_ANDROID_CLIENT_ID` / `GOOGLE_IOS_CLIENT_ID` entries: native sign-in only needs
+  the Web client id, and reads the Android client from `google-services.json`.
+- `pushTokens.expo` removed from the schema, from `addPushToken`/`removePushToken`
+  (now typed `PushChannel = 'fcm'`), and from the privacy policies, which had listed
+  **Expo Push Service** as a third-party processor — inaccurate once FCM became the only
+  channel, and a legal document is the wrong place to leave that stale.
+- Redux `notifications.expoToken` / `setExpoPushToken` deleted — dead since the mobile app
+  switched to `fcmToken`. Installs that persisted the old key keep it as inert data.
+- README said the AppLock flag lives in "SecureStore". It never did after the port —
+  it is `react-native-keychain` under service `kidswear.applock`. Corrected.
+- `ProductCard` still imported `useRouter` from `expo-router`. It resolved only because
+  `expo-router` was reachable transitively through `@react-native-firebase/app`'s
+  dependency on `expo`, so the bundle built and hid the bug. Now on `useNavigation`.
+
+**Cloud Functions were never actually buildable** — two independent faults, both fixed here:
+
+- `functions/.gitignore` had a bare `lib/`. Gitignore patterns without a leading slash
+  match at any depth, so it also matched `functions/src/lib/`, and `admin.ts`, `push.ts`,
+  `i18n.ts` were silently never committed. The pattern is now `/lib/` (build output only)
+  and the three modules are restored, with the fan-out rewritten FCM-only: it reads
+  `pushTokens.fcm`, sends via `sendEachForMulticast`, and prunes tokens FCM reports as
+  permanently unregistered.
+- `firebase-admin@^14` conflicted with `firebase-functions@^6`, whose peer range stops at
+  admin 13 — `npm install` in `functions/` failed outright. Bumped to
+  `firebase-functions@^7.3.0`, which accepts admin 14. `expo-server-sdk` dropped.
+
+## Tests & CI
+
+- **One root Vitest config with three projects, not a config per package.** Ten near-identical
+  configs would drift; a single `vitest.config.ts` with `projects` keeps environment
+  differences (node vs jsdom) explicit in one file. Workspace aliases point at `src/index.ts`
+  so tests exercise the same entrypoints the apps import — no build step in the test path.
+- **The `rules` project is conditional on `FIRESTORE_EMULATOR_HOST`.** `firebase
+  emulators:exec` sets that variable, so the project registers itself only when an emulator
+  is actually up. A bare `npm test` therefore stays green instead of failing with a
+  connection error, while `npm run test:rules` runs the full set.
+- **Web components render through the real providers.** `renderWithProviders` wires the
+  actual store (`makeStore` with in-memory persist storage), i18n instance and theme rather
+  than mocking them, so a broken provider contract fails a test instead of passing against
+  a mock. In-memory storage keeps redux-persist from leaking state between files.
+- **Assertions avoid Intl glyphs.** `Intl.NumberFormat` emits locale- and ICU-version-specific
+  separators (often NBSP). Price tests compare extracted digits and structural properties
+  instead, so an ICU upgrade in CI does not turn the suite red.
+- **Fixtures are fully typed, with no `as` casts.** `packages/data/src/testFixtures.ts`
+  exports `makeProduct`/`makeOrder` builders. The first draft used `as Product` on partial
+  objects, which compiled while silently diverging from the schema (`Date` where the model
+  says epoch millis, four missing fields). Requiring complete fixtures makes schema drift a
+  compile error.
+
+**Two real defects surfaced while writing these tests, both fixed:**
+
+- `pickLocalized` fell back only on `null`/`undefined`, but the admin forms default `en`/`ru`
+  to `''` and submit them as-is. A category saved without an English name rendered a blank
+  label for English users. Blank now counts as missing.
+- `slugify`'s transliteration map held only the Uzbek-specific Cyrillic letters. Since every
+  unmapped letter is not `[a-z0-9]`, it collapsed to a dash and got trimmed — `"шапка"`
+  slugged to `"sh"`, and a fully-Cyrillic name could slug to the empty string. Uzbek is
+  routinely written in Cyrillic and the slug feeds `name.uz`, so the map now covers the full
+  alphabet.
+
+- **CI is three parallel jobs** (`.github/workflows/ci.yml`): the monorepo verify job
+  (type-check, lint, tests, web build, **Metro production bundle**), a Cloud Functions job
+  (its own install/type-check/lint/build, since it is a separate workspace), and a rules job
+  with a JDK for the emulator. The Metro bundle step is deliberate: it is the only gate that
+  catches bad module aliases and unresolvable native modules, which tsc and eslint cannot see
+  — exactly the class of bug that let an `expo-router` import survive the migration.
+
+## Payments: Payme + Click (real gateways)
+
+- **The client never declares itself paid.** This is the whole architectural
+  change from the stub. Previously checkout ran the (mock) payment first and then
+  created the order already `deposit_paid` — fine for a stub that cannot lie, but
+  fatal with a real gateway, since anyone able to write an order could claim a
+  payment that never happened. Hosted gateways now get: create `pending` with
+  `paidAmount: 0` → redirect → the provider calls our Cloud Function → the
+  function flips the order with admin credentials.
+- **Firestore rules enforce it rather than trusting the client code.** The create
+  rule allows a `deposit_paid` order only when `payment.provider == 'mock'`. A
+  client POSTing itself a `deposit_paid` order with `provider: 'payme'` is
+  rejected server-side, and there is a rules test for exactly that.
+- **The old create-in-final-state path is kept for `mock`.** It is what makes the
+  app runnable with no merchant contract, and what keeps tests offline. Both
+  paths still end in a single client create — the rules never permit a client
+  order update, so create-then-update remains impossible.
+- **No polling after the redirect.** The orders screens are already Firestore
+  snapshot listeners, so the status flip arrives on its own. The mobile app
+  navigates to Orders after handing off to the browser, rather than to a success
+  screen that would be lying at that moment.
+- **Confirmation is idempotent and transactional.** Both gateways retry
+  callbacks; `confirmDeposit` re-reads the order inside a transaction and returns
+  `already-confirmed` instead of writing again, so two concurrent retries cannot
+  both pass the check. Each provider maps that outcome to the response its
+  protocol expects — Payme repeats the success payload, Click returns its
+  `AlreadyPaid` code.
+- **Errors go in the response body, never as HTTP status codes.** Both providers
+  treat a non-200 as a transport failure and retry indefinitely. Payme gets
+  JSON-RPC error objects with its documented negative codes; Click gets its
+  `error`/`error_note` fields. The webhook returns 200 even for "unauthorized".
+- **Amount units are the highest-risk detail.** Payme bills in tiyin (×100),
+  Click in som. Sending som to Payme would undercharge by 100×, so the
+  conversion is a named function with tests asserting the unit on both sides.
+- **Click's signature differs between Prepare and Complete** — the
+  `merchant_prepare_id` slot participates only in Complete. A single naive
+  concatenation would reject every Complete callback, so the builder branches on
+  the action and both variants are tested, including a replay of a Prepare
+  signature as Complete.
+- **`base64Encode` is hand-rolled.** Payme's checkout URL is a base64 payload,
+  and neither `Buffer` (Node-only) nor `btoa` (missing from some Hermes builds,
+  and byte-oriented) is safe in a package shared by web and React Native.
+  Encoding the UTF-8 bytes directly keeps output identical on both platforms —
+  verified against the platform encoder for ASCII and round-tripped for Cyrillic.
+- **Secrets stay server-side.** Merchant and service ids are public and live in
+  each app's env; `PAYME_MERCHANT_KEY` and `CLICK_SECRET_KEY` are Cloud Functions
+  secrets and never enter a bundle. A provider whose ids are absent is simply not
+  offered, so a deployment without a contract shows no broken option.
+- **Not verified end-to-end.** Signature construction, amount conversion, error
+  codes, auth parsing and idempotency are unit-tested, and the rules change has
+  emulator coverage. No request has been made against a real Payme or Click
+  sandbox from this environment — that has to happen before launch.
+
+## Server-side catalog search, sort & pagination
+
+Supersedes the Phase 4 "small-catalog decision" (search and sort in memory over the whole
+collection). That was honest for a demo catalog and became the documented risk; this closes it.
+
+- **Search is a denormalized prefix-token array, not a scan.** Firestore has no substring or
+  full-text operator, so `buildSearchTokens` stores every word prefix of every localized name
+  and `array-contains` matches one token. Cost is now independent of catalog size. The
+  trade-off is explicit: word **prefixes** ("koy" → "koʻylak"), not infixes ("ylak" → nothing).
+  Infix search needs a separate engine; prefixes are what shoppers type.
+- **Apostrophes are normalized on both sides.** Uzbek is written with ʻ, ‘, ’, ' and ` more or
+  less interchangeably, and nobody types the right one. Both the stored tokens and the query
+  strip them, so "ko'ylak", "koʻylak" and "koylak" are the same search.
+- **Only the longest query word is used.** `array-contains` takes a single value, so the most
+  selective word wins; the rest would need `array-contains-any` (an OR, which is wider, not
+  narrower) or client-side re-filtering.
+- **Prefixes are capped at 12 characters and start at 2.** One-letter prefixes match most of
+  the catalog and are useless as a filter; uncapped prefixes bloat the document on long names.
+  A query longer than the cap is truncated to match what was actually stored.
+- **Keyset pagination, not offsets.** `startAfter(lastDoc)` rather than an offset: Firestore
+  bills for documents an offset skips, and offsets drift when rows are inserted between page
+  loads. Price sorts carry a `createdAt` tie-break so equal prices cannot skip or repeat rows
+  across a page boundary.
+- **`searchTokens` is optional in the schema, and the mutations maintain it.** Products
+  predating this have none and are invisible to search until `scripts/backfill-search-tokens.ts`
+  runs — they stay browsable by category, so the failure mode is degraded, not broken. Any edit
+  touching a name rebuilds the array (re-reading fields the patch does not carry), because a
+  stale token array silently makes a product unfindable.
+- **`useProducts` moved to `useInfiniteQuery` and its return type changed.** Search and sort are
+  now part of the query key — they are server queries and must refetch, where before they were
+  deliberately excluded as client-only. Callers get `products` plus `hasNextPage` /
+  `fetchNextPage`; web renders a "load more" button, mobile uses `onEndReached`.
+- **`catalogFilter.ts` was deleted rather than left in place.** Its client-side search/sort had
+  no callers once the server took over, and a tested module that nothing imports reads as live
+  code. The admin products page keeps its own in-memory filter — it deliberately loads all
+  products, including inactive ones, for a much smaller audience.
+- **Eleven composite indexes** cover the category × search × sort combinations. They must be
+  deployed (`firebase deploy --only firestore:indexes`) before the queries work; Firestore
+  fails such a query with a console link rather than returning partial results.
+
+## Local emulator preview
+
+- **`initFirebase` takes an optional `emulators` option.** Both apps can point the SDK at local
+  Firestore/Auth/Storage emulators, which makes the app runnable with seeded data and no cloud
+  credentials — and removes any chance a dev session writes to production.
+- **`scripts/seed-emulator.mjs` talks to the emulator REST API**, not the Admin SDK, so it needs
+  no service-account key and runs anywhere the emulator does. It sends `Authorization: Bearer
+  owner`, the emulator's superuser token, because seeding is an administrative act — the first
+  attempt without it was correctly rejected by the rules, which was a useful signal that the
+  rules are doing their job.
+
+**This exercise found a bug that no automated gate could see.** `import storage from
+'redux-persist/lib/storage'` resolved, under Vite 8's CommonJS interop, to the module *exports
+object* (`{ __esModule: true, default: engine }`) instead of the engine. `makeStore` then threw
+inside `StoreProvider`, React unmounted the tree, and the app rendered a blank page. `tsc`,
+`eslint` and `vite build` all passed — the types are structurally compatible and the failure is
+purely at runtime. It surfaced within seconds of actually loading the page.
+
+The fix (`apps/web/src/app/webStorage.ts`) unwraps the interop, throws a diagnostic error rather
+than a cryptic one if the shape changes again, and is covered by a regression test. The lesson is
+recorded here because it argues for something the CI does not yet do: **load the app and assert it
+renders**. A smoke test driving a real browser would have caught this on the commit that
+introduced it.

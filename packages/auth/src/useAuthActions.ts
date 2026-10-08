@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import {
   signInWithEmail,
+  signInWithGoogleCredential,
   signOutUser,
   signUpWithEmail,
   sendPasswordReset,
@@ -17,9 +18,14 @@ import { mapAuthError } from './mapAuthError';
 import { loadSession } from './session';
 import type { LoginValues, RegisterValues } from './schemas';
 
+// AuthCredential is intentionally NOT re-exported from @kidswear/auth — both web and mobile
+// already depend on firebase/auth directly, keeping the shared package free of firebase-specific types.
+import type { AuthCredential } from 'firebase/auth';
+
 export interface AuthActions {
   login: (values: LoginValues) => Promise<boolean>;
   register: (values: RegisterValues) => Promise<boolean>;
+  loginWithGoogleCredential: (credential: AuthCredential) => Promise<boolean>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<boolean>;
 }
@@ -62,6 +68,21 @@ export function useAuthActions(): AuthActions {
     [dispatch],
   );
 
+  const loginWithGoogleCredential = useCallback(
+    async (credential: AuthCredential): Promise<boolean> => {
+      dispatch(setAuthLoading());
+      try {
+        const user = await signInWithGoogleCredential(credential);
+        dispatch(setAuthenticated(await loadSession(user)));
+        return true;
+      } catch (error) {
+        dispatch(setAuthError(mapAuthError(error)));
+        return false;
+      }
+    },
+    [dispatch],
+  );
+
   const logout = useCallback(async (): Promise<void> => {
     await signOutUser();
     dispatch(setUnauthenticated());
@@ -82,7 +103,7 @@ export function useAuthActions(): AuthActions {
   );
 
   return useMemo(
-    () => ({ login, register, logout, resetPassword }),
-    [login, register, logout, resetPassword],
+    () => ({ login, register, loginWithGoogleCredential, logout, resetPassword }),
+    [login, register, loginWithGoogleCredential, logout, resetPassword],
   );
 }

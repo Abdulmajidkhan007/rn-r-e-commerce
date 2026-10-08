@@ -93,8 +93,14 @@
       "tooManyRequests": "Слишком много попыток. Повторите позже",
       "network": "Ошибка сети. Проверьте подключение",
       "invalidCredential": "Неверный email или пароль",
+      "popupClosed": "Окно входа закрыто",
+      "popupBlocked": "Браузер заблокировал всплывающее окно",
+      "accountExists": "Этот email уже зарегистрирован другим способом",
       "generic": "Что-то пошло не так. Повторите попытку"
-    }
+    },
+    "signInWithGoogle": "Войти через Google",
+    "signUpWithGoogle": "Регистрация через Google",
+    "orContinueWith": "или"
   },
   "profile": {
     "editProfile": "Редактировать профиль",
@@ -163,7 +169,9 @@
     "products": "Товары",
     "home": "Главная",
     "featured": "Рекомендуем",
-    "newArrivals": "Новинки"
+    "newArrivals": "Новинки",
+    "loadMore": "Показать ещё",
+    "loading": "Загрузка…"
   },
   "cart": {
     "cart": "Корзина",
@@ -214,7 +222,15 @@
   "payment": {
     "processing": "Обработка платежа...",
     "success": "Платёж выполнен",
-    "failed": "Платёж не прошёл"
+    "failed": "Платёж не прошёл",
+    "title": "Способ оплаты",
+    "payme": "Payme",
+    "click": "Click",
+    "mock": "Тестовый режим",
+    "redirecting": "Открываем страницу оплаты…",
+    "awaitingConfirmation": "Ожидаем подтверждения оплаты. Статус заказа обновится автоматически.",
+    "providerUnavailable": "Этот способ оплаты сейчас недоступен",
+    "depositNote": "Сейчас 50% предоплаты, остальное при доставке"
   },
   "admin": {
     "dashboard": "Панель",

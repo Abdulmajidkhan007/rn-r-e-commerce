@@ -93,8 +93,14 @@
       "tooManyRequests": "Too many attempts. Try again later",
       "network": "Network error. Check your connection",
       "invalidCredential": "Invalid email or password",
+      "popupClosed": "Sign-in popup was closed",
+      "popupBlocked": "Your browser blocked the sign-in popup",
+      "accountExists": "This email is already registered with a different method",
       "generic": "Something went wrong. Please try again"
-    }
+    },
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "orContinueWith": "or"
   },
   "profile": {
     "editProfile": "Edit profile",
@@ -163,7 +169,9 @@
     "products": "Products",
     "home": "Home",
     "featured": "Featured",
-    "newArrivals": "New arrivals"
+    "newArrivals": "New arrivals",
+    "loadMore": "Load more",
+    "loading": "Loading…"
   },
   "cart": {
     "cart": "Cart",
@@ -214,7 +222,15 @@
   "payment": {
     "processing": "Processing payment...",
     "success": "Payment successful",
-    "failed": "Payment failed"
+    "failed": "Payment failed",
+    "title": "Payment method",
+    "payme": "Payme",
+    "click": "Click",
+    "mock": "Test mode",
+    "redirecting": "Opening the payment page…",
+    "awaitingConfirmation": "Waiting for payment confirmation. Your order updates as soon as it clears.",
+    "providerUnavailable": "That payment method is not available right now",
+    "depositNote": "Pay 50% now, the rest on delivery"
   },
   "admin": {
     "dashboard": "Dashboard",

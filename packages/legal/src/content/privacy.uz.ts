@@ -37,7 +37,6 @@ Biz faqat xizmatni ko'rsatish uchun zarur bo'lgan ma'lumotlarni to'playmiz:
 Biz quyidagi infratuzilma provayderlaridan foydalanamiz:
 
 - **Google Firebase** (Auth, Firestore, Storage, Cloud Functions, FCM) — [https://policies.google.com/privacy](https://policies.google.com/privacy)
-- **Expo Push Service** — mobil push-tokenlarni Firebase Cloud Messaging-ga yo'naltirish uchun ishlatiladi — [https://expo.dev/privacy](https://expo.dev/privacy)
 
 Boshqa uchinchi tomon tahlil tizimlari, reklama tarmoqlari yoki ma'lumotlar brokerlaridan foydalanilmaydi.
 
@@ -55,7 +54,7 @@ Sizda quyidagi huquqlar mavjud:
 - **To'g'irlash** — noto'g'ri ma'lumotlarni tuzatishimizni so'rashingiz mumkin.
 - **O'chirish** — hisobingiz va shaxsiy ma'lumotlaringizni o'chirishimizni so'rashingiz mumkin.
 
-Ushbu huquqlardan foydalanish uchun support@kidswear.example manziliga murojaat qiling. Qo'llaniladigan qonun talab qilgan taqdirda 30 kun ichida javob beramiz.
+Ushbu huquqlardan foydalanish uchun santexnika.atoyo@gmail.com manziliga murojaat qiling. Qo'llaniladigan qonun talab qilgan taqdirda 30 kun ichida javob beramiz.
 
 ## Bolalar siyosati
 
@@ -69,7 +68,7 @@ Ushbu siyosatni vaqti-vaqti bilan yangilashimiz mumkin. Ushbu sahifaning yuqoris
 
 Maxfiylik savollari yoki ma'lumotlar bo'yicha so'rovlar uchun:
 
-support@kidswear.example
+santexnika.atoyo@gmail.com
 
 *(To'ldiruvchi manzil — ishlab chiqarishga chiqarishdan oldin almashtirilishi kerak.)*
 `;

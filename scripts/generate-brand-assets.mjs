@@ -145,3 +145,32 @@ async function main() {
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
+
+// --- Android launcher mipmaps (bare RN: android/app/src/main/res) ---
+const MIPMAPS = [
+  ['mdpi', 48],
+  ['hdpi', 72],
+  ['xhdpi', 96],
+  ['xxhdpi', 144],
+  ['xxxhdpi', 192],
+];
+
+async function generateAndroidMipmaps() {
+  const resDir = resolve(ROOT, 'apps/mobile/android/app/src/main/res');
+  const { existsSync, writeFileSync } = await import('fs');
+  if (!existsSync(resDir)) {
+    console.log('skip mipmaps (no android res dir)');
+    return;
+  }
+  for (const [density, size] of MIPMAPS) {
+    const dir = resolve(resDir, `mipmap-${density}`);
+    mkdirSync(dir, { recursive: true });
+    const square = await makeOpaque(size, 0.55);
+    writeFileSync(resolve(dir, 'ic_launcher.png'), square);
+    // Placeholder round icon: same square art; Android masks it at runtime.
+    writeFileSync(resolve(dir, 'ic_launcher_round.png'), square);
+    console.log(`mipmap-${density}/ic_launcher(.round).png ${size}x${size}`);
+  }
+}
+
+await generateAndroidMipmaps();

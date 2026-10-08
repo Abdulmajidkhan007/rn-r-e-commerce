@@ -1,2 +1,4 @@
-lib/
+# Build output only. The leading slash matters: a bare `lib/` also matches
+# src/lib/, which silently swallowed the source there once already.
+/lib/
 node_modules/

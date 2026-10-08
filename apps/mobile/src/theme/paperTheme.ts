@@ -10,23 +10,36 @@ function buildTheme(base: MD3Theme, mode: 'light' | 'dark'): MD3Theme {
   const { palette } = tokens;
   return {
     ...base,
-    roundness: 2,
+    // Paper's roundness is a scalar multiplier; 4 ≈ 16px on most components.
+    roundness: 4,
     colors: {
       ...base.colors,
       primary: palette.primary[mode === 'dark' ? 400 : 500],
       onPrimary: c.onPrimary,
       primaryContainer: palette.primary[mode === 'dark' ? 800 : 100],
+      onPrimaryContainer: palette.primary[mode === 'dark' ? 100 : 900],
       secondary: palette.secondary[mode === 'dark' ? 300 : 500],
       onSecondary: c.onSecondary,
       secondaryContainer: palette.secondary[mode === 'dark' ? 800 : 100],
+      onSecondaryContainer: palette.secondary[mode === 'dark' ? 100 : 900],
+      tertiary: palette.secondary[mode === 'dark' ? 400 : 600],
       error: c.error,
+      onError: '#ffffff',
+      errorContainer: palette.error[mode === 'dark' ? 800 : 100],
+      onErrorContainer: palette.error[mode === 'dark' ? 100 : 900],
       background: c.background,
+      onBackground: c.text,
       surface: c.surface,
       surfaceVariant: c.surfaceVariant,
       onSurface: c.text,
       onSurfaceVariant: c.textMuted,
+      surfaceDisabled: c.surfaceVariant,
+      onSurfaceDisabled: c.textMuted,
       outline: c.border,
       outlineVariant: c.border,
+      inverseSurface: mode === 'dark' ? c.surface : palette.neutral[800],
+      inverseOnSurface: mode === 'dark' ? c.text : '#ffffff',
+      inversePrimary: palette.primary[mode === 'dark' ? 500 : 300],
     },
   };
 }

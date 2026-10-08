@@ -1,7 +1,7 @@
 import { type FirebaseApp, type FirebaseOptions, getApps, initializeApp } from 'firebase/app';
-import { type Auth, type Persistence, initializeAuth } from 'firebase/auth';
-import { type Firestore, getFirestore } from 'firebase/firestore';
-import { type FirebaseStorage, getStorage } from 'firebase/storage';
+import { type Auth, type Persistence, connectAuthEmulator, initializeAuth } from 'firebase/auth';
+import { type Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { type FirebaseStorage, connectStorageEmulator, getStorage } from 'firebase/storage';
 
 export interface FirebaseServices {
   app: FirebaseApp;
@@ -19,6 +19,17 @@ export interface InitFirebaseOptions {
    * - mobile: `getReactNativePersistence(AsyncStorage)`
    */
   persistence: Persistence | Persistence[];
+  /**
+   * Point the SDK at local emulators instead of the real project. Lets the apps
+   * run with seeded data and no cloud credentials — and guarantees a dev
+   * session cannot write to production by accident.
+   */
+  emulators?: {
+    host?: string;
+    firestorePort?: number;
+    authPort?: number;
+    storagePort?: number;
+  };
 }
 
 let services: FirebaseServices | null = null;
@@ -27,7 +38,11 @@ let services: FirebaseServices | null = null;
  * Initializes Firebase once and returns the shared services. Safe to call
  * multiple times — subsequent calls return the already-initialized instance.
  */
-export function initFirebase({ config, persistence }: InitFirebaseOptions): FirebaseServices {
+export function initFirebase({
+  config,
+  persistence,
+  emulators,
+}: InitFirebaseOptions): FirebaseServices {
   if (services) {
     return services;
   }
@@ -36,6 +51,15 @@ export function initFirebase({ config, persistence }: InitFirebaseOptions): Fire
   const auth = initializeAuth(app, { persistence });
   const db = getFirestore(app);
   const storage = getStorage(app);
+
+  if (emulators) {
+    const host = emulators.host ?? '127.0.0.1';
+    connectFirestoreEmulator(db, host, emulators.firestorePort ?? 8080);
+    connectAuthEmulator(auth, `http://${host}:${emulators.authPort ?? 9099}`, {
+      disableWarnings: true,
+    });
+    connectStorageEmulator(storage, host, emulators.storagePort ?? 9199);
+  }
 
   services = { app, auth, db, storage };
   return services;

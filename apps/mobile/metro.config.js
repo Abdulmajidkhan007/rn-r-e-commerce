@@ -1,23 +1,19 @@
-// Learn more: https://docs.expo.dev/guides/monorepos/
-const { getDefaultConfig } = require('expo/metro-config');
+// Bare React Native + monorepo Metro config (node_modules hoisted to the root).
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const { withNativeWind } = require('nativewind/metro');
 const path = require('node:path');
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../..');
 
-const config = getDefaultConfig(projectRoot);
-
-// 1. Watch all files within the monorepo.
-config.watchFolders = [workspaceRoot];
-
-// 2. Resolve modules from the app first, then the workspace root (flat hoist).
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
-];
-
-// 3. Let Metro follow symlinked workspace packages.
-config.resolver.disableHierarchicalLookup = false;
+const config = mergeConfig(getDefaultConfig(projectRoot), {
+  watchFolders: [workspaceRoot],
+  resolver: {
+    nodeModulesPaths: [
+      path.resolve(projectRoot, 'node_modules'),
+      path.resolve(workspaceRoot, 'node_modules'),
+    ],
+  },
+});
 
 module.exports = withNativeWind(config, { input: './global.css' });
