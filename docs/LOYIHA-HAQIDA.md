@@ -1,7 +1,7 @@
 # KidsWear — loyiha haqida
 
 > Bolalar kiyimi do'koni: veb sayt + Android ilova bitta monorepoda.
-> Jonli: https://kids-wear-007.web.app · Repo: https://github.com/Abdulmajidkhan007/rn-r-e-commerce
+> Jonli: https://kids-wear-007.web.app · APK: https://github.com/Abdulmajidkhan007/rn-r-e-commerce/releases/latest/download/kidswear.apk · Repo: https://github.com/Abdulmajidkhan007/rn-r-e-commerce
 > Oxirgi tekshiruv: 2026-10-09 (koddan, taxmin emas).
 
 ## Nima uchun
@@ -30,7 +30,7 @@ tokenlari ustida — biri o'zgarsa, ikkinchisi ortda qolmaydi.
 | Hudud bo'yicha yetkazish narxi | ✅ | 14 hudud, standart narx, bepul chegarasi; qoidalarda tekshiriladi |
 | Sevimlilar | ✅ | `users/{uid}/favorites`, yurakcha tugmasi, `/favorites` |
 | Admin hisobot | ✅ | Tushum, o'rtacha buyurtma, 30 kun / 12 oy grafik, eng ko'p sotilganlar |
-| Android ilova | 🚧 | Yig'iladi (CI'da Metro bundle), Play Store'ga chiqmagan |
+| Android ilova | ✅ APK | Veb'dagi 1-guruh funksiyalari ilovada ham bor (promo, yetkazish, sevimlilar, blog, aloqa, admin bo'limlari). Har `main` push'da GitHub Release (`apk-release.yml`), debug kalit bilan imzolangan; Play Store'da yo'q |
 | Deploy | ✅ | Telefondan: `main` ga push → GitHub Actions → Firebase |
 
 🔒 — kod bor, lekin Firebase **Blaze** rejasini kutadi. Billing hisobining

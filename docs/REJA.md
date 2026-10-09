@@ -40,9 +40,9 @@ Play Store'ga chiqarish (listing qoralamasi bor: `store/`).
 
 1-guruh vebda tayyor: emulyatorda brauzer bilan to'liq oqim sinaldi (aloqa →
 admin: yetkazish, promo, blog → sevimlilar → promo bilan buyurtma → hisobot),
-qoidalar 51 test. **Mobil ilova:** buyurtma yangi qoidalarga mos yoziladi
-(yetkazish narxi `useCheckout` da qo'shiladi), lekin promo maydoni, yetkazish
-qatori, sevimlilar va blog ekranlari hali yo'q — keyingi bosqich.
+qoidalar 51 test. **Mobil ilova (2026-10-09):** 1-guruh ilovaga ham
+qo'shildi — sevimlilar, blog, aloqa, checkout'da promo-kod va hudud narxi,
+admin: hisobot, xabarlar, blog, promo, yetkazish. APK: `releases/latest/download/kidswear.apk`.
 
 ## Tartib
 
