@@ -341,7 +341,10 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "copyright": "© {{year}} KidsWear. All rights reserved.",
-    "tagline": "Quality clothing for kids"
+    "tagline": "Quality clothing for kids",
+    "shop": "Shop",
+    "account": "Account",
+    "legal": "Legal"
   },
   "legal": {
     "privacyTitle": "Privacy Policy",
@@ -354,5 +357,13 @@
     "children": "Children's policy",
     "thirdParties": "Third parties",
     "changes": "Changes"
+  },
+  "landing": {
+    "heroTitle": "Comfortable, good-looking clothes for your little ones",
+    "heroSubtitle": "Dresses, trousers, jackets and shoes in one place. Order in Uzbek, Russian or English.",
+    "shopNow": "Browse the catalog",
+    "deals": "On sale",
+    "allCategories": "All categories",
+    "seeAll": "See all"
   }
 }

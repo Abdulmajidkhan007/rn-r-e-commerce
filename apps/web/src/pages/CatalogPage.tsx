@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -45,7 +46,11 @@ export default function CatalogPage(): React.ReactElement {
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const categoriesQuery = useCategories();
 
-  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+  // `?category=<id>` lets the home page link straight into a filtered catalog.
+  const [searchParams] = useSearchParams();
+  const [categoryId, setCategoryId] = useState<string | undefined>(
+    () => searchParams.get('category') ?? undefined,
+  );
   const [sort, setSort] = useState<ProductSort>('newest');
   const [searchInput, setSearchInput] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);

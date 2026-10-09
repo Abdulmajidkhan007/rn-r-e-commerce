@@ -25,12 +25,21 @@ export function PriceTag({
 }: PriceTagProps): React.ReactElement {
   const language = useAppSelector((s) => s.ui.language);
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
-      <Typography variant={VARIANT[size]} color="text.primary" sx={{ fontWeight: 700 }}>
+    // Wraps on narrow cards: two prices side by side do not fit a 2-column phone grid.
+    <Stack direction="row" sx={{ alignItems: 'baseline', flexWrap: 'wrap', columnGap: 1 }}>
+      <Typography
+        variant={VARIANT[size]}
+        color="text.primary"
+        sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}
+      >
         {formatPrice(price, language)}
       </Typography>
       {compareAtPrice !== undefined && compareAtPrice > price && (
-        <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textDecoration: 'line-through', whiteSpace: 'nowrap' }}
+        >
           {formatPrice(compareAtPrice, language)}
         </Typography>
       )}

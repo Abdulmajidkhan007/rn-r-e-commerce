@@ -341,7 +341,10 @@
     "privacy": "Maxfiylik siyosati",
     "terms": "Foydalanish shartlari",
     "copyright": "© {{year}} KidsWear. Barcha huquqlar himoyalangan.",
-    "tagline": "Bolalar uchun sifatli kiyimlar"
+    "tagline": "Bolalar uchun sifatli kiyimlar",
+    "shop": "Doʻkon",
+    "account": "Hisob",
+    "legal": "Huquqiy maʼlumot"
   },
   "legal": {
     "privacyTitle": "Maxfiylik siyosati",
@@ -354,5 +357,13 @@
     "children": "Bolalar siyosati",
     "thirdParties": "Uchinchi tomonlar",
     "changes": "Oʻzgartirishlar"
+  },
+  "landing": {
+    "heroTitle": "Bolajoningiz uchun qulay va chiroyli kiyimlar",
+    "heroSubtitle": "Koʻylak, shim, kurtka va poyabzal — bir joyda. Oʻzbek, rus va ingliz tillarida buyurtma bering.",
+    "shopNow": "Katalogni ochish",
+    "deals": "Chegirmalar",
+    "allCategories": "Barcha toifalar",
+    "seeAll": "Hammasini koʻrish"
   }
 }

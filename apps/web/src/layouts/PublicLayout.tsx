@@ -255,7 +255,7 @@ export function PublicLayout(): React.ReactElement {
                   fontSize: 11,
                 }}
               >
-                Shop
+                {t('footer.shop')}
               </Typography>
               <Stack spacing={1}>
                 {NAV.map((item) => (
@@ -291,7 +291,7 @@ export function PublicLayout(): React.ReactElement {
                   fontSize: 11,
                 }}
               >
-                Account
+                {t('footer.account')}
               </Typography>
               <Stack spacing={1}>
                 {isAuthenticated ? (
@@ -376,7 +376,7 @@ export function PublicLayout(): React.ReactElement {
                   fontSize: 11,
                 }}
               >
-                Legal
+                {t('footer.legal')}
               </Typography>
               <Stack spacing={1}>
                 <Typography
