@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import GlobalStyles from '@mui/material/GlobalStyles';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { useAppSelector } from '@kidswear/store';
 import { createAppTheme } from './muiTheme';
@@ -32,7 +33,14 @@ function useSystemScheme(): ResolvedScheme {
  * Wires the shared `ui.theme` preference to MUI. `StyledEngineProvider`
  * with `enableCssLayer` emits MUI styles into the `mui` cascade layer so
  * Tailwind utilities win.
+ *
+ * The layer order is declared here too, as the FIRST emotion style. Emotion
+ * prepends its <style> tags to <head>, ahead of the stylesheet carrying the
+ * same statement (src/index.css), and the first appearance of a layer name
+ * fixes its order. Without this, `mui` became the lowest layer and Tailwind's
+ * preflight (`base`) reset every MUI padding, background and border.
  */
+const LAYER_ORDER = '@layer theme, base, mui, components, utilities;';
 export function AppThemeProvider({ children }: { children: ReactNode }): ReactNode {
   const preference = useAppSelector((s) => s.ui.theme);
   const systemScheme = useSystemScheme();
@@ -47,6 +55,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }): ReactNo
 
   return (
     <StyledEngineProvider enableCssLayer>
+      <GlobalStyles styles={LAYER_ORDER} />
       <MuiThemeProvider theme={theme}>
         <CssBaseline />
         {children}

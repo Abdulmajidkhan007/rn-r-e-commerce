@@ -8,6 +8,7 @@ import './index.css';
 import { StoreProvider } from '@/app/StoreProvider';
 import { AppThemeProvider } from '@/theme/ThemeProvider';
 import { AuthGate } from '@/app/AuthGate';
+import { LanguageSync } from '@/app/LanguageSync';
 import { router } from '@/app/router';
 
 const container = document.getElementById('root');
@@ -20,6 +21,7 @@ const queryClient = makeQueryClient();
 createRoot(container).render(
   <StrictMode>
     <StoreProvider>
+      <LanguageSync />
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider>
           <AuthGate>
