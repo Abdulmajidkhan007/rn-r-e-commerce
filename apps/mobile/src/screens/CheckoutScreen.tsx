@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -6,11 +6,14 @@ import { Button, Card, Divider, HelperText, RadioButton, Text } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
-import type { PaymentProvider } from '@kidswear/core';
-import { availableProviders, useCheckout } from '@kidswear/data';
+import { deliveryFeeFor, evaluatePromo, type PaymentProvider } from '@kidswear/core';
+import { availableProviders, useCheckout, useDeliverySettings } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { AddressDialog } from '@/components/profile/AddressDialog';
+import { PromoCodeField, type AppliedPromo } from '@/components/checkout/PromoCodeField';
+import { regionLabel } from '@/lib/region';
+import { useNow } from '@/lib/useNow';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { checkoutReturnUrl, paymentProviders } from '@/payments';
 import type { RootStackParamList } from '@/navigation/types';
@@ -37,6 +40,12 @@ export function CheckoutScreen(): React.ReactElement {
 
   const [selectedId, setSelectedId] = useState('');
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [promo, setPromo] = useState<AppliedPromo | null>(null);
+  const { data: delivery } = useDeliverySettings();
+  const now = useNow();
+  // Set when an order went through, so clearing the cart does not bounce the
+  // customer to the Cart tab instead of the success screen.
+  const placedRef = useRef(false);
 
   const needsAuth = status !== 'idle' && !isAuthenticated;
   const cartEmpty = items.length === 0;
@@ -48,7 +57,7 @@ export function CheckoutScreen(): React.ReactElement {
   }, [needsAuth, navigation]);
 
   useEffect(() => {
-    if (cartEmpty) {
+    if (cartEmpty && !placedRef.current) {
       navigation.navigate('Tabs', { screen: 'Cart' });
     }
   }, [cartEmpty, navigation]);
@@ -59,7 +68,12 @@ export function CheckoutScreen(): React.ReactElement {
   const addresses = user?.addresses ?? [];
   const effectiveId = selectedId || addresses[0]?.id || '';
   const selected = addresses.find((a) => a.id === effectiveId) ?? null;
-  const totals = computeOrderTotals(items);
+  // Same arithmetic as useCheckout and the Firestore rules.
+  const subtotal = computeOrderTotals(items).subtotal;
+  const promoResult = promo ? evaluatePromo(promo.promo, subtotal, now) : null;
+  const discount = promoResult?.ok ? promoResult.discount : 0;
+  const deliveryFee = selected ? deliveryFeeFor(delivery, selected.region, subtotal - discount) : 0;
+  const totals = computeOrderTotals(items, { discount, deliveryFee });
 
   const handleAdd = (values: AddressFormValues): Promise<boolean> => addAddress(values);
 
@@ -72,7 +86,9 @@ export function CheckoutScreen(): React.ReactElement {
         shippingAddress: selected,
         provider,
         returnUrl: checkoutReturnUrl,
+        ...(promo && discount > 0 ? { promoCode: promo.code } : {}),
       });
+      placedRef.current = true;
       dispatch(clearCart());
 
       if (checkoutUrl) {
@@ -134,11 +150,18 @@ export function CheckoutScreen(): React.ReactElement {
                 <RadioButton.Item
                   key={a.id}
                   value={a.id}
-                  label={`${a.fullName} — ${a.region}, ${a.district}`}
+                  label={`${a.fullName} — ${regionLabel(a.region, language)}, ${a.district}`}
                 />
               ))}
             </RadioButton.Group>
           )}
+        </Card.Content>
+      </Card>
+
+      <Card mode="outlined">
+        <Card.Content style={{ gap: 8 }}>
+          <Text variant="titleMedium">{t('promo.title')}</Text>
+          <PromoCodeField subtotal={subtotal} applied={promo} onChange={setPromo} />
         </Card.Content>
       </Card>
 
@@ -161,6 +184,21 @@ export function CheckoutScreen(): React.ReactElement {
 
           <Divider />
           <Row label={t('cart.subtotal')} value={formatPrice(totals.subtotal, language)} />
+          {totals.discount > 0 ? (
+            <Row
+              label={t('promo.discount')}
+              value={`− ${formatPrice(totals.discount, language)}`}
+            />
+          ) : null}
+          <Row
+            label={t('delivery.fee')}
+            value={
+              totals.deliveryFee > 0
+                ? formatPrice(totals.deliveryFee, language)
+                : t('delivery.free')
+            }
+          />
+          <Row label={t('cart.total')} value={formatPrice(totals.total, language)} />
           <Row
             label={t('checkout.dueNow')}
             value={formatPrice(totals.depositAmount, language)}

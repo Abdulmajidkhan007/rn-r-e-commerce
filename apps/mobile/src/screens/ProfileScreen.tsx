@@ -69,6 +69,12 @@ export function ProfileScreen(): React.ReactElement {
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
           onPress={() => navigation.navigate('Orders')}
         />
+        <List.Item
+          title={t('favorites.title')}
+          left={(props) => <List.Icon {...props} icon="heart-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Favorites')}
+        />
       </Card>
 
       <ProfileForm />
@@ -77,6 +83,18 @@ export function ProfileScreen(): React.ReactElement {
       <NotificationsSection />
 
       <Card mode="outlined">
+        <List.Item
+          title={t('blog.title')}
+          left={(props) => <List.Icon {...props} icon="post-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Blog')}
+        />
+        <List.Item
+          title={t('contact.title')}
+          left={(props) => <List.Icon {...props} icon="message-text-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Contact')}
+        />
         <List.Item
           title={t('footer.privacy')}
           left={(props) => <List.Icon {...props} icon="shield-outline" />}

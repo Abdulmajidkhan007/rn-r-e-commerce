@@ -10,6 +10,7 @@ import { useTranslation } from '@kidswear/i18n';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import type { RootStackParamList } from '@/navigation/types';
+import { regionLabel } from '@/lib/region';
 
 export function OrderDetailScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -77,6 +78,15 @@ export function OrderDetailScreen(): React.ReactElement {
           ))}
           <Divider />
           <Row label={t('cart.subtotal')} value={formatPrice(order.subtotal, language)} />
+          {(order.discount ?? 0) > 0 ? (
+            <Row
+              label={`${t('promo.discount')}${order.promoCode ? ` (${order.promoCode})` : ''}`}
+              value={`− ${formatPrice(order.discount ?? 0, language)}`}
+            />
+          ) : null}
+          {(order.deliveryFee ?? 0) > 0 ? (
+            <Row label={t('delivery.fee')} value={formatPrice(order.deliveryFee ?? 0, language)} />
+          ) : null}
           <Row label={t('orders.paid')} value={formatPrice(order.paidAmount, language)} />
           <Row label={t('cart.remaining')} value={formatPrice(remaining, language)} />
           <Row label={t('cart.total')} value={formatPrice(order.total, language)} strong />
@@ -88,7 +98,7 @@ export function OrderDetailScreen(): React.ReactElement {
           <Text variant="titleMedium">{t('checkout.shippingAddress')}</Text>
           <Text variant="bodyMedium">{addr.fullName}</Text>
           <Text variant="bodySmall" style={{ opacity: 0.7 }}>
-            {addr.region}, {addr.district}, {addr.street}
+            {regionLabel(addr.region, language)}, {addr.district}, {addr.street}
           </Text>
           <Text variant="bodySmall" style={{ opacity: 0.7 }}>
             {addr.phone}

@@ -91,6 +91,36 @@ export function AdminHomeScreen(): React.ReactElement {
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
           onPress={() => navigation.navigate('AdminOrders')}
         />
+        <List.Item
+          title={t('adminContent.reports')}
+          left={(props) => <List.Icon {...props} icon="chart-bar" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminReports')}
+        />
+        <List.Item
+          title={t('adminContent.messages')}
+          left={(props) => <List.Icon {...props} icon="email-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminMessages')}
+        />
+        <List.Item
+          title={t('adminContent.blog')}
+          left={(props) => <List.Icon {...props} icon="post-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminBlog')}
+        />
+        <List.Item
+          title={t('adminContent.promos')}
+          left={(props) => <List.Icon {...props} icon="tag-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminPromos')}
+        />
+        <List.Item
+          title={t('adminContent.delivery')}
+          left={(props) => <List.Icon {...props} icon="truck-delivery-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminDelivery')}
+        />
       </Card>
     </ScrollView>
   );

@@ -29,6 +29,15 @@ import { AdminHomeScreen } from '@/screens/admin/AdminHomeScreen';
 import { AdminProductsScreen } from '@/screens/admin/AdminProductsScreen';
 import { AdminCategoriesScreen } from '@/screens/admin/AdminCategoriesScreen';
 import { AdminOrdersScreen } from '@/screens/admin/AdminOrdersScreen';
+import { AdminReportsScreen } from '@/screens/admin/AdminReportsScreen';
+import { AdminMessagesScreen } from '@/screens/admin/AdminMessagesScreen';
+import { AdminBlogScreen } from '@/screens/admin/AdminBlogScreen';
+import { AdminPromosScreen } from '@/screens/admin/AdminPromosScreen';
+import { AdminDeliveryScreen } from '@/screens/admin/AdminDeliveryScreen';
+import { FavoritesScreen } from '@/screens/FavoritesScreen';
+import { BlogScreen } from '@/screens/BlogScreen';
+import { BlogPostScreen } from '@/screens/BlogPostScreen';
+import { ContactScreen } from '@/screens/ContactScreen';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -148,12 +157,40 @@ export function RootNavigator(): ReactElement {
         component={CheckoutSuccessScreen}
         options={{ title: t('checkout.orderPlaced') }}
       />
-      <Stack.Screen name="Orders" component={OrdersScreen} options={{ title: t('orders.myOrders') }} />
+      <Stack.Screen
+        name="Orders"
+        component={OrdersScreen}
+        options={{ title: t('orders.myOrders') }}
+      />
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: '' }} />
-      <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ title: t('legal.privacyTitle') }} />
-      <Stack.Screen name="Terms" component={TermsScreen} options={{ title: t('legal.termsTitle') }} />
+      <Stack.Screen
+        name="Privacy"
+        component={PrivacyScreen}
+        options={{ title: t('legal.privacyTitle') }}
+      />
+      <Stack.Screen
+        name="Terms"
+        component={TermsScreen}
+        options={{ title: t('legal.termsTitle') }}
+      />
+      <Stack.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{ title: t('favorites.title') }}
+      />
+      <Stack.Screen name="Blog" component={BlogScreen} options={{ title: t('blog.title') }} />
+      <Stack.Screen name="BlogPost" component={BlogPostScreen} options={{ title: '' }} />
+      <Stack.Screen
+        name="Contact"
+        component={ContactScreen}
+        options={{ title: t('contact.title') }}
+      />
 
-      <Stack.Screen name="Login" component={LoginScreen} options={{ title: t('auth.login.title') }} />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ title: t('auth.login.title') }}
+      />
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
@@ -190,6 +227,41 @@ export function RootNavigator(): ReactElement {
         {() => (
           <AdminGate>
             <AdminOrdersScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminReports" options={{ title: t('adminContent.reports') }}>
+        {() => (
+          <AdminGate>
+            <AdminReportsScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminMessages" options={{ title: t('adminContent.messages') }}>
+        {() => (
+          <AdminGate>
+            <AdminMessagesScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminBlog" options={{ title: t('adminContent.blog') }}>
+        {() => (
+          <AdminGate>
+            <AdminBlogScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminPromos" options={{ title: t('adminContent.promos') }}>
+        {() => (
+          <AdminGate>
+            <AdminPromosScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminDelivery" options={{ title: t('adminContent.delivery') }}>
+        {() => (
+          <AdminGate>
+            <AdminDeliveryScreen />
           </AdminGate>
         )}
       </Stack.Screen>

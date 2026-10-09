@@ -6,9 +6,12 @@ import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/au
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { AddressDialog } from './AddressDialog';
+import { regionLabel } from '@/lib/region';
+import { useAppSelector } from '@kidswear/store';
 
 export function AddressSection(): React.ReactElement {
   const { t } = useTranslation();
+  const language = useAppSelector((st) => st.ui.language);
   const tk = useTranslateKey();
   const { user } = useAuth();
   const { addAddress, updateAddress, removeAddress, saving, error } = useAddressActions();
@@ -75,7 +78,7 @@ export function AddressSection(): React.ReactElement {
                       {address.phone}
                     </Text>
                     <Text variant="bodySmall" style={{ opacity: 0.7 }}>
-                      {address.region}, {address.district}, {address.street}
+                      {regionLabel(address.region, language)}, {address.district}, {address.street}
                     </Text>
                     {address.note ? (
                       <Text variant="bodySmall" style={{ opacity: 0.6 }}>

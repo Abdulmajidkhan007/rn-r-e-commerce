@@ -6,7 +6,11 @@ import { useEffect, type ReactElement } from 'react';
 import { StatusBar, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, DefaultTheme, type Theme as NavigationTheme } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  DefaultTheme,
+  type Theme as NavigationTheme,
+} from '@react-navigation/native';
 import { ActivityIndicator, useTheme, type MD3Theme } from 'react-native-paper';
 import { useAuth, useAuthBootstrap } from '@kidswear/auth';
 import { QueryClientProvider, makeQueryClient } from '@kidswear/data';
@@ -18,6 +22,7 @@ import { configureNotifications, attachNotificationListeners } from '@/lib/push'
 import { useNotificationBootstrap } from '@/lib/useNotificationBootstrap';
 import { navigationRef } from '@/navigation/navigationRef';
 import { RootNavigator } from '@/navigation/RootNavigator';
+import { FavoritesProvider } from '@/providers/FavoritesProvider';
 
 const queryClient = makeQueryClient();
 
@@ -54,7 +59,6 @@ function AppNavigator(): ReactElement {
     });
     return cleanup;
     // This effect runs once on mount; navigationRef is a stable module-level ref.
-     
   }, []);
 
   if (status === 'idle') {
@@ -78,9 +82,11 @@ function AppNavigator(): ReactElement {
     <AppLockProvider>
       <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} />
       <LockGate>
-        <NavigationContainer ref={navigationRef} theme={toNavigationTheme(theme)}>
-          <RootNavigator />
-        </NavigationContainer>
+        <FavoritesProvider>
+          <NavigationContainer ref={navigationRef} theme={toNavigationTheme(theme)}>
+            <RootNavigator />
+          </NavigationContainer>
+        </FavoritesProvider>
       </LockGate>
     </AppLockProvider>
   );

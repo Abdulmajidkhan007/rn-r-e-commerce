@@ -1,0 +1,109 @@
+# Android APK → GitHub Release, so the app can be installed from a phone:
+#   https://github.com/Abdulmajidkhan007/rn-r-e-commerce/releases/latest/download/kidswear.apk
+#
+# The mobile app talks to Firebase through the JS SDK, configured from
+# RN_PUBLIC_* variables (babel inlines apps/mobile/.env at build time). Like the
+# web deploy, the config is read from the Firebase project — nothing typed by
+# hand. Needs the same FIREBASE_PROJECT_ID variable and FIREBASE_SERVICE_ACCOUNT
+# secret as deploy.yml.
+#
+# Signing: android/keystore.properties is not in the repo, so the release build
+# falls back to the debug key — fine for installing on a phone, NOT for Play.
+name: APK Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+      - '.github/workflows/apk-release.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-release
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      FIREBASE: npx --yes firebase-tools@15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Service account kaliti
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA_JSON" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT secret berilmagan."
+            exit 1
+          fi
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+
+      - name: Mobil ilova config'i (.env)
+        env:
+          ADMIN_EMAIL: ${{ vars.VITE_ADMIN_EMAIL }}
+        run: |
+          json() { node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s.slice(s.indexOf("{")));if(j.status!=="success"){console.error(j.error||s);process.exit(1)}console.log(JSON.stringify(j.result))})'; }
+          APP_ID=$($FIREBASE apps:list WEB --project "$PROJECT_ID" --json | json | jq -r '.[0].appId // empty')
+          if [ -z "$APP_ID" ]; then
+            echo "::error::Firebase loyihada Web ilova yo'q — avval Deploy (Firebase) workflow'ini ishga tushiring."
+            exit 1
+          fi
+          $FIREBASE apps:sdkconfig WEB "$APP_ID" --project "$PROJECT_ID" --json | json > "$RUNNER_TEMP/sdk.json"
+          jq -r '.sdkConfig | {
+              RN_PUBLIC_FIREBASE_API_KEY: .apiKey,
+              RN_PUBLIC_FIREBASE_AUTH_DOMAIN: .authDomain,
+              RN_PUBLIC_FIREBASE_PROJECT_ID: .projectId,
+              RN_PUBLIC_FIREBASE_STORAGE_BUCKET: (.storageBucket // ""),
+              RN_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: .messagingSenderId,
+              RN_PUBLIC_FIREBASE_APP_ID: .appId,
+              RN_PUBLIC_FIREBASE_MEASUREMENT_ID: (.measurementId // "")
+            } | to_entries[] | "\(.key)=\(.value)"' "$RUNNER_TEMP/sdk.json" > apps/mobile/.env
+          echo "RN_PUBLIC_ADMIN_EMAIL=$ADMIN_EMAIL" >> apps/mobile/.env
+          cut -d= -f1 apps/mobile/.env
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Build release APK
+        working-directory: apps/mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/kidswear.apk"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${GITHUB_SHA::7}"
+          gh release create "apk-${{ github.run_number }}" "$RUNNER_TEMP/kidswear.apk" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "KidsWear APK #${{ github.run_number }} ($SHA)" \
+            --notes "Android APK, commit $SHA. Debug-key signed — for installing on a phone, not for Play Store." \
+            --latest
+
+      - name: Kalitni o'chirish
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json" apps/mobile/.env

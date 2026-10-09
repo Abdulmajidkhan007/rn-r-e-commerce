@@ -12,6 +12,11 @@ export interface FormTextInputProps<T extends FieldValues> {
   secureTextEntry?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoComplete?: 'email' | 'name' | 'password' | 'new-password' | 'off';
+  /** Long text (contact message, blog body). */
+  multiline?: boolean;
+  numberOfLines?: number;
+  maxLength?: number;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 }
 
 /** Paper TextInput bound to react-hook-form via Controller, with error text. */
@@ -23,6 +28,10 @@ export function FormTextInput<T extends FieldValues>({
   secureTextEntry,
   keyboardType,
   autoComplete,
+  multiline,
+  numberOfLines,
+  maxLength,
+  autoCapitalize,
 }: FormTextInputProps<T>): React.ReactElement {
   return (
     <View>
@@ -39,8 +48,13 @@ export function FormTextInput<T extends FieldValues>({
             error={!!error}
             secureTextEntry={secureTextEntry}
             keyboardType={keyboardType}
-            autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
+            autoCapitalize={
+              autoCapitalize ?? (keyboardType === 'email-address' ? 'none' : 'sentences')
+            }
             autoComplete={autoComplete}
+            multiline={multiline}
+            numberOfLines={numberOfLines}
+            maxLength={maxLength}
           />
         )}
       />

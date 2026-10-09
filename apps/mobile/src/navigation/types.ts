@@ -27,6 +27,13 @@ export type RootStackParamList = {
   AdminProducts: undefined;
   AdminCategories: undefined;
   AdminOrders: undefined;
+  Favorites: undefined;
+  Blog: undefined;
+  BlogPost: { slug: string };
+  Contact: undefined;
+  AdminReports: undefined;
+  AdminMessages: undefined;
+  AdminBlog: undefined;
+  AdminPromos: undefined;
+  AdminDelivery: undefined;
 };
-
-

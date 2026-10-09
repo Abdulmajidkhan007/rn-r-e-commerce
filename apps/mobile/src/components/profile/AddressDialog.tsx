@@ -8,6 +8,7 @@ import { addressSchema, type AddressFormValues } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
 import { FormTextInput } from '@/components/FormTextInput';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { RegionField } from './RegionField';
 
 export interface AddressDialogProps {
   visible: boolean;
@@ -92,10 +93,11 @@ export function AddressDialog({
               keyboardType="phone-pad"
               error={err('phone')}
             />
-            <FormTextInput
+            <RegionField
               control={control}
               name="region"
               label={t('addresses.region')}
+              placeholder={t('addresses.chooseRegion')}
               error={err('region')}
             />
             <FormTextInput

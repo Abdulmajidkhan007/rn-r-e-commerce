@@ -65,6 +65,16 @@ export function HomeScreen(): React.ReactElement {
           ))}
         </View>
       )}
+
+      {/* Reachable signed out too — Profile (which also links them) needs an account. */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Chip icon="post-outline" onPress={() => navigation.navigate('Blog')}>
+          {t('blog.title')}
+        </Chip>
+        <Chip icon="message-text-outline" onPress={() => navigation.navigate('Contact')}>
+          {t('contact.title')}
+        </Chip>
+      </View>
     </ScrollView>
   );
 }

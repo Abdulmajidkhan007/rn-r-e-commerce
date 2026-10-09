@@ -6,6 +6,7 @@ import { stockStatus } from '@kidswear/utils';
 import { PriceTag } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
 import { StockBadge } from './StockBadge';
+import { FavoriteButton } from './FavoriteButton';
 
 export function ProductCard({ product }: { product: Product }): React.ReactElement {
   const navigation = useNavigation();
@@ -32,6 +33,9 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
         ) : null}
         <View style={{ position: 'absolute', top: 8, right: 8 }}>
           <StockBadge stock={product.stock} />
+        </View>
+        <View style={{ position: 'absolute', top: 0, left: 0 }}>
+          <FavoriteButton productId={product.id} size={18} />
         </View>
       </View>
       <Card.Content style={{ paddingTop: 10, paddingBottom: 12, gap: 4 }}>

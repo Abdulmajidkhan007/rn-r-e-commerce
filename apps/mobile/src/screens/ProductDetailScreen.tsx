@@ -20,6 +20,7 @@ import { StockBadge } from '@/components/catalog/StockBadge';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
 import type { RootStackParamList } from '@/navigation/types';
+import { FavoriteButton } from '@/components/catalog/FavoriteButton';
 
 const { width } = Dimensions.get('window');
 
@@ -146,13 +147,11 @@ export function ProductDetailScreen(): React.ReactElement {
               {localized(product.name)}
             </Text>
             <StockBadge stock={product.stock} />
+            <FavoriteButton productId={product.id} size={22} />
           </View>
 
           <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
-          <Text
-            variant="bodyMedium"
-            style={{ opacity: 0.7, lineHeight: 24 }}
-          >
+          <Text variant="bodyMedium" style={{ opacity: 0.7, lineHeight: 24 }}>
             {localized(product.description)}
           </Text>
 
