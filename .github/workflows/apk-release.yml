@@ -86,10 +86,21 @@ jobs:
           cache: gradle
 
       - name: Build release APK
+        env:
+          APP_VERSION_CODE: ${{ github.run_number }}
         working-directory: apps/mobile/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          # On failure the "What went wrong" block becomes an annotation —
+          # readable from the run page and the API without downloading logs.
+          set -o pipefail
+          if ! ./gradlew assembleRelease --no-daemon 2>&1 | tee "$RUNNER_TEMP/gradle.log"; then
+            msg=$(grep -A30 'What went wrong' "$RUNNER_TEMP/gradle.log" | head -45)
+            [ -n "$msg" ] || msg=$(tail -45 "$RUNNER_TEMP/gradle.log")
+            msg=${msg//'%'/'%25'}; msg=${msg//$'\r'/}; msg=${msg//$'\n'/'%0A'}
+            echo "::error title=Gradle build failed::$msg"
+            exit 1
+          fi
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/kidswear.apk"
 
       - name: Publish GitHub Release

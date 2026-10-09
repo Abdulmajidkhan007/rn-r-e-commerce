@@ -88,6 +88,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+// Computed up front: Groovy would parse `versionCode (x).toInteger()` as
+// `versionCode(x).toInteger()` and hand versionCode a String.
+def appVersionCode = (System.getenv('APP_VERSION_CODE') ?: '1').toInteger()
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -98,8 +102,10 @@ android {
         applicationId "com.kidswear"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI (apk-release.yml) passes the run number, so every published APK is
+        // a higher version and installs over the previous one as an update.
+        versionCode appVersionCode
+        versionName "1.0.${appVersionCode}"
     }
     signingConfigs {
         debug {
