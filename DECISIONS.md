@@ -64,6 +64,11 @@ enableCssLayer>` puts MUI styles in the `mui` layer so **Tailwind utilities win*
 
 ## Mobile (`apps/mobile`)
 
+> **Superseded (2026-07):** the app was migrated from Expo to **bare React Native
+> CLI** (React Native 0.85, React Navigation 7, React Native Paper, NativeWind v4) —
+> see commits `c78b517` / `54c518e`. The Expo SDK, expo-router and `expo/metro-config`
+> notes below are kept as history of the original decision, not current state.
+
 - Expo SDK 56, all native deps pinned to the SDK's `bundledNativeModules` versions (the
   same versions `npx expo install` would resolve).
 - **NativeWind v4 is paired with Tailwind v3.4** (its fully-supported version); the web app
