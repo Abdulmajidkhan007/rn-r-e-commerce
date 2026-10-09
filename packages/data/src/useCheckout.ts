@@ -1,6 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
-import type { Address, CartItem, PaymentProvider } from '@kidswear/core';
-import { createOrder, getProductById } from '@kidswear/firebase';
+import {
+  deliveryFeeFor,
+  evaluatePromo,
+  normalizePromoCode,
+  type Address,
+  type CartItem,
+  type PaymentProvider,
+} from '@kidswear/core';
+import { createOrder, getDeliverySettings, getProductById, getPromoCode } from '@kidswear/firebase';
 import { computeOrderTotals, genId } from '@kidswear/utils';
 import { mockPaymentService, type PaymentService } from './payment';
 import { buildCheckoutUrl, type PaymentProviderConfig } from './paymentProviders';
@@ -16,6 +23,8 @@ export interface CheckoutInput {
    * only exists after the order is created — hence a function, not a string.
    */
   returnUrl?: (orderId: string) => string;
+  /** Code the customer typed; re-validated here against the live document. */
+  promoCode?: string;
 }
 
 export interface CheckoutResult {
@@ -32,6 +41,7 @@ const ERR = {
   emptyCart: 'checkout.errors.emptyCart',
   noAddress: 'checkout.errors.noAddress',
   outOfStock: 'checkout.errors.outOfStock',
+  promoInvalid: 'promo.errors.invalid',
   payment: 'payment.failed',
   providerUnavailable: 'payment.providerUnavailable',
   generic: 'checkout.errors.generic',
@@ -84,7 +94,14 @@ export function useCheckout(options: UseCheckoutOptions | PaymentService = {}): 
   const providers = resolved.providers ?? {};
 
   const mutation = useMutation<CheckoutResult, Error, CheckoutInput>({
-    mutationFn: async ({ userId, items, shippingAddress, provider = 'mock', returnUrl }) => {
+    mutationFn: async ({
+      userId,
+      items,
+      shippingAddress,
+      provider = 'mock',
+      returnUrl,
+      promoCode,
+    }) => {
       if (items.length === 0) throw new Error(ERR.emptyCart);
       // shippingAddress is required by the type, but guard defensively.
       if (!shippingAddress.id) throw new Error(ERR.noAddress);
@@ -97,8 +114,34 @@ export function useCheckout(options: UseCheckoutOptions | PaymentService = {}): 
       });
       if (outOfStock) throw new Error(ERR.outOfStock);
 
-      const { subtotal, depositAmount, total } = computeOrderTotals(items);
-      const base = { userId, items, subtotal, depositAmount, total, shippingAddress };
+      // Promo and delivery are read fresh at the moment of ordering — the rules
+      // re-compute both from the same documents, so stale UI values would only
+      // get the order rejected.
+      const subtotalOnly = computeOrderTotals(items).subtotal;
+      const code = promoCode ? normalizePromoCode(promoCode) : '';
+      const [promo, delivery] = await Promise.all([
+        code ? getPromoCode(code) : Promise.resolve(null),
+        getDeliverySettings(),
+      ]);
+      const promoResult = code ? evaluatePromo(promo, subtotalOnly, Date.now()) : null;
+      if (promoResult && !promoResult.ok) throw new Error(ERR.promoInvalid);
+      const discount = promoResult?.ok ? promoResult.discount : 0;
+      const deliveryFee = deliveryFeeFor(delivery, shippingAddress.region, subtotalOnly - discount);
+
+      const { subtotal, depositAmount, total } = computeOrderTotals(items, {
+        discount,
+        deliveryFee,
+      });
+      const base = {
+        userId,
+        items,
+        subtotal,
+        depositAmount,
+        total,
+        shippingAddress,
+        ...(code && discount > 0 ? { promoCode: code, discount } : {}),
+        ...(deliveryFee > 0 ? { deliveryFee } : {}),
+      };
 
       if (provider === 'mock') {
         const payed = await payment.payDeposit(genId(), depositAmount);

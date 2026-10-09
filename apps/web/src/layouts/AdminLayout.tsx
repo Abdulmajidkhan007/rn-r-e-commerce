@@ -18,6 +18,14 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import CategoryIcon from '@mui/icons-material/Category';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import MailIcon from '@mui/icons-material/Mail';
+import ArticleIcon from '@mui/icons-material/Article';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import { useTranslation } from '@kidswear/i18n';
 import { ThemeToggle } from '@/components';
 import { tokens } from '@kidswear/theme';
@@ -29,7 +37,15 @@ const ITEMS = [
   { to: '/admin/products', labelKey: 'admin.products', icon: <Inventory2Icon /> },
   { to: '/admin/categories', labelKey: 'admin.categories', icon: <CategoryIcon /> },
   { to: '/admin/orders', labelKey: 'admin.orders', icon: <ReceiptLongIcon /> },
+  { to: '/admin/reports', labelKey: 'adminContent.reports', icon: <BarChartIcon /> },
+  { to: '/admin/messages', labelKey: 'adminContent.messages', icon: <MailIcon /> },
+  { to: '/admin/blog', labelKey: 'adminContent.blog', icon: <ArticleIcon /> },
+  { to: '/admin/promos', labelKey: 'adminContent.promos', icon: <LocalOfferIcon /> },
+  { to: '/admin/delivery', labelKey: 'adminContent.delivery', icon: <LocalShippingIcon /> },
 ] as const;
+
+/** Phones get the first four in the bottom bar; the rest sit behind "More". */
+const BOTTOM_COUNT = 4;
 
 /** Admin layout: persistent sidebar + topbar on desktop; BottomNavigation on mobile. */
 export function AdminLayout(): React.ReactElement {
@@ -37,12 +53,11 @@ export function AdminLayout(): React.ReactElement {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const location = useLocation();
+  const [moreAnchor, setMoreAnchor] = React.useState<HTMLElement | null>(null);
 
   // Match active item: exact for /admin, prefix for sub-routes.
   const activeIndex = ITEMS.findIndex((item) =>
-    item.to === '/admin'
-      ? location.pathname === '/admin'
-      : location.pathname.startsWith(item.to),
+    item.to === '/admin' ? location.pathname === '/admin' : location.pathname.startsWith(item.to),
   );
 
   const chromeAppBarSx = {
@@ -185,8 +200,11 @@ export function AdminLayout(): React.ReactElement {
           }}
           elevation={3}
         >
-          <BottomNavigation value={activeIndex === -1 ? 0 : activeIndex} showLabels>
-            {ITEMS.map((item) => (
+          <BottomNavigation
+            value={activeIndex === -1 ? 0 : Math.min(activeIndex, BOTTOM_COUNT)}
+            showLabels
+          >
+            {ITEMS.slice(0, BOTTOM_COUNT).map((item) => (
               <BottomNavigationAction
                 key={item.to}
                 label={t(item.labelKey)}
@@ -195,7 +213,32 @@ export function AdminLayout(): React.ReactElement {
                 to={item.to}
               />
             ))}
+            <BottomNavigationAction
+              label={t('adminContent.more')}
+              icon={<MoreHorizIcon />}
+              onClick={(e) => setMoreAnchor(e.currentTarget)}
+            />
           </BottomNavigation>
+          <Menu
+            anchorEl={moreAnchor}
+            open={!!moreAnchor}
+            onClose={() => setMoreAnchor(null)}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            {ITEMS.slice(BOTTOM_COUNT).map((item) => (
+              <MenuItem
+                key={item.to}
+                component={RouterLink}
+                to={item.to}
+                selected={location.pathname.startsWith(item.to)}
+                onClick={() => setMoreAnchor(null)}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                {t(item.labelKey)}
+              </MenuItem>
+            ))}
+          </Menu>
         </Paper>
       )}
     </Box>

@@ -16,6 +16,7 @@ import { useTranslation } from '@kidswear/i18n';
 import { Card, Skeleton } from '@/components';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
+import { regionLabel } from '@/lib/region';
 
 export default function OrderDetailPage(): React.ReactElement {
   const { t } = useTranslation();
@@ -27,14 +28,22 @@ export default function OrderDetailPage(): React.ReactElement {
 
   if (loading) {
     return (
-      <Container disableGutters maxWidth={false} sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 4 } }}>
+      <Container
+        disableGutters
+        maxWidth={false}
+        sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 4 } }}
+      >
         <Skeleton variant="rectangular" height={240} sx={{ borderRadius: 2, mt: 4 }} />
       </Container>
     );
   }
   if (!order) {
     return (
-      <Container disableGutters maxWidth={false} sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 4 } }}>
+      <Container
+        disableGutters
+        maxWidth={false}
+        sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 4 } }}
+      >
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="h5">404</Typography>
           <Typography color="text.secondary">{t('orders.noOrders')}</Typography>
@@ -53,7 +62,11 @@ export default function OrderDetailPage(): React.ReactElement {
   };
 
   return (
-    <Container disableGutters maxWidth={false} sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 4 } }}>
+    <Container
+      disableGutters
+      maxWidth={false}
+      sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 4 } }}
+    >
       <Stack spacing={3} sx={{ py: { xs: 3, md: 5 } }}>
         <Stack spacing={0.5}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
@@ -125,7 +138,23 @@ export default function OrderDetailPage(): React.ReactElement {
         <Card>
           <Stack spacing={1}>
             <Row label={t('cart.subtotal')} value={formatPrice(order.subtotal, language)} />
-            <Row label={t('cart.deposit')} value={formatPrice(order.depositAmount, language)} strong />
+            {(order.discount ?? 0) > 0 && (
+              <Row
+                label={`${t('promo.discount')}${order.promoCode ? ` (${order.promoCode})` : ''}`}
+                value={`− ${formatPrice(order.discount ?? 0, language)}`}
+              />
+            )}
+            {(order.deliveryFee ?? 0) > 0 && (
+              <Row
+                label={t('delivery.fee')}
+                value={formatPrice(order.deliveryFee ?? 0, language)}
+              />
+            )}
+            <Row
+              label={t('cart.deposit')}
+              value={formatPrice(order.depositAmount, language)}
+              strong
+            />
             <Row label={t('orders.paid')} value={formatPrice(order.paidAmount, language)} />
             <Row label={t('cart.remaining')} value={formatPrice(remaining, language)} />
             <Divider />
@@ -138,7 +167,7 @@ export default function OrderDetailPage(): React.ReactElement {
             <Typography variant="h6">{t('checkout.shippingAddress')}</Typography>
             <Typography variant="body2">{addr.fullName}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {addr.region}, {addr.district}, {addr.street}
+              {regionLabel(addr.region, language)}, {addr.district}, {addr.street}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {addr.phone}

@@ -6,6 +6,7 @@ import CheckoutPage from '@/pages/CheckoutPage';
 import ProfilePage from '@/pages/ProfilePage';
 import OrdersPage from '@/pages/OrdersPage';
 import OrderDetailPage from '@/pages/OrderDetailPage';
+import FavoritesPage from '@/pages/FavoritesPage';
 import { RequireAuth, RequireAdmin } from './guards';
 
 /** Wraps a default-exported page module for react-router's lazy `Component`. */
@@ -30,6 +31,7 @@ const routes: RouteObject[] = [
         ),
       },
       { path: 'blog', lazy: lazyPage(() => import('@/pages/BlogPage')) },
+      { path: 'blog/:slug', lazy: lazyPage(() => import('@/pages/BlogPostPage')) },
       { path: 'contact', lazy: lazyPage(() => import('@/pages/ContactPage')) },
       { path: 'privacy', lazy: lazyPage(() => import('@/pages/PrivacyPage')) },
       { path: 'terms', lazy: lazyPage(() => import('@/pages/TermsPage')) },
@@ -48,6 +50,14 @@ const routes: RouteObject[] = [
         element: (
           <RequireAuth>
             <OrdersPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'favorites',
+        element: (
+          <RequireAuth>
+            <FavoritesPage />
           </RequireAuth>
         ),
       },
@@ -84,6 +94,11 @@ const routes: RouteObject[] = [
       { path: 'products', lazy: lazyPage(() => import('@/pages/AdminProductsPage')) },
       { path: 'categories', lazy: lazyPage(() => import('@/pages/AdminCategoriesPage')) },
       { path: 'orders', lazy: lazyPage(() => import('@/pages/AdminOrdersPage')) },
+      { path: 'reports', lazy: lazyPage(() => import('@/pages/AdminReportsPage')) },
+      { path: 'messages', lazy: lazyPage(() => import('@/pages/AdminMessagesPage')) },
+      { path: 'blog', lazy: lazyPage(() => import('@/pages/AdminBlogPage')) },
+      { path: 'promos', lazy: lazyPage(() => import('@/pages/AdminPromosPage')) },
+      { path: 'delivery', lazy: lazyPage(() => import('@/pages/AdminDeliveryPage')) },
     ],
   },
   { path: '*', lazy: lazyPage(() => import('@/pages/NotFoundPage')) },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -11,8 +11,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
-import type { PaymentProvider } from '@kidswear/core';
-import { availableProviders, useCheckout } from '@kidswear/data';
+import { deliveryFeeFor, evaluatePromo, type PaymentProvider } from '@kidswear/core';
+import { availableProviders, useCheckout, useDeliverySettings } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
@@ -21,8 +21,11 @@ import { AddressDialog } from '@/components/profile/AddressDialog';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { PaymentMethodPicker } from '@/components/checkout/PaymentMethodPicker';
+import { PromoCodeField, type AppliedPromo } from '@/components/checkout/PromoCodeField';
+import { regionLabel } from '@/lib/region';
 import { checkoutReturnUrl, paymentProviders } from '@/payments';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useNow } from '@/lib/useNow';
 
 export default function CheckoutPage(): React.ReactElement {
   const { t } = useTranslation();
@@ -49,15 +52,29 @@ export default function CheckoutPage(): React.ReactElement {
   const [selectedId, setSelectedId] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const placedRef = useRef(false);
+
   // Empty cart → back to cart.
   useEffect(() => {
-    if (items.length === 0) navigate('/cart', { replace: true });
+    // Not after a successful order: clearing the cart would otherwise bounce the
+    // customer to an empty /cart instead of the success page.
+    if (items.length === 0 && !placedRef.current) navigate('/cart', { replace: true });
   }, [items.length, navigate]);
 
-  const totals = computeOrderTotals(items);
+  const [promo, setPromo] = useState<AppliedPromo | null>(null);
+  const { data: delivery } = useDeliverySettings();
+  const now = useNow();
+
   // Effective selection defaults to the first saved address (no effect needed).
   const effectiveId = selectedId || addresses[0]?.id || '';
   const selected = addresses.find((a) => a.id === effectiveId) ?? null;
+
+  // Same arithmetic the order write uses (useCheckout) and the rules re-check.
+  const subtotal = computeOrderTotals(items).subtotal;
+  const promoResult = promo ? evaluatePromo(promo.promo, subtotal, now) : null;
+  const discount = promoResult?.ok ? promoResult.discount : 0;
+  const deliveryFee = selected ? deliveryFeeFor(delivery, selected.region, subtotal - discount) : 0;
+  const totals = computeOrderTotals(items, { discount, deliveryFee });
   const placeDisabled = !selected || items.length === 0;
 
   const handleAddAddress = async (values: AddressFormValues): Promise<boolean> => {
@@ -74,7 +91,9 @@ export default function CheckoutPage(): React.ReactElement {
         shippingAddress: selected,
         provider,
         returnUrl: checkoutReturnUrl,
+        ...(promo && discount > 0 ? { promoCode: promo.code } : {}),
       });
+      placedRef.current = true;
       dispatch(clearCart());
 
       if (checkoutUrl) {
@@ -135,7 +154,7 @@ export default function CheckoutPage(): React.ReactElement {
                       key={a.id}
                       value={a.id}
                       control={<Radio />}
-                      label={`${a.fullName} — ${a.region}, ${a.district}, ${a.street} (${a.phone})`}
+                      label={`${a.fullName} — ${regionLabel(a.region, language)}, ${a.district}, ${a.street} (${a.phone})`}
                     />
                   ))}
                 </RadioGroup>
@@ -160,12 +179,16 @@ export default function CheckoutPage(): React.ReactElement {
             </Stack>
           </Card>
 
+          {/* Promo code */}
+          <Card>
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle2">{t('promo.title')}</Typography>
+              <PromoCodeField subtotal={subtotal} applied={promo} onChange={setPromo} />
+            </Stack>
+          </Card>
+
           {/* 3. Payment method — rendered only when there is a choice. */}
-          <PaymentMethodPicker
-            providers={providers}
-            value={provider}
-            onChange={setProvider}
-          />
+          <PaymentMethodPicker providers={providers} value={provider} onChange={setProvider} />
 
           {/* 4. Review */}
           <Card>

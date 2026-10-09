@@ -7,7 +7,7 @@
 export { makeQueryClient } from './client';
 export { queryKeys } from './queryKeys';
 export type { ProductsParams, ProductSort } from './queryKeys';
-export { useCategories, useProducts, useProduct } from './hooks';
+export { useCategories, useProducts, useProduct, useProductsByIds } from './hooks';
 export type { UseProductsResult } from './hooks';
 
 export { mockPaymentService, isInAppProvider } from './payment';
@@ -55,6 +55,30 @@ export type {
 
 export { summarizeDashboard, LOW_STOCK_THRESHOLD } from './dashboard';
 export type { DashboardStats } from './dashboard';
+
+export {
+  contentKeys,
+  useSendContactMessage,
+  useContactMessages,
+  useSetMessageStatus,
+  useDeleteMessage,
+  usePublishedPosts,
+  useBlogPost,
+  useAdminPosts,
+  useSaveBlogPost,
+  useDeleteBlogPost,
+  useLookupPromo,
+  usePromoCodes,
+  useSavePromoCode,
+  useDeletePromoCode,
+  useDeliverySettings,
+  useSaveDeliverySettings,
+  useFavorites,
+} from './useContent';
+export type { FavoritesState } from './useContent';
+
+export { summarizeSales } from './reports';
+export type { SalesReport, SalesBucket, TopProduct } from './reports';
 
 export { QueryClientProvider } from '@tanstack/react-query';
 export type { QueryClient } from '@tanstack/react-query';

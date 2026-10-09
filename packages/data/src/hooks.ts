@@ -1,7 +1,12 @@
 import { useMemo } from 'react';
-import { useInfiniteQuery, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueries, useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { Category, Product } from '@kidswear/core';
-import { getCategories, getProductById, getProductPage, type ProductPage } from '@kidswear/firebase';
+import {
+  getCategories,
+  getProductById,
+  getProductPage,
+  type ProductPage,
+} from '@kidswear/firebase';
 import { searchQueryToken } from '@kidswear/utils';
 import { PRODUCTS_PAGE_SIZE, queryKeys, type ProductsParams } from './queryKeys';
 
@@ -84,4 +89,25 @@ export function useProduct(id: string): UseQueryResult<Product | null> {
     queryFn: () => getProductById(id),
     enabled: !!id,
   });
+}
+
+/**
+ * Several products by id, in the given order (favorites). Shares the
+ * single-product cache key, so pages visited earlier are reused. Missing and
+ * inactive products are left out.
+ */
+export function useProductsByIds(ids: readonly string[]): {
+  products: Product[];
+  isLoading: boolean;
+} {
+  const results = useQueries({
+    queries: ids.map((id) => ({
+      queryKey: queryKeys.product(id),
+      queryFn: () => getProductById(id),
+    })),
+  });
+  return {
+    products: results.flatMap((r) => (r.data && r.data.isActive ? [r.data] : [])),
+    isLoading: results.some((r) => r.isLoading),
+  };
 }

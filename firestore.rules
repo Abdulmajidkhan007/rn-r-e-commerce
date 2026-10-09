@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // KidsWear Firestore security rules (server-side source of truth).
-// Phase 1: authored, NOT deployed yet.
+// Deployed by .github/workflows/deploy.yml. Tests: test/rules/ (emulator).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -15,6 +15,58 @@ service cloud.firestore {
 
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ---- Order money checks -------------------------------------------------
+    // Mirror @kidswear/core evaluatePromo / deliveryFeeFor and
+    // @kidswear/utils computeOrderTotals. The client computes, the rules
+    // re-compute: a hand-written order cannot invent a discount or skip
+    // delivery. (Line prices are still client-supplied — server-side repricing
+    // needs Cloud Functions; see docs/REJA.md.)
+    function discountOf(d) {
+      return ('discount' in d) ? d.discount : 0;
+    }
+
+    function feeOf(d) {
+      return ('deliveryFee' in d) ? d.deliveryFee : 0;
+    }
+
+    function promoOk(d) {
+      return !('promoCode' in d)
+        ? discountOf(d) == 0
+        : exists(/databases/$(database)/documents/promoCodes/$(d.promoCode))
+          && promoDiscountOk(get(/databases/$(database)/documents/promoCodes/$(d.promoCode)).data, d);
+    }
+
+    function promoDiscountOk(p, d) {
+      return p.active == true
+        && (!('expiresAt' in p) || p.expiresAt > request.time.toMillis())
+        && d.subtotal >= p.minSubtotal
+        && d.discount == (p.type == 'percent'
+              ? math.floor(d.subtotal * p.value / 100)
+              // No math.min in the rules language.
+              : (p.value < d.subtotal ? p.value : d.subtotal));
+    }
+
+    function deliveryOk(d) {
+      return !exists(/databases/$(database)/documents/settings/delivery)
+        ? feeOf(d) == 0
+        : feeOf(d) == expectedFee(get(/databases/$(database)/documents/settings/delivery).data, d);
+    }
+
+    function expectedFee(s, d) {
+      return (s.freeFrom > 0 && d.subtotal - discountOf(d) >= s.freeFrom)
+        ? 0
+        : s.regions.get(d.shippingAddress.region, s.defaultFee);
+    }
+
+    function totalsOk(d) {
+      return d.total == d.subtotal - discountOf(d) + feeOf(d)
+        && d.depositAmount == math.round(d.total * 0.5);
+    }
+
+    function sizeBetween(v, lo, hi) {
+      return v is string && v.size() >= lo && v.size() <= hi;
     }
 
     // Categories: public read; admin-only writes.
@@ -48,7 +100,10 @@ service cloud.firestore {
                   && request.resource.data.payment.provider == 'mock'
               : request.resource.data.paidAmount == 0)
         && request.resource.data.keys().hasAll(
-              ['items', 'subtotal', 'depositAmount', 'total', 'shippingAddress']);
+              ['items', 'subtotal', 'depositAmount', 'total', 'shippingAddress'])
+        && promoOk(request.resource.data)
+        && deliveryOk(request.resource.data)
+        && totalsOk(request.resource.data);
       allow read: if isOwner(resource.data.userId) || isAdmin();
       allow update: if isAdmin()
         || (isOwner(resource.data.userId)
@@ -69,6 +124,52 @@ service cloud.firestore {
       allow update: if isOwner(uid)
         && (request.resource.data.role == resource.data.role || isAdmin());
       allow delete: if false;
+    }
+
+    // Favorites: a private list per user; the doc id is the product id.
+    match /users/{uid}/favorites/{productId} {
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['productId', 'createdAt'])
+        && request.resource.data.productId == productId;
+    }
+
+    // Contact form: anyone may write one message of a bounded shape; only
+    // admins read it. No server rate limit without Functions — the size caps
+    // keep abuse cheap to clean up.
+    match /messages/{messageId} {
+      allow create: if request.resource.data.keys().hasOnly(
+            ['name', 'phone', 'email', 'message', 'status', 'userId', 'createdAt', 'updatedAt'])
+        && request.resource.data.status == 'new'
+        && sizeBetween(request.resource.data.name, 1, 80)
+        && sizeBetween(request.resource.data.phone, 1, 30)
+        && sizeBetween(request.resource.data.message, 5, 2000)
+        && (!('email' in request.resource.data) || sizeBetween(request.resource.data.email, 3, 120))
+        && (!('userId' in request.resource.data)
+              || (isSignedIn() && request.resource.data.userId == request.auth.uid))
+        && request.resource.data.createdAt == request.time;
+      allow read, delete: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+    }
+
+    // Blog: published posts are public; drafts are admin-only.
+    match /blogPosts/{postId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Promo codes: a customer may look one up by exact code, never list them.
+    match /promoCodes/{code} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Store settings (delivery prices): public read, admin write.
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Default: deny everything else.

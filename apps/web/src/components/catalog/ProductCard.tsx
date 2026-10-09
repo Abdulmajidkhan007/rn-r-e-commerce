@@ -13,6 +13,7 @@ import { tokens } from '@kidswear/theme';
 import { PriceTag } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
 import { StockBadge } from './StockBadge';
+import { FavoriteButton } from './FavoriteButton';
 
 export function ProductCard({ product }: { product: Product }): React.ReactElement {
   const localized = useLocalized();
@@ -24,6 +25,7 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
     <Card
       variant="outlined"
       sx={{
+        position: 'relative',
         height: '100%',
         bgcolor: 'background.paper',
         transition: theme.transitions.create(['transform', 'box-shadow'], {
@@ -78,6 +80,10 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
           </Stack>
         </CardContent>
       </CardActionArea>
+      {/* Outside the link: a button nested in <a> is invalid and would navigate. */}
+      <Box sx={{ position: 'absolute', top: tokens.spacing.sm, left: tokens.spacing.sm }}>
+        <FavoriteButton productId={product.id} />
+      </Box>
     </Card>
   );
 }

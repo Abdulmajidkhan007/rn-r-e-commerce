@@ -64,6 +64,9 @@ export function AccountMenu(): React.ReactElement {
         <MenuItem component={RouterLink} to="/orders" onClick={handleClose}>
           {t('orders.myOrders')}
         </MenuItem>
+        <MenuItem component={RouterLink} to="/favorites" onClick={handleClose}>
+          {t('favorites.title')}
+        </MenuItem>
         {isAdmin && (
           <MenuItem component={RouterLink} to="/admin" onClick={handleClose}>
             {t('nav.admin')}

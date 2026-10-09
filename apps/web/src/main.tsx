@@ -9,6 +9,7 @@ import { StoreProvider } from '@/app/StoreProvider';
 import { AppThemeProvider } from '@/theme/ThemeProvider';
 import { AuthGate } from '@/app/AuthGate';
 import { LanguageSync } from '@/app/LanguageSync';
+import { FavoritesProvider } from '@/app/FavoritesProvider';
 import { router } from '@/app/router';
 
 const container = document.getElementById('root');
@@ -25,9 +26,11 @@ createRoot(container).render(
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider>
           <AuthGate>
-            <Suspense fallback={null}>
-              <RouterProvider router={router} />
-            </Suspense>
+            <FavoritesProvider>
+              <Suspense fallback={null}>
+                <RouterProvider router={router} />
+              </Suspense>
+            </FavoritesProvider>
           </AuthGate>
         </AppThemeProvider>
       </QueryClientProvider>

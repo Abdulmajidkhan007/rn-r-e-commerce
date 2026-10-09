@@ -8,7 +8,9 @@ import DialogActions from '@mui/material/DialogActions';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import type { Address } from '@kidswear/core';
+import { UZ_REGIONS, type Address } from '@kidswear/core';
+import { pickLocalized } from '@kidswear/utils';
+import { useAppSelector } from '@kidswear/store';
 import { addressSchema, type AddressFormValues } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
@@ -39,6 +41,11 @@ export function AddressDialog({
   onSubmit,
 }: AddressDialogProps): React.ReactElement {
   const { t } = useTranslation();
+  const language = useAppSelector((st) => st.ui.language);
+  // An address saved before the region list existed keeps its typed text as
+  // an extra option, so editing it does not silently change the region.
+  const legacyRegion =
+    address && !UZ_REGIONS.some((r) => r.id === address.region) ? address.region : null;
   const tk = useTranslateKey();
 
   const {
@@ -104,12 +111,24 @@ export function AddressDialog({
             helperText={fieldError('phone')}
           />
           <TextField
+            select
             label={t('addresses.region')}
             fullWidth
+            slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
             {...register('region')}
             error={!!errors.region}
             helperText={fieldError('region')}
-          />
+          >
+            <option value="" disabled>
+              {t('addresses.chooseRegion')}
+            </option>
+            {legacyRegion && <option value={legacyRegion}>{legacyRegion}</option>}
+            {UZ_REGIONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {pickLocalized(r.name, language)}
+              </option>
+            ))}
+          </TextField>
           <TextField
             label={t('addresses.district')}
             fullWidth

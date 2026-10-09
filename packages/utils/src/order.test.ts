@@ -28,7 +28,13 @@ describe('computeOrderTotals', () => {
   });
 
   it('returns zeroes for an empty cart', () => {
-    expect(computeOrderTotals([])).toEqual({ subtotal: 0, depositAmount: 0, total: 0 });
+    expect(computeOrderTotals([])).toEqual({
+      subtotal: 0,
+      discount: 0,
+      deliveryFee: 0,
+      depositAmount: 0,
+      total: 0,
+    });
   });
 
   it('never leaves a remainder that cannot be settled', () => {
@@ -37,5 +43,25 @@ describe('computeOrderTotals', () => {
       const { total, depositAmount } = computeOrderTotals([{ price, quantity: 3 }]);
       expect(depositAmount + (total - depositAmount)).toBe(total);
     }
+  });
+
+  it('applies discount, then delivery, and takes the deposit from the final total', () => {
+    const t = computeOrderTotals([{ price: 200_000, quantity: 1 }], {
+      discount: 20_000,
+      deliveryFee: 30_000,
+    });
+    expect(t).toMatchObject({ subtotal: 200_000, discount: 20_000, deliveryFee: 30_000 });
+    expect(t.total).toBe(210_000);
+    expect(t.depositAmount).toBe(105_000);
+  });
+
+  it('never discounts below zero or accepts a negative fee', () => {
+    const t = computeOrderTotals([{ price: 10_000, quantity: 1 }], {
+      discount: 50_000,
+      deliveryFee: -5,
+    });
+    expect(t.discount).toBe(10_000);
+    expect(t.deliveryFee).toBe(0);
+    expect(t.total).toBe(0);
   });
 });

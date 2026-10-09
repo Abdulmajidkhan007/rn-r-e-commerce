@@ -13,3 +13,7 @@ export * from './payment';
 export * from './order';
 export * from './user';
 export * from './forms';
+export * from './contact';
+export * from './blog';
+export * from './promo';
+export * from './delivery';

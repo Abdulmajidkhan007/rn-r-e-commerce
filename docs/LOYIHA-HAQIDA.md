@@ -24,7 +24,12 @@ tokenlari ustida — biri o'zgarsa, ikkinchisi ortda qolmaydi.
 | Admin: dashboard, mahsulot, toifa, buyurtma | ✅ | Rasm yuklash Storage talab qiladi (Blaze) |
 | 3 til (uz/en/ru), dark/light | ✅ | Til hamma sahifada saqlangan tanlovga bo'ysunadi |
 | Push bildirishnoma (FCM) | 🔒 | Functions (Blaze) + VAPID kalit kerak |
-| Blog, Aloqa sahifalari | 🚧 | Hozircha bo'sh qolip (`PagePlaceholder`) |
+| Aloqa formasi | ✅ | Firestore `messages`; admin `/admin/messages` |
+| Blog (uz/en/ru) | ✅ | Admin yozadi, `/blog`, `/blog/:slug`; matn — oddiy paragraflar, HTML yo'q |
+| Promo-kod | ✅ | Foiz yoki summa, muddat, minimal summa; chegirma qoidalarda qayta hisoblanadi |
+| Hudud bo'yicha yetkazish narxi | ✅ | 14 hudud, standart narx, bepul chegarasi; qoidalarda tekshiriladi |
+| Sevimlilar | ✅ | `users/{uid}/favorites`, yurakcha tugmasi, `/favorites` |
+| Admin hisobot | ✅ | Tushum, o'rtacha buyurtma, 30 kun / 12 oy grafik, eng ko'p sotilganlar |
 | Android ilova | 🚧 | Yig'iladi (CI'da Metro bundle), Play Store'ga chiqmagan |
 | Deploy | ✅ | Telefondan: `main` ga push → GitHub Actions → Firebase |
 
@@ -50,7 +55,14 @@ loyiha limiti to'lgan; hal bo'lgach `FIREBASE_PLAN` o'zgaruvchisi o'chiriladi.
 5. **Qidiruv tokenlari yozishda hisoblanadi.** Firestore matn qidirmaydi —
    har mahsulotga prefiks tokenlar yoziladi. Nega: alohida qidiruv serveri
    (Algolia/Typesense) kichik do'kon uchun ortiqcha xarajat.
-6. **MUI + Tailwind v4 cascade layer'lari.** MUI stillari `mui` layer'ida;
+6. **Pul hisobi uch joyda bir xil.** `computeOrderTotals` (subtotal − chegirma
+   + yetkazish, depozit jamidan 50%) checkout'da, `useCheckout` da (promo va
+   yetkazish sozlamasi buyurtma paytida qayta o'qiladi) va Firestore
+   qoidalarida (`promoOk`, `deliveryOk`, `totalsOk`). Nega: qo'lda yozilgan
+   buyurtma chegirma o'ylab topolmasin yoki yetkazishni tashlab ketolmasin.
+   Cheklov: mahsulot narxlarini qoidalar tekshirmaydi — buning uchun Cloud
+   Function (Blaze) kerak.
+7. **MUI + Tailwind v4 cascade layer'lari.** MUI stillari `mui` layer'ida;
    tartib (`theme, base, mui, components, utilities`) emotion'ning birinchi
    style'i sifatida e'lon qilinadi. Nega: 2026-10-09 gacha tartib noto'g'ri
    bo'lib, Tailwind reset'i MUI'ning hamma padding/ramkasini o'chirgan edi.

@@ -11,7 +11,7 @@ tarqatish, AI) **Cloud Functions** talab qiladi → Firebase **Blaze**. Billing
 hisobining loyiha limiti to'lgan. Yechim (egasi): ishlatilmayotgan loyihadan
 billing'ni uzish yoki limitni oshirishni so'rash. Ungacha faqat 1-guruh.
 
-## 1-guruh — Blaze'siz qilsa bo'ladi
+## 1-guruh — Blaze'siz qilsa bo'ladi ✅ (2026-10-09, veb)
 
 | # | Funksiya | atoyo'da | Nima qilinadi |
 |---|---|---|---|
@@ -37,6 +37,12 @@ billing'ni uzish yoki limitni oshirishni so'rash. Ungacha faqat 1-guruh.
 
 Optom narx (`/admin/optom`), ombor (`/admin/ombor`), do'kon TV ekrani (`/tv`),
 Play Store'ga chiqarish (listing qoralamasi bor: `store/`).
+
+1-guruh vebda tayyor: emulyatorda brauzer bilan to'liq oqim sinaldi (aloqa →
+admin: yetkazish, promo, blog → sevimlilar → promo bilan buyurtma → hisobot),
+qoidalar 51 test. **Mobil ilova:** buyurtma yangi qoidalarga mos yoziladi
+(yetkazish narxi `useCheckout` da qo'shiladi), lekin promo maydoni, yetkazish
+qatori, sevimlilar va blog ekranlari hali yo'q — keyingi bosqich.
 
 ## Tartib
 

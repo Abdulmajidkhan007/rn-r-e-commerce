@@ -20,6 +20,7 @@ import { ProductGallery } from '@/components/product/ProductGallery';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { useLocalized } from '@/lib/useLocalized';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { FavoriteButton } from '@/components/catalog/FavoriteButton';
 
 export default function ProductPage(): React.ReactElement {
   const { t } = useTranslation();
@@ -116,15 +117,23 @@ export default function ProductPage(): React.ReactElement {
 
         <Stack spacing={2.5}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            <Typography variant="h1" sx={{ fontSize: { xs: tokens.fontSizes['4xl'], md: tokens.fontSizes['5xl'] } }}>
+            <Typography
+              variant="h1"
+              sx={{ fontSize: { xs: tokens.fontSizes['4xl'], md: tokens.fontSizes['5xl'] } }}
+            >
               {localized(product.name)}
             </Typography>
             <StockBadge stock={product.stock} />
+            <FavoriteButton productId={product.id} size="medium" />
           </Stack>
 
           <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
 
-          <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, maxWidth: '64ch' }}>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ lineHeight: 1.7, maxWidth: '64ch' }}
+          >
             {localized(product.description)}
           </Typography>
 

@@ -58,7 +58,11 @@ export function OrderSummary({
 
   if (compact) {
     return (
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+      >
         <Stack spacing={0.25}>
           <Chip
             label={t('cart.deposit')}
@@ -83,6 +87,21 @@ export function OrderSummary({
         <Typography variant="h6">{t('checkout.orderSummary')}</Typography>
 
         <Row label={t('cart.subtotal')} value={formatPrice(totals.subtotal, language)} />
+
+        {totals.discount > 0 && (
+          <Row label={t('promo.discount')} value={`− ${formatPrice(totals.discount, language)}`} />
+        )}
+
+        {mode === 'checkout' && (
+          <Row
+            label={t('delivery.fee')}
+            value={
+              totals.deliveryFee > 0
+                ? formatPrice(totals.deliveryFee, language)
+                : t('delivery.free')
+            }
+          />
+        )}
 
         <Box
           sx={{

@@ -29,6 +29,12 @@ export const OrderSchema = z.object({
   depositAmount: z.number().int().nonnegative(),
   paidAmount: z.number().int().nonnegative(),
   total: z.number().int().nonnegative(),
+  /** Promo discount, UZS. Absent on orders without a code. */
+  discount: z.number().int().nonnegative().optional(),
+  /** The applied promo code id (upper-case). */
+  promoCode: z.string().optional(),
+  /** Delivery fee, UZS. Absent on orders placed before delivery pricing. */
+  deliveryFee: z.number().int().nonnegative().optional(),
   status: OrderStatusSchema,
   /** Deposit charge tracking. Absent on legacy orders placed via the stub. */
   payment: OrderPaymentSchema.optional(),

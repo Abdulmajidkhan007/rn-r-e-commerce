@@ -6,7 +6,18 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
 /**
@@ -160,7 +171,11 @@ describe('orders — create', () => {
     await assertSucceeds(
       setDoc(
         doc(customerDb(), 'orders/opending'),
-        orderData({ status: 'pending', paidAmount: 0, payment: { provider: 'payme', state: 'created' } }),
+        orderData({
+          status: 'pending',
+          paidAmount: 0,
+          payment: { provider: 'payme', state: 'created' },
+        }),
       ),
     );
   });
@@ -294,5 +309,214 @@ describe('unknown collections', () => {
   it('are denied by the catch-all rule', async () => {
     await assertFails(setDoc(doc(customerDb(), 'secrets/s1'), { x: 1 }));
     await assertFails(getDoc(doc(adminDb(), 'secrets/s1')));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 1-guruh features (2026-10-09): promo, delivery, contact, blog, favorites.
+// ---------------------------------------------------------------------------
+
+async function seed(path: string, data: Record<string, unknown>): Promise<void> {
+  await testEnv.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), path), data);
+  });
+}
+
+const promo = (over: Record<string, unknown> = {}) => ({
+  type: 'percent',
+  value: 10,
+  minSubtotal: 0,
+  active: true,
+  ...over,
+});
+
+describe('orders — promo code', () => {
+  it('accepts the exact percent discount and rejects a made-up one', async () => {
+    await seed('promoCodes/BOLA10', promo());
+    const ok = orderData({
+      promoCode: 'BOLA10',
+      discount: 10_000,
+      total: 90_000,
+      depositAmount: 45_000,
+      paidAmount: 45_000,
+    });
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o1'), ok));
+    await assertFails(
+      setDoc(doc(customerDb(), 'orders/o2'), {
+        ...ok,
+        discount: 90_000,
+        total: 10_000,
+        depositAmount: 5_000,
+        paidAmount: 5_000,
+      }),
+    );
+  });
+
+  it('caps a fixed discount at the subtotal', async () => {
+    await seed('promoCodes/KATTA', promo({ type: 'fixed', value: 500_000 }));
+    await assertSucceeds(
+      setDoc(
+        doc(customerDb(), 'orders/o1'),
+        orderData({
+          promoCode: 'KATTA',
+          discount: 100_000,
+          total: 0,
+          depositAmount: 0,
+          paidAmount: 0,
+        }),
+      ),
+    );
+  });
+
+  it('rejects inactive, expired, below-minimum and unknown codes', async () => {
+    await seed('promoCodes/OFF', promo({ active: false }));
+    await seed('promoCodes/OLD', promo({ expiresAt: 1_000 }));
+    await seed('promoCodes/BIG', promo({ minSubtotal: 200_000 }));
+    const withCode = (code: string) =>
+      orderData({
+        promoCode: code,
+        discount: 10_000,
+        total: 90_000,
+        depositAmount: 45_000,
+        paidAmount: 45_000,
+      });
+    for (const code of ['OFF', 'OLD', 'BIG', 'NOPE']) {
+      await assertFails(setDoc(doc(customerDb(), `orders/${code}`), withCode(code)));
+    }
+  });
+
+  it('rejects a discount without a code', async () => {
+    await assertFails(
+      setDoc(
+        doc(customerDb(), 'orders/o1'),
+        orderData({ discount: 10_000, total: 90_000, depositAmount: 45_000, paidAmount: 45_000 }),
+      ),
+    );
+  });
+
+  it('lets a customer get a code by id but never list them', async () => {
+    await seed('promoCodes/BOLA10', promo());
+    await assertSucceeds(getDoc(doc(anonDb(), 'promoCodes/BOLA10')));
+    await assertFails(getDocs(collection(customerDb(), 'promoCodes')));
+    await assertSucceeds(getDocs(collection(adminDb(), 'promoCodes')));
+    await assertFails(setDoc(doc(customerDb(), 'promoCodes/FREE'), promo({ value: 90 })));
+  });
+});
+
+describe('orders — delivery fee and totals', () => {
+  const settings = { defaultFee: 40_000, regions: { 'tashkent-city': 20_000 }, freeFrom: 300_000 };
+  const inRegion = (region: string, fee: number, over: Record<string, unknown> = {}) =>
+    orderData({
+      shippingAddress: { ...address, region },
+      deliveryFee: fee,
+      total: 100_000 + fee,
+      depositAmount: Math.round((100_000 + fee) * 0.5),
+      paidAmount: Math.round((100_000 + fee) * 0.5),
+      ...over,
+    });
+
+  it('charges the region fee, else the default', async () => {
+    await seed('settings/delivery', settings);
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o1'), inRegion('tashkent-city', 20_000)));
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o2'), inRegion('fergana', 40_000)));
+    await assertFails(setDoc(doc(customerDb(), 'orders/o3'), inRegion('fergana', 0)));
+  });
+
+  it('is free from the threshold', async () => {
+    await seed('settings/delivery', { ...settings, freeFrom: 100_000 });
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o1'), inRegion('fergana', 0)));
+  });
+
+  it('must be zero while delivery is not configured', async () => {
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o1'), orderData()));
+    await assertFails(setDoc(doc(customerDb(), 'orders/o2'), inRegion('fergana', 40_000)));
+  });
+
+  it('rejects a total or deposit that does not add up', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'orders/o1'), orderData({ total: 1 })));
+    await assertFails(
+      setDoc(doc(customerDb(), 'orders/o2'), orderData({ depositAmount: 1, paidAmount: 1 })),
+    );
+  });
+
+  it('settings are public to read and admin-only to write', async () => {
+    await seed('settings/delivery', settings);
+    await assertSucceeds(getDoc(doc(anonDb(), 'settings/delivery')));
+    await assertFails(
+      setDoc(doc(customerDb(), 'settings/delivery'), { ...settings, defaultFee: 0 }),
+    );
+    await assertSucceeds(setDoc(doc(adminDb(), 'settings/delivery'), settings));
+  });
+});
+
+describe('contact messages', () => {
+  const msg = (over: Record<string, unknown> = {}) => ({
+    name: 'Ali',
+    phone: '+998901234567',
+    message: 'Salom, savolim bor',
+    status: 'new',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...over,
+  });
+
+  it('anyone can send a well-formed message', async () => {
+    await assertSucceeds(setDoc(doc(anonDb(), 'messages/m1'), msg()));
+    await assertSucceeds(setDoc(doc(customerDb(), 'messages/m2'), msg({ userId: CUSTOMER })));
+  });
+
+  it('rejects oversized, extra-field, pre-read, back-dated and spoofed messages', async () => {
+    await assertFails(setDoc(doc(anonDb(), 'messages/a'), msg({ message: 'x'.repeat(2001) })));
+    await assertFails(setDoc(doc(anonDb(), 'messages/b'), msg({ link: 'http://spam' })));
+    await assertFails(setDoc(doc(anonDb(), 'messages/c'), msg({ status: 'read' })));
+    await assertFails(setDoc(doc(anonDb(), 'messages/d'), msg({ createdAt: 1 })));
+    await assertFails(setDoc(doc(customerDb(), 'messages/e'), msg({ userId: OTHER })));
+  });
+
+  it('only admins read them and may only change the status', async () => {
+    await assertSucceeds(setDoc(doc(anonDb(), 'messages/m1'), msg()));
+    await assertFails(getDoc(doc(customerDb(), 'messages/m1')));
+    await assertSucceeds(getDoc(doc(adminDb(), 'messages/m1')));
+    await assertSucceeds(updateDoc(doc(adminDb(), 'messages/m1'), { status: 'read' }));
+    await assertFails(updateDoc(doc(adminDb(), 'messages/m1'), { message: 'tahrir' }));
+    await assertSucceeds(deleteDoc(doc(adminDb(), 'messages/m1')));
+  });
+});
+
+describe('blog', () => {
+  it('serves published posts to everyone and drafts only to admins', async () => {
+    await seed('blogPosts/pub', { slug: 'a', published: true, publishedAt: 2 });
+    await seed('blogPosts/draft', { slug: 'b', published: false });
+    await assertSucceeds(getDoc(doc(anonDb(), 'blogPosts/pub')));
+    await assertFails(getDoc(doc(anonDb(), 'blogPosts/draft')));
+    await assertSucceeds(getDoc(doc(adminDb(), 'blogPosts/draft')));
+    await assertSucceeds(
+      getDocs(query(collection(anonDb(), 'blogPosts'), where('published', '==', true))),
+    );
+    await assertFails(getDocs(collection(anonDb(), 'blogPosts')));
+  });
+
+  it('only admins write', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'blogPosts/x'), { slug: 'x', published: true }));
+    await assertSucceeds(setDoc(doc(adminDb(), 'blogPosts/x'), { slug: 'x', published: false }));
+  });
+});
+
+describe('favorites', () => {
+  const fav = (productId: string) => ({ productId, createdAt: serverTimestamp() });
+
+  it('are private to their owner', async () => {
+    await assertSucceeds(setDoc(doc(customerDb(), `users/${CUSTOMER}/favorites/p1`), fav('p1')));
+    await assertSucceeds(getDoc(doc(customerDb(), `users/${CUSTOMER}/favorites/p1`)));
+    await assertFails(getDoc(doc(otherDb(), `users/${CUSTOMER}/favorites/p1`)));
+    await assertFails(setDoc(doc(otherDb(), `users/${CUSTOMER}/favorites/p2`), fav('p2')));
+    await assertSucceeds(deleteDoc(doc(customerDb(), `users/${CUSTOMER}/favorites/p1`)));
+  });
+
+  it('keep the doc id equal to the product id and carry no extra data', async () => {
+    await assertFails(setDoc(doc(customerDb(), `users/${CUSTOMER}/favorites/p1`), fav('p9')));
+    await assertFails(
+      setDoc(doc(customerDb(), `users/${CUSTOMER}/favorites/p1`), { ...fav('p1'), note: 'x' }),
+    );
   });
 });
