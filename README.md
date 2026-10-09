@@ -353,6 +353,36 @@ This produces mobile icons (`apps/mobile/assets/`), web favicons + maskable PWA 
 + the OpenGraph image (`apps/web/public/`). The script is idempotent — re-running on a
 designer's SVG drop-in regenerates everything without code changes.
 
+## Deploy from a phone (GitHub Actions → Firebase) — primary
+
+The owner works from a phone, so the main deploy path is
+`.github/workflows/deploy.yml`: every push to `main` (or **Actions → Deploy
+(Firebase) → Run workflow**) tests, builds and deploys. The web SDK config is
+**not** entered by hand — the workflow finds the project's Web app (creates one
+if missing) and writes `apps/web/.env.production` itself.
+
+One-time setup, all in a browser:
+
+1. Firebase Console → the project → **Build → Authentication → Get started** →
+   enable **Email/Password** and **Google**.
+2. **Build → Firestore Database → Create database** → Production mode.
+3. **Project settings → Service accounts → Generate new private key**. Then in
+   Google Cloud **IAM**, give the `firebase-adminsdk-…` account the **Owner** role.
+4. GitHub → **Settings → Secrets and variables → Actions**:
+   - Variables: `FIREBASE_PROJECT_ID` = the project id; `FIREBASE_PLAN` = `spark`
+     while the project is not on Blaze (deploys Hosting + Firestore only —
+     Functions and Storage need Blaze); optional `VITE_ADMIN_EMAIL`.
+   - Secrets: `FIREBASE_SERVICE_ACCOUNT` = the full JSON key. Delete the file
+     from the phone afterwards.
+5. **Actions → Deploy (Firebase) → Run workflow** with **seed** ticked — loads the
+   demo catalog (picsum placeholder images) and backfills search tokens.
+6. Sign up on the live site, then run the workflow again with **admin** = your
+   email — grants the `role: admin` claim. Sign out and back in.
+
+Live URL: `https://<project-id>.web.app`. On Spark, checkout offers only the
+in-app **test mode** payment (labelled "Sinov rejimi (test)"); image upload needs
+Storage (Blaze).
+
 ## Deploy (Netlify, web)
 
 The repo ships a root `netlify.toml` that points Netlify at `apps/web/`:

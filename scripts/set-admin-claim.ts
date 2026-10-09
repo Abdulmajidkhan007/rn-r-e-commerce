@@ -6,7 +6,10 @@
  *
  * Usage:
  *   GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json \
- *     node scripts/set-admin-claim.ts <uid>
+ *     node scripts/set-admin-claim.ts <uid | email>
+ *
+ * Email is accepted so the GitHub Actions deploy (run from a phone, where the
+ * uid is not at hand) can grant admin to the account that already signed up.
  *
  * The service-account key is a SECRET — it is gitignored and must never be
  * committed. After running, the target user must sign out/in (or refresh their
@@ -18,9 +21,9 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 async function main(): Promise<void> {
-  const uid = process.argv[2];
-  if (!uid) {
-    console.error('Usage: node scripts/set-admin-claim.ts <uid>');
+  const target = process.argv[2]?.trim();
+  if (!target) {
+    console.error('Usage: node scripts/set-admin-claim.ts <uid | email>');
     process.exit(1);
   }
 
@@ -28,6 +31,8 @@ async function main(): Promise<void> {
   const serviceAccount = JSON.parse(readFileSync(keyPath, 'utf8')) as ServiceAccount;
 
   initializeApp({ credential: cert(serviceAccount) });
+  // The account must exist already — sign up on the site first, then run this.
+  const uid = target.includes('@') ? (await getAuth().getUserByEmail(target)).uid : target;
   await getAuth().setCustomUserClaims(uid, { role: 'admin' });
 
   // Mirror the role onto the user doc so Cloud Functions can query admins for

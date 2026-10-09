@@ -1,0 +1,145 @@
+# Veb ilovani Firebase'ga joylash (Hosting + Firestore rules/indexes; Blaze'da
+# Storage va Cloud Functions ham).
+#
+# Nega CI orqali: egasi telefonda ishlaydi, `firebase deploy` ni lokal ishga
+# tushira olmaydi. Bir martalik sozlash — README, "Telefondan deploy" bo'limi.
+#
+# Kerak (Settings → Secrets and variables → Actions):
+#   Variables: FIREBASE_PROJECT_ID          — Firebase loyiha ID si
+#              FIREBASE_PLAN = spark         — ixtiyoriy: Blaze yo'q bo'lsa faqat
+#                                              Hosting + Firestore; Functions va
+#                                              Storage o'tkazib yuboriladi
+#              VITE_ADMIN_EMAIL              — ixtiyoriy: admin email (faqat UI)
+#   Secrets:   FIREBASE_SERVICE_ACCOUNT     — service account JSON'ining to'liq matni
+#              PAYME_MERCHANT_KEY, CLICK_SECRET_KEY — ixtiyoriy, faqat Blaze'da
+#
+# Veb konfiguratsiyasi (apiKey, appId ...) qo'lda kiritilmaydi: workflow loyihadagi
+# Web ilovani topadi (yo'q bo'lsa yaratadi) va config'ni o'zi oladi.
+#
+# FIREBASE_PROJECT_ID berilmaguncha job o'tkazib yuboriladi.
+name: Deploy (Firebase)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Demo kategoriya va mahsulotlarni yuklash (qayta yuklasa ustidan yozadi)'
+        type: boolean
+        default: false
+      admin:
+        description: "Shu email (yoki uid) ga admin huquqi berish — avval saytda ro'yxatdan o'ting"
+        type: string
+        default: ''
+
+concurrency:
+  group: deploy-firebase
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      PLAN: ${{ vars.FIREBASE_PLAN }}
+      FIREBASE: npx --yes firebase-tools@15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm ci --prefix functions
+
+      # Deploy'dan oldin CI dagi tekshiruv: buzilgan kod jonli saytga chiqmasin.
+      - run: npm run type-check
+      - run: npm test
+
+      - name: Service account kaliti
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA_JSON" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT secret berilmagan (README: Telefondan deploy)."
+            exit 1
+          fi
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+
+      # `--json` javobi: {"status": "success", "result": ...}. Oldida log qatorlari
+      # bo'lishi mumkin, shuning uchun JSON birinchi "{" dan boshlab o'qiladi.
+      - name: Web ilova config'i
+        env:
+          ADMIN_EMAIL: ${{ vars.VITE_ADMIN_EMAIL }}
+        run: |
+          json() { node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s.slice(s.indexOf("{")));if(j.status!=="success"){console.error(j.error||s);process.exit(1)}console.log(JSON.stringify(j.result))})'; }
+          APP_ID=$($FIREBASE apps:list WEB --project "$PROJECT_ID" --json | json | jq -r '.[0].appId // empty')
+          if [ -z "$APP_ID" ]; then
+            echo "Web ilova yo'q — yaratilmoqda."
+            APP_ID=$($FIREBASE apps:create WEB "KidsWear Web" --project "$PROJECT_ID" --json | json | jq -r '.appId')
+          fi
+          $FIREBASE apps:sdkconfig WEB "$APP_ID" --project "$PROJECT_ID" --json | json > "$RUNNER_TEMP/sdk.json"
+          jq -r '.sdkConfig | {
+              VITE_FIREBASE_API_KEY: .apiKey,
+              VITE_FIREBASE_AUTH_DOMAIN: .authDomain,
+              VITE_FIREBASE_PROJECT_ID: .projectId,
+              VITE_FIREBASE_STORAGE_BUCKET: (.storageBucket // ""),
+              VITE_FIREBASE_MESSAGING_SENDER_ID: .messagingSenderId,
+              VITE_FIREBASE_APP_ID: .appId,
+              VITE_FIREBASE_MEASUREMENT_ID: (.measurementId // "")
+            } | to_entries[] | "\(.key)=\(.value)"' "$RUNNER_TEMP/sdk.json" > apps/web/.env.production
+          echo "VITE_ADMIN_EMAIL=$ADMIN_EMAIL" >> apps/web/.env.production
+          # Qiymatlar ochiq (brauzerga baribir boradi), lekin logda faqat kalit nomlari.
+          cut -d= -f1 apps/web/.env.production
+
+      - name: Build web
+        run: npm run build --workspace @kidswear/web
+
+      # Spark'da Cloud Functions ham, yangi loyihalarda Storage bucket ham yo'q:
+      # ular firebase.json dan vaqtincha olib tashlanadi (faqat runner'da).
+      - name: Spark rejimi
+        if: ${{ vars.FIREBASE_PLAN == 'spark' }}
+        run: |
+          jq 'del(.functions, .storage)' firebase.json > "$RUNNER_TEMP/firebase.json"
+          mv "$RUNNER_TEMP/firebase.json" firebase.json
+          echo "ONLY=--only hosting,firestore" >> "$GITHUB_ENV"
+
+      - name: To'lov sirlari (faqat Blaze, ixtiyoriy)
+        if: ${{ vars.FIREBASE_PLAN != 'spark' }}
+        env:
+          PAYME: ${{ secrets.PAYME_MERCHANT_KEY }}
+          CLICK: ${{ secrets.CLICK_SECRET_KEY }}
+        run: |
+          # defineSecret qiymatsiz bo'lsa Functions deploy to'xtaydi — bo'sh
+          # bo'lsa ham bitta qiymat yoziladi (shlyuz ulanmagani shunda ham aniq).
+          printf '%s' "${PAYME:-not-configured}" | $FIREBASE functions:secrets:set PAYME_MERCHANT_KEY --project "$PROJECT_ID" --data-file=- --force --non-interactive
+          printf '%s' "${CLICK:-not-configured}" | $FIREBASE functions:secrets:set CLICK_SECRET_KEY --project "$PROJECT_ID" --data-file=- --force --non-interactive
+
+      # Birinchi deploy'da Google API'lar endigina yoqiladi va ruxsatlar
+      # tarqalishiga bir-ikki daqiqa ketadi — shuning uchun bitta qayta urinish.
+      - name: Deploy
+        run: |
+          deploy() { $FIREBASE deploy $ONLY --project "$PROJECT_ID" --non-interactive --force; }
+          deploy || { echo "Birinchi urinish yiqildi — 90 soniyadan keyin qayta urinaman."; sleep 90; deploy; }
+
+      - name: Demo ma'lumot
+        if: ${{ inputs.seed }}
+        run: |
+          node scripts/seed.ts
+          node scripts/backfill-search-tokens.ts
+
+      - name: Admin huquqi
+        if: ${{ inputs.admin != '' }}
+        env:
+          TARGET: ${{ inputs.admin }}
+        run: node scripts/set-admin-claim.ts "$TARGET"
+
+      - name: Kalitni o'chirish
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json"
