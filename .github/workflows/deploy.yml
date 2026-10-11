@@ -10,6 +10,8 @@
 #                                              Hosting + Firestore; Functions va
 #                                              Storage o'tkazib yuboriladi
 #              VITE_ADMIN_EMAIL              — ixtiyoriy: admin email (faqat UI)
+#              OWNER_EMAIL                   — ixtiyoriy: har deploy'da admin qilinadigan
+#                                              egasi (standart: santexnika.atoyo@gmail.com)
 #   Secrets:   FIREBASE_SERVICE_ACCOUNT     — service account JSON'ining to'liq matni
 #              PAYME_MERCHANT_KEY, CLICK_SECRET_KEY — ixtiyoriy, faqat Blaze'da
 #
@@ -139,6 +141,16 @@ jobs:
         env:
           TARGET: ${{ inputs.admin }}
         run: node scripts/set-admin-claim.ts "$TARGET"
+
+      # Do'kon egasi har deploy'da admin bo'lib qoladi — qo'lda "admin" maydonini
+      # to'ldirishni unutish mumkin. Akkaunt hali yo'q bo'lsa — faqat ogohlantirish.
+      - name: Egasi — admin
+        env:
+          OWNER: ${{ vars.OWNER_EMAIL || 'santexnika.atoyo@gmail.com' }}
+        run: node scripts/set-admin-claim.ts "$OWNER" --if-exists
+
+      - name: Google bilan kirish sozlamasi
+        run: node scripts/check-auth-config.ts "$PROJECT_ID"
 
       - name: Kalitni o'chirish
         if: always()

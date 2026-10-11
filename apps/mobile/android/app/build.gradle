@@ -145,8 +145,11 @@ android {
 project.ext.vectoricons = [ iconFontNames: [ 'MaterialCommunityIcons.ttf' ] ]
 apply from: file("../../../../node_modules/react-native-vector-icons/fonts.gradle")
 
-// Push (FCM): place your google-services.json in android/app/ and uncomment:
-// apply plugin: 'com.google.gms.google-services'
+// Native Firebase (push) needs google-services.json. CI downloads it from the
+// Firebase project; without it the app still builds and runs, push is off.
+if (file("google-services.json").exists()) {
+    apply plugin: 'com.google.gms.google-services'
+}
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin

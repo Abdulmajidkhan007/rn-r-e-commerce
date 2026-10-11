@@ -96,6 +96,8 @@
       "popupClosed": "Sign-in popup was closed",
       "popupBlocked": "Your browser blocked the sign-in popup",
       "accountExists": "This email is already registered with a different method",
+      "providerDisabled": "Google sign-in is turned off for this store. Use email for now.",
+      "unauthorizedDomain": "This site is not allowed to use Google sign-in yet.",
       "generic": "Something went wrong. Please try again"
     },
     "signInWithGoogle": "Sign in with Google",

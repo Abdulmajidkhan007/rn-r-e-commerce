@@ -3,7 +3,8 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
-import { useAuthActions } from '@kidswear/auth';
+import { mapAuthError, useAuthActions } from '@kidswear/auth';
+import { setAuthError, useAppDispatch } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { signInWithGooglePopup } from '@/lib/googleSignIn';
 
@@ -14,6 +15,7 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({ mode }: GoogleSignInButtonProps): React.ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { loginWithGoogleCredential } = useAuthActions();
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +27,11 @@ export function GoogleSignInButton({ mode }: GoogleSignInButtonProps): React.Rea
       if (ok) {
         navigate('/');
       }
+    } catch (error) {
+      // The popup step fails before the auth actions run (provider off,
+      // domain not authorized, popup closed) — surface it in the form's alert.
+      console.error('[GoogleSignIn]', error);
+      dispatch(setAuthError(mapAuthError(error)));
     } finally {
       setLoading(false);
     }

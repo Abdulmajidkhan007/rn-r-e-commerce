@@ -12,6 +12,8 @@ const CODE_TO_KEY: Record<string, string> = {
   'auth/cancelled-popup-request': 'auth.errors.popupClosed',
   'auth/popup-blocked': 'auth.errors.popupBlocked',
   'auth/account-exists-with-different-credential': 'auth.errors.accountExists',
+  'auth/operation-not-allowed': 'auth.errors.providerDisabled',
+  'auth/unauthorized-domain': 'auth.errors.unauthorizedDomain',
 };
 
 const FALLBACK_KEY = 'auth.errors.generic';

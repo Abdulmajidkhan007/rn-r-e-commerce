@@ -12,7 +12,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { getFirebase } from './app';
-import { upsertUserProfile } from './users';
+import { getUserProfile, upsertUserProfile } from './users';
 
 /** Custom claims we care about. `role` is set out-of-band (admin script). */
 export interface AuthClaims {
@@ -77,7 +77,9 @@ export async function signInWithGoogleCredential(credential: AuthCredential): Pr
   const { auth } = getFirebase();
   const cred = await signInWithCredential(auth, credential);
   const user = cred.user;
-  // Upsert the mirror profile if this is the user's first sign-in (or just refresh).
+  // First sign-in only. Re-writing an existing profile would reset its saved
+  // addresses (and send role 'customer' over an admin's mirror, which rules reject).
+  if (await getUserProfile(user.uid)) return user;
   await upsertUserProfile({
     uid: user.uid,
     email: user.email ?? '',

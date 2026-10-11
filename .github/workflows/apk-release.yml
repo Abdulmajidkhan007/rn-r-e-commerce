@@ -77,6 +77,34 @@ jobs:
               RN_PUBLIC_FIREBASE_MEASUREMENT_ID: (.measurementId // "")
             } | to_entries[] | "\(.key)=\(.value)"' "$RUNNER_TEMP/sdk.json" > apps/mobile/.env
           echo "RN_PUBLIC_ADMIN_EMAIL=$ADMIN_EMAIL" >> apps/mobile/.env
+
+          # Native Firebase (push) needs google-services.json for the Android
+          # app. Without it messaging() throws at startup and the app closes —
+          # so the Android app is found (or created) and its config downloaded.
+          # The debug keystore's SHA-1 is registered so Google Sign-In accepts
+          # this debug-signed APK.
+          PKG=com.kidswear
+          ANDROID_ID=$($FIREBASE apps:list ANDROID --project "$PROJECT_ID" --json | json | jq -r --arg p "$PKG" '[.[] | select(.packageName == $p)][0].appId // empty')
+          if [ -z "$ANDROID_ID" ]; then
+            ANDROID_ID=$($FIREBASE apps:create ANDROID KidsWear --package-name "$PKG" --project "$PROJECT_ID" --json | json | jq -r '.appId')
+          fi
+          SHA1=$(keytool -list -v -keystore apps/mobile/android/app/debug.keystore -storepass android -alias androiddebugkey | awk '/SHA1:/ {print $2}')
+          SHA_LIST=$($FIREBASE apps:android:sha:list "$ANDROID_ID" --project "$PROJECT_ID" | tr -d ':' | tr 'A-F' 'a-f')
+          if ! grep -q "$(echo "$SHA1" | tr -d ':' | tr 'A-F' 'a-f')" <<< "$SHA_LIST"; then
+            # A duplicate is rejected by the API — harmless, so not fatal.
+            $FIREBASE apps:android:sha:create "$ANDROID_ID" "$SHA1" --project "$PROJECT_ID" || echo "SHA-1 qo'shilmadi (ehtimol allaqachon bor)."
+          fi
+          $FIREBASE apps:sdkconfig ANDROID "$ANDROID_ID" --project "$PROJECT_ID" --non-interactive --out apps/mobile/android/app/google-services.json
+          jq -e --arg p "$PKG" '.client[] | select(.client_info.android_client_info.package_name == $p)' apps/mobile/android/app/google-services.json > /dev/null
+
+          # Google Sign-In uses the project's web OAuth client (type 3). It is
+          # listed once the Google provider is on in Firebase Auth.
+          WEB_CLIENT=$(jq -r '[.client[].oauth_client[]? | select(.client_type == 3)][0].client_id // empty' apps/mobile/android/app/google-services.json)
+          if [ -n "$WEB_CLIENT" ]; then
+            echo "RN_PUBLIC_GOOGLE_WEB_CLIENT_ID=$WEB_CLIENT" >> apps/mobile/.env
+          else
+            echo "::warning::google-services.json da web OAuth client yo'q — ilovada Google bilan kirish o'chiq. Firebase Console → Authentication → Sign-in method → Google ni yoqing va APK'ni qayta yig'ing."
+          fi
           cut -d= -f1 apps/mobile/.env
 
       - uses: actions/setup-java@v4
@@ -117,4 +145,4 @@ jobs:
 
       - name: Kalitni o'chirish
         if: always()
-        run: rm -f "$RUNNER_TEMP/sa.json" apps/mobile/.env
+        run: rm -f "$RUNNER_TEMP/sa.json" apps/mobile/.env apps/mobile/android/app/google-services.json

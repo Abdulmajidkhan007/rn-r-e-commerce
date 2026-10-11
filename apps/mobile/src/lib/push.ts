@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import firebase from '@react-native-firebase/app';
 import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
 import notifee, { EventType, type EventDetail } from '@notifee/react-native';
 import { addPushToken, removePushToken } from '@kidswear/firebase';
@@ -9,7 +10,22 @@ import { addPushToken, removePushToken } from '@kidswear/firebase';
  * and, on Android, creates the default notifee notification channel. Safe to
  * call multiple times.
  */
+/**
+ * The native Firebase app only exists when the APK was built with
+ * google-services.json. Without it every messaging() call throws — and an
+ * uncaught throw at startup closes the release app. Push is optional; the
+ * shop is not, so every entry point checks this first.
+ */
+export function isPushAvailable(): boolean {
+  try {
+    return firebase.apps.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function configureNotifications(): void {
+  if (!isPushAvailable()) return;
   messaging().setBackgroundMessageHandler(async () => {
     // Intentional no-op: display is handled via notifee's foreground/
     // background event listeners wired up in attachNotificationListeners.
@@ -26,6 +42,7 @@ export function configureNotifications(): void {
  * granted on either check.
  */
 export async function ensurePermission(): Promise<boolean> {
+  if (!isPushAvailable()) return false;
   const fcmStatus = await messaging().requestPermission();
   const fcmGranted =
     fcmStatus === AuthorizationStatus.AUTHORIZED || fcmStatus === AuthorizationStatus.PROVISIONAL;
@@ -46,6 +63,7 @@ export async function ensurePermission(): Promise<boolean> {
  * All errors are swallowed and warned, so callers never crash.
  */
 export async function registerForPushNotifications(uid: string): Promise<string | null> {
+  if (!isPushAvailable()) return null;
   try {
     configureNotifications();
 
@@ -72,6 +90,7 @@ export async function unregisterPushToken(uid: string, token: string): Promise<v
     console.warn('[push] unregisterPushToken failed:', err);
   }
 
+  if (!isPushAvailable()) return;
   try {
     await messaging().deleteToken();
   } catch (err) {
@@ -85,6 +104,8 @@ function extractOrderId(data: Record<string, unknown> | undefined): string | nul
   return typeof orderId === 'string' && orderId.length > 0 ? orderId : null;
 }
 
+const noop = (): void => undefined;
+
 /**
  * Attaches listeners that navigate to the relevant order when the user taps a
  * push notification (from the background, from a killed state, or a notifee
@@ -94,6 +115,7 @@ function extractOrderId(data: Record<string, unknown> | undefined): string | nul
  * Returns a single cleanup function that unsubscribes everything.
  */
 export function attachNotificationListeners(onOrderTap: (orderId: string) => void): () => void {
+  if (!isPushAvailable()) return noop;
   const unsubOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
     const orderId = extractOrderId(remoteMessage.data);
     if (orderId) onOrderTap(orderId);

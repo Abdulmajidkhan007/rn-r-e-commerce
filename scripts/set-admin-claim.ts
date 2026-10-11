@@ -22,6 +22,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 async function main(): Promise<void> {
   const target = process.argv[2]?.trim();
+  // --if-exists: the deploy runs this for the owner on every push; before the
+  // owner has signed up there is nobody to promote, and that is not an error.
+  const ifExists = process.argv.includes('--if-exists');
   if (!target) {
     console.error('Usage: node scripts/set-admin-claim.ts <uid | email>');
     process.exit(1);
@@ -32,8 +35,24 @@ async function main(): Promise<void> {
 
   initializeApp({ credential: cert(serviceAccount) });
   // The account must exist already — sign up on the site first, then run this.
-  const uid = target.includes('@') ? (await getAuth().getUserByEmail(target)).uid : target;
-  await getAuth().setCustomUserClaims(uid, { role: 'admin' });
+  let user;
+  try {
+    user = target.includes('@') ? await getAuth().getUserByEmail(target) : await getAuth().getUser(target);
+  } catch (error) {
+    if (ifExists && (error as { code?: string }).code === 'auth/user-not-found') {
+      console.log(
+        `::warning title=Admin hali yo'q::${target} saytda ro'yxatdan o'tmagan. Kirgandan keyin Deploy (Firebase) ni qayta ishga tushiring.`,
+      );
+      return;
+    }
+    throw error;
+  }
+  const uid = user.uid;
+  if (user.customClaims?.['role'] === 'admin') {
+    console.log(`✓ ${target} allaqachon admin (uid=${uid}).`);
+    return;
+  }
+  await getAuth().setCustomUserClaims(uid, { ...user.customClaims, role: 'admin' });
 
   // Mirror the role onto the user doc so Cloud Functions can query admins for
   // push fan-out. The custom claim stays the source of truth for rules.

@@ -96,6 +96,8 @@
       "popupClosed": "Окно входа закрыто",
       "popupBlocked": "Браузер заблокировал всплывающее окно",
       "accountExists": "Этот email уже зарегистрирован другим способом",
+      "providerDisabled": "Вход через Google для магазина отключён. Пока войдите по email.",
+      "unauthorizedDomain": "Этому сайту ещё не разрешён вход через Google.",
       "generic": "Что-то пошло не так. Повторите попытку"
     },
     "signInWithGoogle": "Войти через Google",

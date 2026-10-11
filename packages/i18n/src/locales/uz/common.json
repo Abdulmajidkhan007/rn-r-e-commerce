@@ -96,6 +96,8 @@
       "popupClosed": "Kirish oynasi yopildi",
       "popupBlocked": "Brauzer pop-up'larni bloklab qo'ydi",
       "accountExists": "Bu email boshqa usul bilan ro'yxatdan o'tgan",
+      "providerDisabled": "Do'konda Google bilan kirish hali yoqilmagan. Hozircha email bilan kiring.",
+      "unauthorizedDomain": "Bu saytga Google bilan kirishga hali ruxsat berilmagan.",
       "generic": "Xatolik yuz berdi. Qayta urining"
     },
     "signInWithGoogle": "Google bilan kirish",
