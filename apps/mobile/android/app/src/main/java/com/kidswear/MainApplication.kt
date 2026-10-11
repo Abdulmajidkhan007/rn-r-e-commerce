@@ -22,6 +22,9 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    // The crash screen's own process needs nothing from React Native.
+    if (CrashReporter.isCrashProcess(this)) return
+    CrashReporter.install(this)
     loadReactNative(this)
   }
 }
