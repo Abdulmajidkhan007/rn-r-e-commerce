@@ -20,7 +20,7 @@ tokenlari ustida — biri o'zgarsa, ikkinchisi ortda qolmaydi.
 | Checkout + depozit | ✅ | Spark'da faqat "Sinov rejimi (test)" to'lovi |
 | Payme / Click | 🔒 kod tayyor | Cloud Functions (Blaze) + merchant shartnomasi kerak |
 | Buyurtmalar tarixi va holati (real-time) | ✅ | |
-| Kirish: email/parol, Google | ✅ | Admin — Firebase custom claim (`role: admin`) |
+| Kirish: email/parol, Google | ✅ | Admin — Firebase custom claim (`role: admin`); egasi (`OWNER_EMAIL`, standart santexnika.atoyo@gmail.com) har deploy'da admin qilinadi — avval bir marta kirgan bo'lishi kerak |
 | Admin: dashboard, mahsulot, toifa, buyurtma | ✅ | Rasm yuklash Storage talab qiladi (Blaze) |
 | 3 til (uz/en/ru), dark/light | ✅ | Til hamma sahifada saqlangan tanlovga bo'ysunadi |
 | Push bildirishnoma (FCM) | 🔒 | Functions (Blaze) + VAPID kalit kerak |
@@ -79,3 +79,18 @@ Batafsil — README, "Deploy from a phone". Qisqasi: GitHub'da
 `npm run type-check && npm run lint && npm test` (Vitest: unit + web
 komponentlar), `npm run test:rules` (Firestore qoidalari, emulyator). CI
 uchala job'ni ham ishlatadi (2026-10-09 dan yashil).
+
+## 2026-10-11 — topilgan va tuzatilgan xatolar
+
+- **Vebda Google bilan kirish umuman ishlamagan.** `initializeAuth` (`getAuth`
+  dan farqli) popup resolver'ni qo'shmaydi — `signInWithPopup` oyna ochmasdan
+  `auth/argument-error` berardi, tugma esa xatoni yutib yuborardi. Endi veb
+  `browserPopupRedirectResolver` beradi va har qanday xato formada ko'rinadi.
+- **APK ochilishi bilan yopilgan.** CI build'da `google-services.json` yo'q edi,
+  `messaging()` startda "No Firebase App" bilan yiqitardi. Endi workflow Android
+  ilova config'ini loyihadan oladi (debug SHA-1 ham ro'yxatga qo'shiladi), push
+  kodi esa config yo'q bo'lsa jim o'chadi.
+- **Admin hech kimga berilmagan edi** — deploy'dagi qo'lda "admin" maydoni hech
+  qachon to'ldirilmagan. Endi egasi avtomatik.
+- Google bilan qayta kirish profildagi manzillarni o'chirib yuborardi — tuzatildi.
+
