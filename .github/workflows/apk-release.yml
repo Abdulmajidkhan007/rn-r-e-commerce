@@ -136,12 +136,28 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SHA="${GITHUB_SHA::7}"
-          gh release create "apk-${{ github.run_number }}" "$RUNNER_TEMP/kidswear.apk" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
-            --title "KidsWear APK #${{ github.run_number }} ($SHA)" \
-            --notes "Android APK, commit $SHA. Debug-key signed — for installing on a phone, not for Play Store." \
-            --latest
+          TAG="apk-${{ github.run_number }}"
+          # A 70 MB upload occasionally fails on GitHub's side; retry, and
+          # surface the error as an annotation (logs are not readable from
+          # the phone).
+          for attempt in 1 2 3; do
+            if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+              gh release create "$TAG" \
+                --repo "$GITHUB_REPOSITORY" \
+                --target "$GITHUB_SHA" \
+                --title "KidsWear APK #${{ github.run_number }} ($SHA)" \
+                --notes "Android APK, commit $SHA. Debug-key signed — for installing on a phone, not for Play Store." \
+                --latest 2> "$RUNNER_TEMP/gh.err" || true
+            fi
+            if gh release upload "$TAG" "$RUNNER_TEMP/kidswear.apk" --clobber --repo "$GITHUB_REPOSITORY" 2>> "$RUNNER_TEMP/gh.err"; then
+              exit 0
+            fi
+            echo "Upload attempt $attempt failed; retrying in $((attempt * 20))s"
+            sleep $((attempt * 20))
+          done
+          msg=$(tail -5 "$RUNNER_TEMP/gh.err" | tr '\n' ' ')
+          echo "::error title=Release upload failed::$msg"
+          exit 1
 
       - name: Kalitni o'chirish
         if: always()
