@@ -149,6 +149,9 @@ jobs:
           OWNER: ${{ vars.OWNER_EMAIL || 'santexnika.atoyo@gmail.com' }}
         run: node scripts/set-admin-claim.ts "$OWNER" --if-exists
 
+      - name: Yetkazish narxlari (bo'sh bo'lsa)
+        run: node scripts/seed-delivery.ts
+
       - name: Google bilan kirish sozlamasi
         run: node scripts/check-auth-config.ts "$PROJECT_ID"
 
