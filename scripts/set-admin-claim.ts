@@ -48,6 +48,15 @@ async function main(): Promise<void> {
     throw error;
   }
   const uid = user.uid;
+  // Only a verified email proves ownership. Anyone can register an
+  // email/password account with someone else's address; an unverified one
+  // must never be promoted just because the address matches.
+  if (target.includes('@') && !user.emailVerified) {
+    console.log(
+      `::error title=Admin berilmadi::${target} tasdiqlanmagan (emailVerified=false). Google bilan kiring yoki emailni tasdiqlang.`,
+    );
+    process.exit(1);
+  }
   if (user.customClaims?.['role'] === 'admin') {
     console.log(`✓ ${target} allaqachon admin (uid=${uid}).`);
     return;
