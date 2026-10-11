@@ -1,5 +1,11 @@
 import { type FirebaseApp, type FirebaseOptions, getApps, initializeApp } from 'firebase/app';
-import { type Auth, type Persistence, connectAuthEmulator, initializeAuth } from 'firebase/auth';
+import {
+  type Auth,
+  type Persistence,
+  type PopupRedirectResolver,
+  connectAuthEmulator,
+  initializeAuth,
+} from 'firebase/auth';
 import { type Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { type FirebaseStorage, connectStorageEmulator, getStorage } from 'firebase/storage';
 
@@ -19,6 +25,12 @@ export interface InitFirebaseOptions {
    * - mobile: `getReactNativePersistence(AsyncStorage)`
    */
   persistence: Persistence | Persistence[];
+  /**
+   * Web only: `browserPopupRedirectResolver`. `initializeAuth` (unlike
+   * `getAuth`) does not add it, and without it every `signInWithPopup` fails
+   * with auth/argument-error before a popup even opens.
+   */
+  popupRedirectResolver?: PopupRedirectResolver;
   /**
    * Point the SDK at local emulators instead of the real project. Lets the apps
    * run with seeded data and no cloud credentials — and guarantees a dev
@@ -41,6 +53,7 @@ let services: FirebaseServices | null = null;
 export function initFirebase({
   config,
   persistence,
+  popupRedirectResolver,
   emulators,
 }: InitFirebaseOptions): FirebaseServices {
   if (services) {
@@ -48,7 +61,10 @@ export function initFirebase({
   }
 
   const app = getApps()[0] ?? initializeApp(config);
-  const auth = initializeAuth(app, { persistence });
+  const auth = initializeAuth(app, {
+    persistence,
+    ...(popupRedirectResolver ? { popupRedirectResolver } : {}),
+  });
   const db = getFirestore(app);
   const storage = getStorage(app);
 

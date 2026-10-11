@@ -1,4 +1,4 @@
-import { browserLocalPersistence } from 'firebase/auth';
+import { browserLocalPersistence, browserPopupRedirectResolver } from 'firebase/auth';
 import { getCategories, initFirebase, type FirebaseOptions } from '@kidswear/firebase';
 
 const env = import.meta.env;
@@ -23,6 +23,7 @@ const config: FirebaseOptions = {
 export const firebase = initFirebase({
   config,
   persistence: browserLocalPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver,
   ...(env.VITE_USE_FIREBASE_EMULATORS === 'true' ? { emulators: {} } : {}),
 });
 
