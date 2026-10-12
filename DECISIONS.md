@@ -605,3 +605,18 @@ than a cryptic one if the shape changes again, and is covered by a regression te
 recorded here because it argues for something the CI does not yet do: **load the app and assert it
 renders**. A smoke test driving a real browser would have caught this on the commit that
 introduced it.
+
+## Mobile: one React in the bundle (APK v1.0.7 crash)
+
+APK v1.0.7 closed on launch with `TypeError: Cannot read property 'useState' of null` in
+`StoreProvider`. The mobile app pins `react@19.2.3` — the version react-native 0.85.3's renderer
+is built against — so npm installs it in `apps/mobile/node_modules`, while the web app's
+`react@19.2.7` is hoisted to the root. Metro resolved `react` per importing file: app code got the
+pinned copy, hoisted packages (react-native's renderer, react-redux, redux-persist) got the root
+copy. The renderer installed its hook dispatcher on one React and `StoreProvider` read it from the
+other — `null`. `tsc`, `eslint` and the Metro bundle step all passed.
+
+- **Fix:** `apps/mobile/metro.config.js` resolves every `react` / `react/*` import from the app
+  itself, so the bundle has exactly the renderer's React.
+- **Guard:** `scripts/check-single-react.mjs` reads the bundle's source map and fails CI unless
+  exactly one `node_modules/react` is in it (`npm run check:single-react` in `apps/mobile`).

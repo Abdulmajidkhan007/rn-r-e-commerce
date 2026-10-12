@@ -5,9 +5,10 @@
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
-    "bundle:android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output dist/index.android.bundle --assets-dest dist",
+    "bundle:android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output dist/index.android.bundle --sourcemap-output dist/index.android.bundle.map --assets-dest dist",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "check:single-react": "node ../../scripts/check-single-react.mjs dist/index.android.bundle.map"
   },
   "dependencies": {
     "@bam.tech/react-native-image-resizer": "^3.0.11",

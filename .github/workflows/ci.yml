@@ -41,6 +41,12 @@ jobs:
           npm run bundle:android
         working-directory: apps/mobile
 
+      - name: Mobile bundle has a single React
+        # Two copies of react = "Cannot read property 'useState' of null" at
+        # app start (APK v1.0.7). See apps/mobile/metro.config.js.
+        run: npm run check:single-react
+        working-directory: apps/mobile
+
   functions:
     name: Cloud Functions
     runs-on: ubuntu-latest
