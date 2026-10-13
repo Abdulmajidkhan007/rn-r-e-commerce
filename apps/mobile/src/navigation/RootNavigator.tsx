@@ -81,7 +81,12 @@ function PublicTabsNavigator(): ReactElement {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: t('nav.home'), tabBarIcon: tabIcon('home-variant') }}
+        options={{
+          title: t('nav.home'),
+          // Home draws its own branded header (logo, language, theme).
+          headerShown: false,
+          tabBarIcon: tabIcon('home-variant'),
+        }}
       />
       <Tab.Screen
         name="Catalog"

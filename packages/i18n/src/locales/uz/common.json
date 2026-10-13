@@ -483,5 +483,16 @@
     "topProducts": "Eng koʻp sotilgan",
     "sold": "Sotildi",
     "noSales": "Hali sotuv yoʻq"
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "appearance": "Koʻrinish",
+    "theme": "Mavzu",
+    "themeSystem": "Tizim",
+    "themeLight": "Yorugʻ",
+    "themeDark": "Qorongʻi",
+    "language": "Til",
+    "toggleTheme": "Mavzuni almashtirish",
+    "changeLanguage": "Tilni oʻzgartirish"
   }
 }

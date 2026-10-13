@@ -620,3 +620,11 @@ other — `null`. `tsc`, `eslint` and the Metro bundle step all passed.
   itself, so the bundle has exactly the renderer's React.
 - **Guard:** `scripts/check-single-react.mjs` reads the bundle's source map and fails CI unless
   exactly one `node_modules/react` is in it (`npm run check:single-react` in `apps/mobile`).
+
+## Mobile: icon fonts in a hoisted monorepo (APK v1.0.8)
+
+Every icon in APK v1.0.8 rendered as a box: `react-native-vector-icons/fonts.gradle` copies fonts
+from `<app>/node_modules`, which is empty here because npm hoists deps to the root, and a Copy
+task with no matching files succeeds silently. `vectoricons.iconFontsDir` now points at the root
+`node_modules`, and the APK workflow fails unless `assets/fonts/MaterialCommunityIcons.ttf` is in
+the APK.

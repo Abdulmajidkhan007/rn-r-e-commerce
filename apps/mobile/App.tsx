@@ -20,6 +20,7 @@ import { AppLockProvider } from '@/lib/applock/AppLockProvider';
 import { LockGate } from '@/lib/applock/LockGate';
 import { configureNotifications, attachNotificationListeners } from '@/lib/push';
 import { useNotificationBootstrap } from '@/lib/useNotificationBootstrap';
+import { useLanguageSync } from '@/lib/useLanguageSync';
 import { navigationRef } from '@/navigation/navigationRef';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { FavoritesProvider } from '@/providers/FavoritesProvider';
@@ -48,6 +49,7 @@ function AppNavigator(): ReactElement {
   const theme = useTheme();
   useAuthBootstrap();
   useNotificationBootstrap();
+  useLanguageSync();
   const { status } = useAuth();
 
   useEffect(() => {
