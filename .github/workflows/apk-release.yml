@@ -129,6 +129,11 @@ jobs:
             echo "::error title=Gradle build failed::$msg"
             exit 1
           fi
+          # Icons render as boxes when the font is missing (APK v1.0.8).
+          if ! unzip -l app/build/outputs/apk/release/app-release.apk | grep -q 'assets/fonts/MaterialCommunityIcons.ttf'; then
+            echo "::error title=Icon font missing::MaterialCommunityIcons.ttf APK ichida yo'q — build.gradle dagi vectoricons.iconFontsDir ni tekshiring."
+            exit 1
+          fi
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/kidswear.apk"
 
       - name: Publish GitHub Release

@@ -483,5 +483,16 @@
     "topProducts": "Хиты продаж",
     "sold": "Продано",
     "noSales": "Продаж пока нет"
+  },
+  "settings": {
+    "title": "Настройки",
+    "appearance": "Оформление",
+    "theme": "Тема",
+    "themeSystem": "Системная",
+    "themeLight": "Светлая",
+    "themeDark": "Тёмная",
+    "language": "Язык",
+    "toggleTheme": "Сменить тему",
+    "changeLanguage": "Сменить язык"
   }
 }

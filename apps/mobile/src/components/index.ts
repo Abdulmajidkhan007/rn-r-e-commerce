@@ -14,4 +14,6 @@ export type { RatingProps } from './Rating';
 export { QuantityStepper } from './QuantityStepper';
 export type { QuantityStepperProps } from './QuantityStepper';
 export { LanguageSwitcher } from './LanguageSwitcher';
+export { LanguageMenu } from './LanguageMenu';
 export { ThemeToggle } from './ThemeToggle';
+export { ThemeModePicker } from './ThemeModePicker';

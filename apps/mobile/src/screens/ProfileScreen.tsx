@@ -10,6 +10,7 @@ import { AddressSection } from '@/components/profile/AddressSection';
 import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import { SecuritySection } from '@/components/profile/SecuritySection';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
+import { AppearanceSection } from '@/components/profile/AppearanceSection';
 
 export function ProfileScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -31,10 +32,6 @@ export function ProfileScreen(): React.ReactElement {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 24 }}>
-      <Text variant="headlineMedium" style={{ fontWeight: '800' }}>
-        {t('auth.profile.title')}
-      </Text>
-
       <Card mode="outlined">
         <Card.Content style={{ gap: 16 }}>
           <AvatarUploader />
@@ -63,6 +60,14 @@ export function ProfileScreen(): React.ReactElement {
       </Card>
 
       <Card mode="outlined">
+        {isAdmin ? (
+          <List.Item
+            title={t('nav.admin')}
+            left={(props) => <List.Icon {...props} icon="view-dashboard-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => navigation.navigate('AdminHome')}
+          />
+        ) : null}
         <List.Item
           title={t('orders.myOrders')}
           left={(props) => <List.Icon {...props} icon="receipt" />}
@@ -77,6 +82,7 @@ export function ProfileScreen(): React.ReactElement {
         />
       </Card>
 
+      <AppearanceSection />
       <ProfileForm />
       <AddressSection />
       <SecuritySection />

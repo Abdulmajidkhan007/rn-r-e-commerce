@@ -142,7 +142,13 @@ android {
 }
 
 // Bundle the icon fonts react-native-paper needs (MaterialCommunityIcons et al).
-project.ext.vectoricons = [ iconFontNames: [ 'MaterialCommunityIcons.ttf' ] ]
+// fonts.gradle defaults to <app>/node_modules, which is empty in this monorepo
+// (deps are hoisted to the root) — without iconFontsDir the copy silently finds
+// nothing and every icon renders as a box. CI checks the APK for the font.
+project.ext.vectoricons = [
+    iconFontsDir: "../../../../node_modules/react-native-vector-icons/Fonts",
+    iconFontNames: [ 'MaterialCommunityIcons.ttf' ]
+]
 apply from: file("../../../../node_modules/react-native-vector-icons/fonts.gradle")
 
 // Native Firebase (push) needs google-services.json. CI downloads it from the
