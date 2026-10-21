@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, View } from 'react-native';
 import { ActivityIndicator, Button, Chip, Menu, Searchbar, Text } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Product } from '@kidswear/core';
 import { useCategories, useProducts, type ProductSort } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
+import { tokens } from '@kidswear/theme';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
+import { useProductGrid } from '@/lib/useProductGrid';
 import { useDebounced } from '@/lib/useDebounced';
 
 const SORTS: ProductSort[] = ['newest', 'priceAsc', 'priceDesc'];
@@ -19,7 +20,7 @@ const SORT_LABEL = {
 export function CatalogScreen(): React.ReactElement {
   const { t } = useTranslation();
   const localized = useLocalized();
-  const insets = useSafeAreaInsets();
+  const { columns, cardWidth } = useProductGrid();
   const categoriesQuery = useCategories();
 
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
@@ -29,8 +30,16 @@ export function CatalogScreen(): React.ReactElement {
   const search = useDebounced(searchInput);
 
   const params = useMemo(() => ({ categoryId, search, sort }), [categoryId, search, sort]);
-  const { products, isLoading, isError, isRefetching, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useProducts(params);
+  const {
+    products,
+    isLoading,
+    isError,
+    isRefetching,
+    refetch,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useProducts(params);
 
   const header = (
     <View style={{ gap: 16, paddingBottom: 16 }}>
@@ -85,7 +94,7 @@ export function CatalogScreen(): React.ReactElement {
   );
 
   const renderItem = ({ item }: { item: Product }): React.ReactElement => (
-    <View style={{ flex: 1, maxWidth: '50%' }}>
+    <View style={{ width: cardWidth }}>
       <ProductCard product={item} />
     </View>
   );
@@ -95,9 +104,10 @@ export function CatalogScreen(): React.ReactElement {
       data={isLoading ? [] : products}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
-      numColumns={2}
+      key={columns}
+      numColumns={columns}
       columnWrapperStyle={{ gap: 12 }}
-      contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: tokens.spacing.xl }}
       ListHeaderComponent={header}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />}
       onEndReached={() => {

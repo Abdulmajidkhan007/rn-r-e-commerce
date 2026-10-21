@@ -139,3 +139,34 @@ uchala job'ni ham ishlatadi (2026-10-09 dan yashil).
   tashlansa yoki forma bekor qilinsa, `productImages` hujjati o'chirilmaydi
   (yetim qoladi). Katalog kartasi to'liq o'lchamdagi rasmni yuklaydi
   (alohida kichik nusxa yo'q).
+
+## 2026-10-21 — mahsulot kartasi
+
+APK 1.0.10 sinovidan chiqqan kartadagi muammolar (mobil + veb):
+
+- **Rasm eni:** mobil kartada media bloki endi `alignSelf: 'stretch'`, 4:5,
+  `overflow: hidden` va yuqori burchaklar bo'yicha kesiladi; rasm `cover` bilan
+  to'liq to'ladi (o'ngdagi bo'sh joy yo'qoldi). Vebda karta `overflow: hidden`,
+  rasm kartaning o'zi bilan kesiladi.
+- **Nishon va yurakcha:** "Mavjud" nishoni — chap yuqori, yurakcha — o'ng yuqori
+  burchak; ikkalasi kichik (`dense` / `compact` variantlar) va rasm ichida.
+  Vebda ham xuddi shunday joylashuv.
+- **Proportsiya:** media 4:5 saqlandi; placeholder ham aynan shu o'lchamda.
+  Karta eni endi aniq hisoblanadi (quyida), shuning uchun ortiqcha cho'zilmaydi.
+- **Karta eni:** `useProductGrid` — telefonda 2, planshetda 3, keng ekranda 4
+  ustun; karta eni qat'iy (bitta mahsulot ham boshqalardan keng bo'lmaydi).
+  Bosh sahifa va katalog shuni ishlatadi.
+- **Pastki padding:** Tab navigator tab bar va safe area'ni o'zi hisobga oladi,
+  shuning uchun Home/Catalog'da qo'shimcha `insets.bottom` olib tashlandi
+  (`spacing.xl` qoldi). Mahsulot sahifasi stack ekrani — u o'z `insets.bottom`ini
+  saqlaydi.
+- **Ulashish:** mahsulot sahifasi sarlavhasida `Share.share` tugmasi (matn: nomi).
+  Havola yo'q — veb manzil mobil ilovada sozlanmagan.
+
+**Tekshirildi:** `type-check`, `lint`, `test` yashil. Veb karta Chromium +
+Firestore emulyatori + `seed-emulator.mjs` bilan dark/light, 375 va 1280 px da
+ko'rildi (rasmli va placeholder).
+
+**Telefonda hali sinalmagan:** mobil o'zgarishlarning barchasi (rasm to'ldirishi,
+nishon/yurakcha o'lchami, ustunlar soni, pastki padding, ulashish tugmasi) —
+APK qurilmadi, faqat tip/lint tekshiruvidan o'tdi. Telefonda tasdiqlash kerak.
