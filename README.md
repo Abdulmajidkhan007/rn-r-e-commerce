@@ -380,8 +380,12 @@ One-time setup, all in a browser:
    email — grants the `role: admin` claim. Sign out and back in.
 
 Live URL: `https://<project-id>.web.app`. On Spark, checkout offers only the
-in-app **test mode** payment (labelled "Sinov rejimi (test)"); image upload needs
-Storage (Blaze).
+in-app **test mode** payment (labelled "Sinov rejimi (test)"). Product photos don't
+need Storage: the admin form compresses them on the device (JPEG, ≤1080 px, ≤300 KB)
+and writes each to a `productImages/{id}` Firestore doc; the product stores
+`kwimg:<id>`. On Blaze, set `PRODUCT_IMAGE_BACKEND = 'storage'` in
+`packages/firebase/src/productImages.ts` — old `kwimg:` refs keep resolving. Avatar
+upload still uses Storage (Blaze).
 
 ## Deploy (Netlify, web)
 

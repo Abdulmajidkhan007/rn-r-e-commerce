@@ -17,3 +17,5 @@ export { LanguageSwitcher } from './LanguageSwitcher';
 export { LanguageMenu } from './LanguageMenu';
 export { ThemeToggle } from './ThemeToggle';
 export { ThemeModePicker } from './ThemeModePicker';
+export { ProductImage } from './ProductImage';
+export type { ProductImageProps } from './ProductImage';

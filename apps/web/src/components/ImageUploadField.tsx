@@ -8,13 +8,16 @@ import Typography from '@mui/material/Typography';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from '@kidswear/i18n';
-import { pickImageFile, processToWebp } from '@/lib/image';
+import { pickImageFile } from '@/lib/image';
+import { ProductImage } from './ProductImage';
 
-export interface ImageUploadFieldProps {
+export interface ImageUploadFieldProps<TEncoded> {
   value: string[];
   onChange: (urls: string[]) => void;
-  /** Uploads the processed WebP blob and returns its download URL. */
-  upload: (blob: Blob, index: number) => Promise<string>;
+  /** Persists the encoded image and returns the string stored in `value`. */
+  upload: (encoded: TEncoded, index: number) => Promise<string>;
+  /** Encodes (resizes/compresses) the picked file before upload. */
+  encode: (file: File) => Promise<TEncoded>;
   /** Optional storage cleanup when an image is removed. */
   onRemove?: (url: string, index: number) => Promise<void> | void;
   /** Single-image mode (avatar) replaces; otherwise appends up to `max`. */
@@ -22,14 +25,15 @@ export interface ImageUploadFieldProps {
   max?: number;
 }
 
-export function ImageUploadField({
+export function ImageUploadField<TEncoded>({
   value,
   onChange,
   upload,
+  encode,
   onRemove,
   single = false,
   max = 6,
-}: ImageUploadFieldProps): React.ReactElement {
+}: ImageUploadFieldProps<TEncoded>): React.ReactElement {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -42,11 +46,12 @@ export function ImageUploadField({
     if (!file) return;
     setBusy(true);
     try {
-      const blob = await processToWebp(file);
+      const encoded = await encode(file);
       const index = single ? 0 : value.length;
-      const url = await upload(blob, index);
+      const url = await upload(encoded, index);
       onChange(single ? [url] : [...value, url]);
-    } catch {
+    } catch (err) {
+      console.warn('[image] upload failed:', err);
       setError(true);
     } finally {
       setBusy(false);
@@ -64,12 +69,7 @@ export function ImageUploadField({
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
         {value.map((url, i) => (
           <Box key={url} sx={{ position: 'relative' }}>
-            <Box
-              component="img"
-              src={url}
-              alt=""
-              sx={{ width: 88, height: 110, objectFit: 'cover', borderRadius: 1 }}
-            />
+            <ProductImage src={url} alt="" sx={{ width: 88, height: 110, borderRadius: 1 }} />
             <IconButton
               size="small"
               onClick={() => void handleRemove(i)}

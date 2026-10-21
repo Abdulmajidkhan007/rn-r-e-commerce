@@ -15,3 +15,5 @@ export { ThemeToggle } from './ThemeToggle';
 export { AccountMenu } from './AccountMenu';
 export { MobileNavDrawer } from './MobileNavDrawer';
 export type { MobileNavDrawerProps } from './MobileNavDrawer';
+export { ProductImage } from './ProductImage';
+export type { ProductImageProps } from './ProductImage';

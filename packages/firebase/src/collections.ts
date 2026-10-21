@@ -10,6 +10,8 @@ import {
   type Order,
   OrderSchema,
   type Product,
+  type ProductImage,
+  ProductImageSchema,
   ProductSchema,
   type UserProfile,
   UserProfileSchema,
@@ -23,12 +25,14 @@ export const COLLECTIONS = {
   categories: 'categories',
   orders: 'orders',
   users: 'users',
+  productImages: 'productImages',
 } as const;
 
 const productConverter = createConverter(ProductSchema);
 const categoryConverter = createConverter(CategorySchema);
 const orderConverter = createConverter(OrderSchema);
 const userConverter = createConverter(UserProfileSchema, { idField: 'uid' });
+const productImageConverter = createConverter(ProductImageSchema);
 
 /**
  * Typed, converter-bound collection references. They are functions (not module
@@ -48,6 +52,10 @@ export function ordersCol(): CollectionReference<Order> {
 
 export function usersCol(): CollectionReference<UserProfile> {
   return collection(getDb(), COLLECTIONS.users).withConverter(userConverter);
+}
+
+export function productImagesCol(): CollectionReference<ProductImage> {
+  return collection(getDb(), COLLECTIONS.productImages).withConverter(productImageConverter);
 }
 
 export function productDoc(id: string): DocumentReference<Product> {

@@ -15,10 +15,11 @@ import Typography from '@mui/material/Typography';
 import { productFormSchema, type ProductFormValues } from '@kidswear/core';
 import type { Category, Product } from '@kidswear/core';
 import { useCreateProduct, useUpdateProduct } from '@kidswear/data';
-import { newProductId, uploadProductImage } from '@kidswear/firebase';
+import { newProductId, saveProductImage } from '@kidswear/firebase';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { ImageUploadField } from '@/components/ImageUploadField';
+import { compressProductImage } from '@/lib/image';
 
 export interface ProductFormDialogProps {
   open: boolean;
@@ -217,7 +218,8 @@ export function ProductFormDialog({
               <ImageUploadField
                 value={field.value}
                 onChange={field.onChange}
-                upload={(blob, index) => uploadProductImage(productId, index, blob)}
+                encode={compressProductImage}
+                upload={(image, index) => saveProductImage(productId, index, image)}
               />
             )}
           />

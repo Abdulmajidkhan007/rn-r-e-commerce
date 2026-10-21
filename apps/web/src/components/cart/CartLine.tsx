@@ -8,7 +8,7 @@ import type { CartItem } from '@kidswear/core';
 import { formatPrice } from '@kidswear/utils';
 import { useTranslation, type SupportedLanguage } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
-import { PriceTag, QuantityStepper } from '@/components';
+import { PriceTag, ProductImage, QuantityStepper } from '@/components';
 
 export interface CartLineProps {
   item: CartItem;
@@ -29,18 +29,10 @@ export function CartLine({
 
   return (
     <Box sx={{ display: 'flex', gap: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-      <Box
-        component="img"
+      <ProductImage
         src={item.image}
         alt={item.name}
-        sx={{
-          width: 80,
-          height: 100,
-          objectFit: 'cover',
-          borderRadius: `${tokens.radii.md}px`,
-          bgcolor: 'action.hover',
-          flexShrink: 0,
-        }}
+        sx={{ width: 80, height: 100, borderRadius: `${tokens.radii.md}px` }}
       />
 
       <Stack spacing={0.75} sx={{ flexGrow: 1, minWidth: 0 }}>

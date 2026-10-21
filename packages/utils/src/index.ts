@@ -9,3 +9,4 @@ export * from './stock';
 export * from './order';
 export * from './slug';
 export * from './search';
+export * from './image';

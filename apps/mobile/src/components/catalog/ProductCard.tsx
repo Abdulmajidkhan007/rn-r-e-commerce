@@ -3,7 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import type { Product } from '@kidswear/core';
 import { stockStatus } from '@kidswear/utils';
-import { PriceTag } from '@/components';
+import { tokens } from '@kidswear/theme';
+import { PriceTag, ProductImage } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
 import { StockBadge } from './StockBadge';
 import { FavoriteButton } from './FavoriteButton';
@@ -14,6 +15,8 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
   const theme = useTheme();
   const image = product.images[0];
   const isOut = stockStatus(product.stock) === 'out';
+  // MD3 cards round their corners at 3× the theme roundness.
+  const cardRadius = theme.roundness * 3;
 
   return (
     <Card
@@ -21,20 +24,24 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
       onPress={() => navigation.navigate('ProductDetail', { id: product.id })}
       style={{ backgroundColor: theme.colors.surface }}
     >
+      {/* The media frame always keeps its 4:5 size (photo or placeholder), so the
+          overlays below stay on the picture and never drift onto the title. */}
       <View style={{ position: 'relative' }}>
-        {image ? (
-          <Card.Cover
-            source={{ uri: image }}
-            style={{
-              aspectRatio: 4 / 5,
-              opacity: isOut ? 0.5 : 1,
-            }}
-          />
-        ) : null}
-        <View style={{ position: 'absolute', top: 8, right: 8 }}>
+        <ProductImage
+          src={image}
+          accessibilityLabel={localized(product.name)}
+          style={{
+            width: '100%',
+            aspectRatio: 4 / 5,
+            borderTopLeftRadius: cardRadius,
+            borderTopRightRadius: cardRadius,
+          }}
+          imageStyle={{ opacity: isOut ? 0.5 : 1 }}
+        />
+        <View style={{ position: 'absolute', top: tokens.spacing.sm, right: tokens.spacing.sm }}>
           <StockBadge stock={product.stock} />
         </View>
-        <View style={{ position: 'absolute', top: 0, left: 0 }}>
+        <View style={{ position: 'absolute', top: tokens.spacing.xs, left: tokens.spacing.xs }}>
           <FavoriteButton productId={product.id} size={18} />
         </View>
       </View>

@@ -3,14 +3,13 @@ import { useTheme } from '@mui/material/styles';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import type { Product } from '@kidswear/core';
 import { stockStatus } from '@kidswear/utils';
 import { tokens } from '@kidswear/theme';
-import { PriceTag } from '@/components';
+import { PriceTag, ProductImage } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
 import { StockBadge } from './StockBadge';
 import { FavoriteButton } from './FavoriteButton';
@@ -44,15 +43,13 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
         sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
       >
         <Box sx={{ position: 'relative' }}>
-          <CardMedia
-            component="img"
-            image={image}
+          <ProductImage
+            src={image}
             alt={localized(product.name)}
             sx={{
+              width: '100%',
               aspectRatio: '4 / 5',
-              objectFit: 'cover',
               borderRadius: `${tokens.radii.lg}px`,
-              bgcolor: 'action.hover',
               filter: isOut ? 'grayscale(0.8)' : 'none',
             }}
           />

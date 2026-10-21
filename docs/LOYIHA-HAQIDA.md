@@ -21,7 +21,7 @@ tokenlari ustida — biri o'zgarsa, ikkinchisi ortda qolmaydi.
 | Payme / Click | 🔒 kod tayyor | Cloud Functions (Blaze) + merchant shartnomasi kerak |
 | Buyurtmalar tarixi va holati (real-time) | ✅ | |
 | Kirish: email/parol, Google | ✅ | Admin — Firebase custom claim (`role: admin`); egasi (`OWNER_EMAIL`, standart santexnika.atoyo@gmail.com) har deploy'da admin qilinadi — avval bir marta kirgan bo'lishi kerak |
-| Admin: dashboard, mahsulot, toifa, buyurtma | ✅ | Rasm yuklash Storage talab qiladi (Blaze) |
+| Admin: dashboard, mahsulot, toifa, buyurtma | ✅ | Mahsulot rasmi Spark'da Firestore'ga siqib yoziladi (2026-10-21, telefonda hali sinalmagan). Profil rasmi (avatar) hali Storage'ga bog'liq — Blaze'siz ishlamaydi |
 | 3 til (uz/en/ru), dark/light | ✅ | Til hamma sahifada saqlangan tanlovga bo'ysunadi |
 | Push bildirishnoma (FCM) | 🔒 | Functions (Blaze) + VAPID kalit kerak |
 | Aloqa formasi | ✅ | Firestore `messages`; admin `/admin/messages` |
@@ -106,3 +106,36 @@ uchala job'ni ham ishlatadi (2026-10-09 dan yashil).
   mahsulot nomi ustiga tushib qolgan.
 - Hali sinalmagan: ilovada Google bilan kirish, buyurtma berish to'liq oqimi.
 
+## 2026-10-21 — mahsulot rasmi, rasmsiz karta, yurakcha
+
+- **Sabab (o'lchandi):** `kids-wear-007` loyihasida Storage bucket umuman yo'q —
+  `kids-wear-007.firebasestorage.app` ham, `kids-wear-007.appspot.com` ham
+  "The specified bucket does not exist" (404) qaytaradi, Firestore esa ishlaydi.
+  Spark'da yangi loyihaga bucket ochilmaydi, shuning uchun `uploadBytes` har
+  safar yiqilardi; forma xatoni yutib, faqat "yuklashda xato" ko'rsatardi.
+  Jonli bazadagi yagona mahsulot ("Test") rasmsiz (`images: []`).
+- **Yechim (Blaze'siz):** rasm brauzerda (canvas) / ilovada (image-resizer)
+  JPEG'ga siqiladi: 1080 px / sifat 0.8 dan boshlab, ≤300 KB ga sig'guncha
+  720 px / 0.4 gacha pasayadi. Har rasm alohida `productImages/{id}` hujjati
+  (base64 ≈400 KB, 1 MiB chegarasidan ancha past); mahsulotda faqat
+  `kwimg:<id>` saqlanadi — mahsulot, savat va buyurtma hujjatlari kichik qoladi.
+  Qoidalar: yozish faqat admin, faqat `data:image/...;base64`, ≤420 000 belgi,
+  o'zgartirib bo'lmaydi (rasm keshda abadiy turadi), admin o'chira oladi.
+  Qoidalar testlari 51 → 57 (biri ilovadagi converter orqali yozadi). Chromium'da o'lchandi: oddiy rasm 1-qadamda
+  (~10 KB), eng og'ir holat (sof shovqin 4000×3000) 2-qadamda 295 KB.
+- **Blaze ochilganda:** `packages/firebase/src/productImages.ts` da
+  `PRODUCT_IMAGE_BACKEND = 'storage'` — yangi rasmlar Storage'ga ketadi, eski
+  `kwimg:` havolalar ishlashda davom etadi.
+- **Rasmsiz karta:** veb va mobilda umumiy `ProductImage` komponenti — rasm
+  bo'lmasa yoki yuklanmasa ham ramka 4:5 o'lchamini saqlaydi, ichida ilgich
+  ikonkasi (mavzu ranglarida, dark/light). Mahsulot sahifasi, savat, buyurtma
+  sahifasi va admin formasidagi kichik rasmlar ham shu komponent orqali.
+- **Mobil yurakcha:** rasm yo'q bo'lganda media bloki 0 balandlikda qolib,
+  yurakcha nom ustiga tushardi. Endi blok har doim 4:5, yurakcha uning chap
+  yuqori burchagida.
+- **Sinalmagan / cheklovlar:** telefonda (APK) rasm tanlash–siqish–yozish
+  oqimi hali sinalmagan; vebda brauzer orqali admin bilan to'liq oqim ham
+  sinalmagan (siqish va qoidalar alohida tekshirildi). Formadan rasm olib
+  tashlansa yoki forma bekor qilinsa, `productImages` hujjati o'chirilmaydi
+  (yetim qoladi). Katalog kartasi to'liq o'lchamdagi rasmni yuklaydi
+  (alohida kichik nusxa yo'q).

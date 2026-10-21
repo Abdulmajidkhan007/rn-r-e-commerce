@@ -19,6 +19,8 @@ import {
   where,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+import { ProductImageSchema } from '../../packages/core/src/productImage';
+import { createConverter } from '../../packages/firebase/src/converters';
 
 /**
  * Exercises firestore.rules against the emulator. These are the only tests that
@@ -107,6 +109,69 @@ describe('products & categories', () => {
       await setDoc(doc(ctx.firestore(), 'products/p1'), { stock: 10 });
     });
     await assertFails(updateDoc(doc(customerDb(), 'products/p1'), { stock: 9 }));
+  });
+});
+
+describe('productImages — Spark photo storage', () => {
+  // ~300 KB JPEG as base64: the size a real compressed product photo lands at.
+  const dataUrl = `data:image/jpeg;base64,${'A'.repeat(400_000)}`;
+  // The exact shape `saveProductImage` writes: the shared converter strips the
+  // id and stamps both timestamps.
+  const image = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+    productId: 'p1',
+    dataUrl,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...overrides,
+  });
+
+  it('lets an admin store a compressed photo, readable by anyone', async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), 'productImages/i1'), image()));
+    await assertSucceeds(getDoc(doc(anonDb(), 'productImages/i1')));
+  });
+
+  it('accepts the document the app writes through the shared converter', async () => {
+    const ref = doc(collection(adminDb(), 'productImages')).withConverter(
+      createConverter(ProductImageSchema),
+    );
+    await assertSucceeds(
+      setDoc(ref, { id: ref.id, productId: 'p1', dataUrl, createdAt: serverTimestamp() }),
+    );
+  });
+
+  it('rejects photos from customers and anonymous users', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'productImages/i1'), image()));
+    await assertFails(setDoc(doc(anonDb(), 'productImages/i1'), image()));
+  });
+
+  it('rejects anything over the size cap or that is not a base64 image', async () => {
+    const tooBig = `data:image/jpeg;base64,${'A'.repeat(420_000)}`;
+    await assertFails(setDoc(doc(adminDb(), 'productImages/i1'), image({ dataUrl: tooBig })));
+    await assertFails(
+      setDoc(doc(adminDb(), 'productImages/i2'), image({ dataUrl: 'https://x.test/a.jpg' })),
+    );
+    await assertFails(
+      setDoc(
+        doc(adminDb(), 'productImages/i3'),
+        image({ dataUrl: 'data:text/html;base64,PHNjcmlwdD4=' }),
+      ),
+    );
+  });
+
+  it('rejects extra fields and a client-chosen timestamp', async () => {
+    await assertFails(setDoc(doc(adminDb(), 'productImages/i1'), image({ extra: 1 })));
+    await assertFails(setDoc(doc(adminDb(), 'productImages/i2'), image({ createdAt: 1 })));
+  });
+
+  it('is immutable but deletable by an admin', async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), 'productImages/i1'), image()));
+    await assertFails(
+      updateDoc(doc(adminDb(), 'productImages/i1'), {
+        dataUrl: 'data:image/jpeg;base64,AAAA',
+      }),
+    );
+    await assertFails(deleteDoc(doc(customerDb(), 'productImages/i1')));
+    await assertSucceeds(deleteDoc(doc(adminDb(), 'productImages/i1')));
   });
 });
 

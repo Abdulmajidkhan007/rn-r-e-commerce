@@ -2,15 +2,25 @@ import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Dialog, HelperText, Menu, Portal, Switch, Text, TextInput } from 'react-native-paper';
+import {
+  Button,
+  Dialog,
+  HelperText,
+  Menu,
+  Portal,
+  Switch,
+  Text,
+  TextInput,
+} from 'react-native-paper';
 import { productFormSchema, type ProductFormValues } from '@kidswear/core';
 import type { Category, Product } from '@kidswear/core';
 import { useCreateProduct, useUpdateProduct } from '@kidswear/data';
-import { newProductId, uploadProductImage } from '@kidswear/firebase';
+import { newProductId, saveProductImage } from '@kidswear/firebase';
 import { useTranslation } from '@kidswear/i18n';
 import { FormTextInput } from '@/components/FormTextInput';
 import { ImageUploadField } from '@/components/ImageUploadField';
 import { useTranslateKey } from '@/lib/useTranslateKey';
+import { compressProductImage } from '@/lib/image';
 
 export interface ProductFormDialogProps {
   visible: boolean;
@@ -40,7 +50,11 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
 }
 
 const toCsv = (v: string[]): string => v.join(', ');
-const fromCsv = (v: string): string[] => v.split(',').map((s) => s.trim()).filter(Boolean);
+const fromCsv = (v: string): string[] =>
+  v
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 export function ProductFormDialog({
   visible,
@@ -229,7 +243,8 @@ export function ProductFormDialog({
                 <ImageUploadField
                   value={field.value}
                   onChange={field.onChange}
-                  upload={(blob, index) => uploadProductImage(productId, index, blob)}
+                  encode={compressProductImage}
+                  upload={(image, index) => saveProductImage(productId, index, image)}
                 />
               )}
             />
