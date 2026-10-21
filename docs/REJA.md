@@ -43,9 +43,13 @@ admin: yetkazish, promo, blog → sevimlilar → promo bilan buyurtma → hisobo
 qoidalar 51 test. **Mobil ilova (2026-10-09):** 1-guruh ilovaga ham
 qo'shildi — sevimlilar, blog, aloqa, checkout'da promo-kod va hudud narxi,
 admin: hisobot, xabarlar, blog, promo, yetkazish. APK: `releases/latest/download/kidswear.apk`.
+**2026-10-21:** ochilishda yiqilish tuzatildi (PR #4, #5) — APK 1.0.9 telefonda
+ochiladi. Keyingi qadam: 2-guruh (Blaze ochilishini kutadi).
 
 ## Tartib
 
 1 → 2 → 3 → 4 (bir hafta ichida, Blaze'siz), keyin Blaze ochilishi bilan
 7 → 9 → 10 → 8. Har band alohida commit + test; jonli saytda tekshirilgach
 `docs/LOYIHA-HAQIDA.md` dagi jadval yangilanadi.
+
+*Oxirgi yangilanish: 2026-10-21*

@@ -2,7 +2,7 @@
 
 > Bolalar kiyimi do'koni: veb sayt + Android ilova bitta monorepoda.
 > Jonli: https://kids-wear-007.web.app · APK: https://github.com/Abdulmajidkhan007/rn-r-e-commerce/releases/latest/download/kidswear.apk · Repo: https://github.com/Abdulmajidkhan007/rn-r-e-commerce
-> Oxirgi tekshiruv: 2026-10-09 (koddan, taxmin emas).
+> Oxirgi tekshiruv: 2026-10-21 (koddan va egasining telefonidagi APK 1.0.9 dan).
 
 ## Nima uchun
 
@@ -93,4 +93,16 @@ uchala job'ni ham ishlatadi (2026-10-09 dan yashil).
 - **Admin hech kimga berilmagan edi** — deploy'dagi qo'lda "admin" maydoni hech
   qachon to'ldirilmagan. Endi egasi avtomatik.
 - Google bilan qayta kirish profildagi manzillarni o'chirib yuborardi — tuzatildi.
+
+## 2026-10-12 / 13 — APK ochiladi
+
+- **APK hali ham ochilishi bilan yopilardi** (`useState of null`): monorepo
+  bundle'ida React ikki nusxada edi. Metro endi bitta React'ni oladi (PR #4).
+- Mobil: ikonkalar ko'rinmasdi, til va tema tanlash qo'shildi, bosh sahifa
+  dizayni yangilandi (PR #5).
+- **Natija (2026-10-21, egasi tasdiqlagan):** APK **1.0.9** telefonda ochiladi —
+  bosh sahifa, toifa, "Yangi" bo'limi, Blog, Aloqa va pastki navigatsiya
+  ishlaydi. Ko'rinishdagi kichik nuqson: mahsulot kartasida yurakcha tugmasi
+  mahsulot nomi ustiga tushib qolgan.
+- Hali sinalmagan: ilovada Google bilan kirish, buyurtma berish to'liq oqimi.
 
