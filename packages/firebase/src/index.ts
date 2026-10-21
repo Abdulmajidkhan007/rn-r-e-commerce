@@ -17,6 +17,7 @@ export {
   categoriesCol,
   ordersCol,
   usersCol,
+  productImagesCol,
   productDoc,
   categoryDoc,
   orderDoc,
@@ -98,6 +99,9 @@ export {
   deleteStorageObject,
 } from './storage';
 export type { UploadData } from './storage';
+
+export { PRODUCT_IMAGE_BACKEND, saveProductImage, getInlineImage } from './productImages';
+export type { ProductImageBackend, EncodedImage } from './productImages';
 
 export {
   signUpWithEmail,

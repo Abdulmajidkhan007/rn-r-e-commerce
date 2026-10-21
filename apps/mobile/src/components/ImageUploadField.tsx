@@ -1,27 +1,31 @@
 import { useState } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { Button, HelperText, IconButton } from 'react-native-paper';
 import { useTranslation } from '@kidswear/i18n';
-import { pickImage, processToWebp } from '@/lib/image';
+import { pickImage } from '@/lib/image';
+import { ProductImage } from './ProductImage';
 
-export interface ImageUploadFieldProps {
+export interface ImageUploadFieldProps<TEncoded> {
   value: string[];
   onChange: (urls: string[]) => void;
-  /** Uploads the processed WebP blob and returns its download URL. */
-  upload: (blob: Blob, index: number) => Promise<string>;
+  /** Persists the encoded image and returns the string stored in `value`. */
+  upload: (encoded: TEncoded, index: number) => Promise<string>;
+  /** Encodes (resizes/compresses) the picked image uri before upload. */
+  encode: (uri: string) => Promise<TEncoded>;
   onRemove?: (url: string, index: number) => Promise<void> | void;
   single?: boolean;
   max?: number;
 }
 
-export function ImageUploadField({
+export function ImageUploadField<TEncoded>({
   value,
   onChange,
   upload,
+  encode,
   onRemove,
   single = false,
   max = 6,
-}: ImageUploadFieldProps): React.ReactElement {
+}: ImageUploadFieldProps<TEncoded>): React.ReactElement {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -34,11 +38,12 @@ export function ImageUploadField({
     if (!uri) return;
     setBusy(true);
     try {
-      const blob = await processToWebp(uri);
+      const encoded = await encode(uri);
       const index = single ? 0 : value.length;
-      const url = await upload(blob, index);
+      const url = await upload(encoded, index);
       onChange(single ? [url] : [...value, url]);
-    } catch {
+    } catch (err) {
+      console.warn('[image] upload failed:', err);
       setError(true);
     } finally {
       setBusy(false);
@@ -56,7 +61,7 @@ export function ImageUploadField({
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {value.map((url, i) => (
           <View key={url}>
-            <Image source={{ uri: url }} style={{ width: 88, height: 110, borderRadius: 8 }} />
+            <ProductImage src={url} style={{ width: 88, height: 110, borderRadius: 8 }} />
             <IconButton
               icon="close"
               size={16}

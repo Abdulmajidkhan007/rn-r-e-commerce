@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { tokens } from '@kidswear/theme';
+import { ProductImage } from '@/components/ProductImage';
 
 export interface ProductGalleryProps {
   images: string[];
@@ -15,17 +16,10 @@ export function ProductGallery({ images, alt }: ProductGalleryProps): React.Reac
 
   return (
     <Stack spacing={1.5}>
-      <Box
-        component="img"
+      <ProductImage
         src={activeImage}
         alt={alt}
-        sx={{
-          width: '100%',
-          aspectRatio: '4 / 5',
-          objectFit: 'cover',
-          borderRadius: `${tokens.radii.xl}px`,
-          bgcolor: 'action.hover',
-        }}
+        sx={{ width: '100%', aspectRatio: '4 / 5', borderRadius: `${tokens.radii.xl}px` }}
       />
       {images.length > 1 && (
         <Stack
@@ -52,14 +46,12 @@ export function ProductGallery({ images, alt }: ProductGalleryProps): React.Reac
                 cursor: 'pointer',
               }}
             >
-              <Box
-                component="img"
+              <ProductImage
                 src={img}
                 alt=""
                 sx={{
                   width: 72,
                   height: 90,
-                  objectFit: 'cover',
                   borderRadius: `${tokens.radii.md}px`,
                   border: '2px solid',
                   borderColor: i === selected ? 'primary.main' : 'transparent',

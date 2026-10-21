@@ -9,6 +9,8 @@ export { queryKeys } from './queryKeys';
 export type { ProductsParams, ProductSort } from './queryKeys';
 export { useCategories, useProducts, useProduct, useProductsByIds } from './hooks';
 export type { UseProductsResult } from './hooks';
+export { useImageSrc } from './useImageSrc';
+export type { ImageSrcState } from './useImageSrc';
 
 export { mockPaymentService, isInAppProvider } from './payment';
 export {

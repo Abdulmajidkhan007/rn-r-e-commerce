@@ -31,7 +31,7 @@ billing'ni uzish yoki limitni oshirishni so'rash. Ungacha faqat 1-guruh.
 | 9 | Payme / Click jonli | bor | Merchant shartnomasi + secret'lar; kod tayyor |
 | 10 | Push bildirishnoma | FCM | Buyurtma holati o'zgarganda; kod tayyor (`onOrderUpdate`) |
 | 11 | AI yordamchi | `/api/assistant` | Gemini: katalog bo'yicha savol-javob, o'lcham maslahati |
-| 12 | Rasm yuklash | Storage | Admin mahsulot rasmini o'zi yuklaydi (hozir URL bilan) |
+| 12 | Rasm yuklash | Storage | Spark'da vaqtincha hal qilindi (2026-10-21): rasm siqilib Firestore `productImages` ga yoziladi. Blaze'da — `PRODUCT_IMAGE_BACKEND = 'storage'` va avatar ham |
 
 ## 3-guruh — keyin
 

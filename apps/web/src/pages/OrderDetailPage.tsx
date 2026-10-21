@@ -13,7 +13,7 @@ import { useOrder, useCancelOrder } from '@kidswear/data';
 import { formatDate, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
-import { Card, Skeleton } from '@/components';
+import { Card, ProductImage, Skeleton } from '@/components';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { regionLabel } from '@/lib/region';
@@ -94,31 +94,11 @@ export default function OrderDetailPage(): React.ReactElement {
                 spacing={1.5}
                 sx={{ alignItems: 'center' }}
               >
-                {item.image ? (
-                  <Box
-                    component="img"
-                    src={item.image}
-                    alt={item.name}
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1.5,
-                      objectFit: 'cover',
-                      bgcolor: 'action.hover',
-                      flexShrink: 0,
-                    }}
-                  />
-                ) : (
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1.5,
-                      bgcolor: 'action.hover',
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
+                <ProductImage
+                  src={item.image}
+                  alt={item.name}
+                  sx={{ width: 48, height: 48, borderRadius: 1.5 }}
+                />
                 <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
                   <Typography variant="body2" noWrap>
                     {item.name}

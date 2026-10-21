@@ -81,6 +81,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Product photos while the project has no Storage bucket (Spark): one
+    // compressed JPEG per document, referenced from products as `kwimg:<id>`.
+    // 420000 = INLINE_IMAGE_MAX_DATA_URL_CHARS in @kidswear/utils — keeps the
+    // document far below Firestore's 1 MiB limit. Immutable once written:
+    // clients cache an id's bytes forever, so a new photo gets a new id.
+    match /productImages/{imageId} {
+      allow read: if true;
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['productId', 'dataUrl', 'createdAt', 'updatedAt'])
+        && request.resource.data.productId is string
+        && request.resource.data.productId.size() > 0
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.dataUrl is string
+        && request.resource.data.dataUrl.size() <= 420000
+        && request.resource.data.dataUrl.matches('data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+');
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     // Orders: a signed-in user creates their own order in a valid initial state
     // (deposit_paid must have paidAmount == depositAmount; pending must be
     // unpaid). Owners/admins read. Admins update freely; an owner may ONLY

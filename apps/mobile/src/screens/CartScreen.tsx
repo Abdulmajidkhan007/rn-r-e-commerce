@@ -1,4 +1,4 @@
-import { Image, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Button, IconButton, Surface, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -8,7 +8,7 @@ import { useAuth } from '@kidswear/auth';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
-import { Card, PriceTag, QuantityStepper } from '@/components';
+import { Card, PriceTag, ProductImage, QuantityStepper } from '@/components';
 
 export function CartScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -74,10 +74,10 @@ export function CartScreen(): React.ReactElement {
         {items.map((item) => (
           <Card key={`${item.productId}-${item.size}-${item.color}`}>
             <View style={{ flexDirection: 'row', gap: tokens.spacing.md }}>
-              <Image
-                source={{ uri: item.image }}
+              <ProductImage
+                src={item.image}
+                accessibilityLabel={item.name}
                 style={{ width: 72, height: 92, borderRadius: tokens.radii.md }}
-                resizeMode="cover"
               />
               <View style={{ flex: 1, gap: tokens.spacing.xs }}>
                 <Text variant="titleSmall" numberOfLines={1}>

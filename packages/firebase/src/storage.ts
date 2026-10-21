@@ -1,18 +1,18 @@
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { getFirebase } from './app';
 
-/** Canonical Storage object paths. Images are stored as `.webp`. */
+/** Canonical Storage object paths. Product photos are JPEG, avatars WebP. */
 export const storagePaths = {
-  productImage: (productId: string, n: number): string => `product-images/${productId}/${n}.webp`,
+  productImage: (productId: string, n: number): string => `product-images/${productId}/${n}.jpg`,
   avatar: (uid: string): string => `avatars/${uid}.webp`,
 } as const;
 
 /** Binary payloads accepted by Firebase Storage uploads. */
 export type UploadData = Blob | Uint8Array | ArrayBuffer;
 
-async function upload(path: string, data: UploadData): Promise<string> {
+async function upload(path: string, data: UploadData, contentType: string): Promise<string> {
   const storageRef = ref(getFirebase().storage, path);
-  await uploadBytes(storageRef, data, { contentType: 'image/webp' });
+  await uploadBytes(storageRef, data, { contentType });
   return getDownloadURL(storageRef);
 }
 
@@ -22,12 +22,12 @@ export function uploadProductImage(
   n: number,
   data: UploadData,
 ): Promise<string> {
-  return upload(storagePaths.productImage(productId, n), data);
+  return upload(storagePaths.productImage(productId, n), data, 'image/jpeg');
 }
 
 /** Uploads a user's avatar and returns its download URL. */
 export function uploadAvatar(uid: string, data: UploadData): Promise<string> {
-  return upload(storagePaths.avatar(uid), data);
+  return upload(storagePaths.avatar(uid), data, 'image/webp');
 }
 
 /** Resolves the public download URL for a stored object path. */

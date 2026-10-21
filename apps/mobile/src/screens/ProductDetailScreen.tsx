@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Dimensions,
   FlatList,
-  Image,
   ScrollView,
   View,
   type NativeSyntheticEvent,
@@ -21,6 +20,7 @@ import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
 import type { RootStackParamList } from '@/navigation/types';
 import { FavoriteButton } from '@/components/catalog/FavoriteButton';
+import { ProductImage } from '@/components/ProductImage';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +33,16 @@ function ProductGallery({ images, alt }: { images: string[]; alt: string }): Rea
     setActiveIndex(index);
   };
 
+  if (images.length === 0) {
+    return (
+      <ProductImage
+        src={undefined}
+        accessibilityLabel={alt}
+        style={{ width, aspectRatio: 4 / 5 }}
+      />
+    );
+  }
+
   return (
     <View>
       <FlatList
@@ -43,12 +53,7 @@ function ProductGallery({ images, alt }: { images: string[]; alt: string }): Rea
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
         renderItem={({ item }) => (
-          <Image
-            source={{ uri: item }}
-            accessibilityLabel={alt}
-            style={{ width, aspectRatio: 4 / 5 }}
-            resizeMode="cover"
-          />
+          <ProductImage src={item} accessibilityLabel={alt} style={{ width, aspectRatio: 4 / 5 }} />
         )}
       />
       {images.length > 1 ? (
