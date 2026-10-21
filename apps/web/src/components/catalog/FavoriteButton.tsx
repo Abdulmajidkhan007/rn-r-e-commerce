@@ -11,9 +11,12 @@ import { useFavoritesContext } from '@/app/FavoritesProvider';
 export function FavoriteButton({
   productId,
   size = 'small',
+  compact = false,
 }: {
   productId: string;
   size?: 'small' | 'medium';
+  /** Tight 28px hit box for overlays on product photos. */
+  compact?: boolean;
 }): React.ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -39,9 +42,14 @@ export function FavoriteButton({
         bgcolor: alpha(theme.palette.background.paper, 0.85),
         '&:hover': { bgcolor: theme.palette.background.paper },
         color: active ? 'error.main' : 'text.secondary',
+        ...(compact ? { width: 28, height: 28, p: 0 } : {}),
       })}
     >
-      {active ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+      {active ? (
+        <FavoriteIcon fontSize={compact ? 'inherit' : 'small'} />
+      ) : (
+        <FavoriteBorderIcon fontSize={compact ? 'inherit' : 'small'} />
+      )}
     </IconButton>
   );
 }

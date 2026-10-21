@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useCategories, useProducts } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
+import { tokens } from '@kidswear/theme';
 import { LanguageMenu, Skeleton, ThemeToggle } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
+import { useProductGrid } from '@/lib/useProductGrid';
 
 export function HomeScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -14,6 +16,7 @@ export function HomeScreen(): React.ReactElement {
   const localized = useLocalized();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { cardWidth } = useProductGrid();
   const { products, isLoading } = useProducts({ sort: 'newest' });
   const categoriesQuery = useCategories();
 
@@ -26,7 +29,7 @@ export function HomeScreen(): React.ReactElement {
       contentContainerStyle={{
         paddingTop: insets.top + 8,
         paddingHorizontal: 16,
-        paddingBottom: insets.bottom + 24,
+        paddingBottom: tokens.spacing.xl,
         gap: 20,
       }}
     >
@@ -113,7 +116,7 @@ export function HomeScreen(): React.ReactElement {
         ) : newest.length > 0 ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
             {newest.map((product) => (
-              <View key={product.id} style={{ width: '47%' }}>
+              <View key={product.id} style={{ width: cardWidth }}>
                 <ProductCard product={product} />
               </View>
             ))}

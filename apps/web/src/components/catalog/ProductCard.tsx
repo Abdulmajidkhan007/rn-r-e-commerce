@@ -26,6 +26,7 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
       sx={{
         position: 'relative',
         height: '100%',
+        overflow: 'hidden',
         bgcolor: 'background.paper',
         transition: theme.transitions.create(['transform', 'box-shadow'], {
           duration: tokens.durations.normal,
@@ -49,12 +50,12 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
             sx={{
               width: '100%',
               aspectRatio: '4 / 5',
-              borderRadius: `${tokens.radii.lg}px`,
+              borderRadius: 0,
               filter: isOut ? 'grayscale(0.8)' : 'none',
             }}
           />
-          <Box sx={{ position: 'absolute', top: tokens.spacing.sm, right: tokens.spacing.sm }}>
-            <StockBadge stock={product.stock} />
+          <Box sx={{ position: 'absolute', top: tokens.spacing.sm, left: tokens.spacing.sm }}>
+            <StockBadge stock={product.stock} dense />
           </Box>
         </Box>
         <CardContent sx={{ width: '100%' }}>
@@ -78,8 +79,8 @@ export function ProductCard({ product }: { product: Product }): React.ReactEleme
         </CardContent>
       </CardActionArea>
       {/* Outside the link: a button nested in <a> is invalid and would navigate. */}
-      <Box sx={{ position: 'absolute', top: tokens.spacing.sm, left: tokens.spacing.sm }}>
-        <FavoriteButton productId={product.id} />
+      <Box sx={{ position: 'absolute', top: tokens.spacing.xs, right: tokens.spacing.xs }}>
+        <FavoriteButton productId={product.id} compact />
       </Box>
     </Card>
   );

@@ -11,9 +11,12 @@ const STATUS = {
 export function StockBadge({
   stock,
   size = 'small',
+  dense = false,
 }: {
   stock: number;
   size?: 'small' | 'medium';
+  /** Compact pill for overlays on product photos. */
+  dense?: boolean;
 }): React.ReactElement {
   const { t } = useTranslation();
   const status = stockStatus(stock);
@@ -24,6 +27,7 @@ export function StockBadge({
       color={color}
       variant={status === 'out' ? 'outlined' : 'filled'}
       label={t(key)}
+      sx={dense ? { height: 22, '& .MuiChip-label': { px: 1, fontSize: '0.6875rem' } } : undefined}
     />
   );
 }
