@@ -42,6 +42,8 @@ export const DeliverySettingsSchema = z.object({
   regions: z.record(z.string(), z.number().int().nonnegative()),
   /** Subtotal (after discount) from which delivery is free; 0 = never free. */
   freeFrom: z.number().int().nonnegative(),
+  /** Smallest order (subtotal after discount) accepted; absent/0 = no minimum. */
+  minOrder: z.number().int().nonnegative().optional(),
 });
 export type DeliverySettings = z.infer<typeof DeliverySettingsSchema>;
 
@@ -57,4 +59,28 @@ export function deliveryFeeFor(
   if (!settings) return 0;
   if (settings.freeFrom > 0 && amountAfterDiscount >= settings.freeFrom) return 0;
   return settings.regions[regionId] ?? settings.defaultFee;
+}
+
+/**
+ * Som still needed for free delivery, or `null` when there is no free-delivery
+ * threshold. 0 once it is reached.
+ */
+export function freeDeliveryRemaining(
+  settings: DeliverySettings | null | undefined,
+  amountAfterDiscount: number,
+): number | null {
+  if (!settings || settings.freeFrom <= 0) return null;
+  return Math.max(0, settings.freeFrom - amountAfterDiscount);
+}
+
+/**
+ * Som missing to reach the minimum order; 0 when it is met or not set.
+ * Mirrors `minOrderOk` in firestore.rules (orders create).
+ */
+export function minOrderShortfall(
+  settings: DeliverySettings | null | undefined,
+  amountAfterDiscount: number,
+): number {
+  const min = settings?.minOrder ?? 0;
+  return Math.max(0, min - amountAfterDiscount);
 }

@@ -81,8 +81,9 @@ export function subscribeOrder(id: string, cb: (order: Order | null) => void): U
 }
 
 /**
- * Updates an order's status. Admin status changes are admin-only; an owner may
- * only cancel a pending/deposit_paid order — both enforced by Firestore rules.
+ * Bare status write, no stock side effects. Admin screens use
+ * `changeOrderStatus` (inventory.ts), which also takes/returns stock; owners
+ * cancel through `cancelOwnOrder`.
  */
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
   await updateDoc(orderDoc(id), { status, updatedAt: serverTimestamp() });

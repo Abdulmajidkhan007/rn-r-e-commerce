@@ -656,3 +656,45 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
 - **Dormant Functions follow along.** `onOrderCreate` (Blaze-only) decrements the ordered variant
   and rewrites `stock` as the sum (`functions/src/lib/stock.ts`), so turning Functions on later
   does not desync the two.
+
+## Inventory on Spark (2026-10-22)
+
+- **Stock moves when the admin confirms, inside a client transaction.** Without Cloud Functions
+  nothing trusted runs at order time, and a customer must never write product stock. So the
+  admin client's `changeOrderStatus` (`@kidswear/firebase/inventory.ts`) is the stock writer: one
+  `runTransaction` reads the order and its products, updates each product's `variants`/`stock`,
+  appends `stockMoves` rows and writes the new status. A shortfall throws `InventoryError` before
+  any write, so the status stays put.
+- **"Confirmed" = `processing`, `shipped` or `delivered`** (`STOCK_HOLDING_STATUSES`). `processing`
+  is the first status after `deposit_paid` that the admin sets, but jumping straight to
+  `shipped`/`delivered` also takes the stock, so it cannot be skipped by accident. Leaving those
+  statuses (cancel, or back to `pending`/`deposit_paid`) returns it. `stockActionFor(current,
+  next, stockApplied)` is the pure rule; re-saving the current status never moves stock.
+- **`orders.stockApplied` is the idempotency flag, shared with Blaze.** Read inside the
+  transaction, set by whoever takes the stock, cleared on return. `onOrderCreate` now reads it
+  in its own transaction, sets it and journals `by: 'system'`, so turning Functions on later
+  cannot double-decrement an order the admin already confirmed (or vice versa). Clients may not
+  create an order carrying `stockApplied`/`cancelReason`.
+- **Reserve-at-confirm, not at checkout.** Two customers can both order the last unit; the
+  second confirmation fails with a clear message. Reserving at checkout would need a client
+  write to products (unsafe) or Functions. Revisit in Faza 14.
+- **`stockMoves` is append-only and admin-only** (rules: shape-checked create with
+  `by == auth.uid`, `createdAt == request.time`, `delta` a non-zero int; no update/delete). The
+  rules do not tie a product write to a journal row — admins are trusted; the journal is an
+  audit aid, not a security boundary.
+- **Manual moves** (`adjustStock`): intake (+n), write-off (−n), stocktake (counted − recorded).
+  Same transaction pattern; a zero stocktake difference writes nothing. Pure maths in
+  `@kidswear/core/inventory.ts` (`applyVariantDeltas`, `orderLinesStockChange`,
+  `manualStockDelta`), legacy products move their single `stock` via the synthetic `default`
+  variant and never gain a `variants` field.
+- **Customer cancel is `pending`-only** (was `pending`/`deposit_paid`): once money is in, a
+  refund is the shop's decision. Rule: owner, `pending → cancelled`, `cancelReason == 'customer'`,
+  affected keys ⊆ {status, cancelReason, updatedAt}. A pending order never holds stock, so there
+  is nothing to return.
+- **Minimum order** lives in `settings/delivery.minOrder` (optional, measured after discount,
+  like `freeFrom`). Checked by `useCheckout` and by `minOrderOk` in the rules next to
+  `totalsOk`; the rules read the same document as `deliveryOk`, which the per-request cache
+  serves once.
+- **Converter reads pending server timestamps as estimates.** A latency-compensated snapshot
+  of a doc just written with `serverTimestamp()` has the field as `null`, which failed schema
+  validation inside `onSnapshot`. `serverTimestamps: 'estimate'` fixes it for every collection.

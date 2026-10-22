@@ -5,11 +5,13 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useAppDispatch, useAppSelector, updateQty, removeItem } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
+import { useDeliverySettings } from '@kidswear/data';
 import { computeOrderTotals } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { CartLine } from '@/components/cart/CartLine';
 import { EmptyCart } from '@/components/cart/EmptyCart';
+import { CartThresholds } from '@/components/cart/CartThresholds';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 
@@ -23,6 +25,7 @@ export default function CartPage(): React.ReactElement {
   const items = useAppSelector((s) => s.cart.items);
   const language = useAppSelector((s) => s.ui.language);
 
+  const { data: delivery } = useDeliverySettings();
   const totals = computeOrderTotals(items);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const hasItems = items.length > 0;
@@ -62,6 +65,7 @@ export default function CartPage(): React.ReactElement {
           }}
         >
           <Stack sx={{ width: '100%' }}>
+            <CartThresholds settings={delivery} amount={totals.subtotal} language={language} />
             {items.map((item) => (
               <CartLine
                 key={`${item.productId}-${item.size}-${item.color}`}

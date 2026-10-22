@@ -38,7 +38,15 @@ export const OrderSchema = z.object({
   status: OrderStatusSchema,
   /** Deposit charge tracking. Absent on legacy orders placed via the stub. */
   payment: OrderPaymentSchema.optional(),
+  /** 'customer' when the buyer cancelled; 'out_of_stock' from the Blaze trigger. */
   cancelReason: z.string().optional(),
+  /**
+   * True while this order's units are taken off the shelf. Set in the same
+   * transaction that decrements stock (admin confirmation on Spark, or
+   * `onOrderCreate` on Blaze) and cleared by the one that returns it — both
+   * paths read it first, so stock never moves twice.
+   */
+  stockApplied: z.boolean().optional(),
   shippingAddress: AddressSchema,
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,

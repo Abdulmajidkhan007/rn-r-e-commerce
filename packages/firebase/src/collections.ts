@@ -26,6 +26,7 @@ export const COLLECTIONS = {
   orders: 'orders',
   users: 'users',
   productImages: 'productImages',
+  stockMoves: 'stockMoves',
 } as const;
 
 const productConverter = createConverter(ProductSchema);

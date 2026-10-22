@@ -6,7 +6,12 @@ import { Button, Card, Divider, HelperText, RadioButton, Text } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
-import { deliveryFeeFor, evaluatePromo, type PaymentProvider } from '@kidswear/core';
+import {
+  deliveryFeeFor,
+  evaluatePromo,
+  minOrderShortfall,
+  type PaymentProvider,
+} from '@kidswear/core';
 import { availableProviders, useCheckout, useDeliverySettings } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
@@ -74,6 +79,7 @@ export function CheckoutScreen(): React.ReactElement {
   const discount = promoResult?.ok ? promoResult.discount : 0;
   const deliveryFee = selected ? deliveryFeeFor(delivery, selected.region, subtotal - discount) : 0;
   const totals = computeOrderTotals(items, { discount, deliveryFee });
+  const minShortfall = minOrderShortfall(delivery, subtotal - discount);
 
   const handleAdd = (values: AddressFormValues): Promise<boolean> => addAddress(values);
 
@@ -110,6 +116,14 @@ export function CheckoutScreen(): React.ReactElement {
       {error ? (
         <HelperText type="error" visible>
           {tk(error)}
+        </HelperText>
+      ) : null}
+      {minShortfall > 0 ? (
+        <HelperText type="error" visible>
+          {t('cart.minOrderLeft', {
+            min: formatPrice(delivery?.minOrder ?? 0, language),
+            amount: formatPrice(minShortfall, language),
+          })}
         </HelperText>
       ) : null}
 
@@ -214,7 +228,7 @@ export function CheckoutScreen(): React.ReactElement {
       <Button
         mode="contained"
         loading={isPending}
-        disabled={isPending || !selected}
+        disabled={isPending || !selected || minShortfall > 0}
         onPress={() => void placeOrder()}
       >
         {t('checkout.placeOrder')}

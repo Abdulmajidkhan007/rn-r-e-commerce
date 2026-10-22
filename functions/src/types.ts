@@ -30,6 +30,8 @@ export interface Order {
   total: number;
   status: OrderStatus;
   cancelReason?: string;
+  /** Set by whichever path took the stock (this trigger or the admin client). */
+  stockApplied?: boolean;
   payment?: {
     provider: 'payme' | 'click' | 'mock';
     state: 'created' | 'paid' | 'cancelled';

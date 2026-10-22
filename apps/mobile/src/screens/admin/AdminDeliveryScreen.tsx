@@ -30,6 +30,7 @@ function DeliveryForm({ initial }: { initial: DeliverySettings | null }): React.
   const save = useSaveDeliverySettings();
   const [defaultFee, setDefaultFee] = useState(initial ? String(initial.defaultFee) : '');
   const [freeFrom, setFreeFrom] = useState(initial ? String(initial.freeFrom) : '0');
+  const [minOrder, setMinOrder] = useState(initial?.minOrder ? String(initial.minOrder) : '0');
   const [regions, setRegions] = useState<Record<string, string>>(() =>
     initial
       ? Object.fromEntries(Object.entries(initial.regions).map(([k, v]) => [k, String(v)]))
@@ -41,6 +42,7 @@ function DeliveryForm({ initial }: { initial: DeliverySettings | null }): React.
     const parsed = DeliverySettingsSchema.safeParse({
       defaultFee: Number(defaultFee),
       freeFrom: Number(freeFrom || 0),
+      ...(Number(minOrder || 0) > 0 ? { minOrder: Number(minOrder) } : {}),
       regions: Object.fromEntries(
         Object.entries(regions)
           .filter(([, v]) => v.trim() !== '')
@@ -85,6 +87,16 @@ function DeliveryForm({ initial }: { initial: DeliverySettings | null }): React.
           />
           <HelperText type="info" visible>
             {t('adminContent.freeFromHint')}
+          </HelperText>
+          <TextInput
+            mode="outlined"
+            label={`${t('adminContent.minOrder')}, UZS`}
+            keyboardType="number-pad"
+            value={minOrder}
+            onChangeText={(v) => setMinOrder(digits(v))}
+          />
+          <HelperText type="info" visible>
+            {t('adminContent.minOrderHint')}
           </HelperText>
           <Text variant="titleSmall">{t('adminContent.regionFees')}</Text>
           {UZ_REGIONS.map((r) => (

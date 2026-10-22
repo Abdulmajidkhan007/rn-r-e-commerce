@@ -4,11 +4,15 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Dialog from '@mui/material/Dialog';
+import Alert from '@mui/material/Alert';
 import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { canCustomerCancel } from '@kidswear/core';
 import { useOrder, useCancelOrder } from '@kidswear/data';
 import { formatDate, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
@@ -23,7 +27,7 @@ export default function OrderDetailPage(): React.ReactElement {
   const { id = '' } = useParams();
   const language = useAppSelector((s) => s.ui.language);
   const { order, loading } = useOrder(id);
-  const { cancel, isPending } = useCancelOrder();
+  const { cancel, isPending, error: cancelError } = useCancelOrder();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (loading) {
@@ -52,12 +56,16 @@ export default function OrderDetailPage(): React.ReactElement {
     );
   }
 
-  const canCancel = order.status === 'pending' || order.status === 'deposit_paid';
+  const canCancel = canCustomerCancel(order.status);
   const remaining = order.total - order.paidAmount;
   const addr = order.shippingAddress;
 
   const doCancel = async (): Promise<void> => {
-    await cancel(order.id);
+    try {
+      await cancel(order.id);
+    } catch {
+      // Surfaced through `cancelError`; the live order snapshot shows the outcome.
+    }
     setConfirmOpen(false);
   };
 
@@ -155,6 +163,8 @@ export default function OrderDetailPage(): React.ReactElement {
           </Stack>
         </Card>
 
+        {cancelError && <Alert severity="error">{t('orders.cancelError')}</Alert>}
+
         {canCancel && (
           <Button
             size="small"
@@ -170,8 +180,11 @@ export default function OrderDetailPage(): React.ReactElement {
 
         <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
           <DialogTitle>{t('orders.confirmCancel')}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>{t('orders.confirmCancelBody')}</DialogContentText>
+          </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmOpen(false)}>{t('actions.cancel')}</Button>
+            <Button onClick={() => setConfirmOpen(false)}>{t('orders.keepOrder')}</Button>
             <Button color="error" disabled={isPending} onClick={() => void doCancel()}>
               {t('orders.cancelOrder')}
             </Button>

@@ -5,7 +5,12 @@ import { db } from '../lib/admin.js';
 import { sendToUid, sendToAdmins } from '../lib/push.js';
 import { localeFor, getCopy } from '../lib/i18n.js';
 import type { Order, OrderItem } from '../types.js';
-import { applyLinesToStock, type StockUpdate, type StockedProduct } from '../lib/stock.js';
+import {
+  applyLinesToStock,
+  saleMoves,
+  type StockUpdate,
+  type StockedProduct,
+} from '../lib/stock.js';
 
 export const onOrderCreate = onDocumentCreated(
   'orders/{orderId}',
@@ -26,29 +31,44 @@ export const onOrderCreate = onDocumentCreated(
       const orderRef = db().collection('orders').doc(orderId);
 
       let outOfStock = false;
+      let alreadyApplied = false;
 
       await db().runTransaction(async (tx) => {
+        // A transaction may retry: reset what the previous attempt decided.
+        outOfStock = false;
+        alreadyApplied = false;
+        // `stockApplied` is shared with the Spark path (admin client's
+        // changeOrderStatus): whoever takes the stock first sets it, the other
+        // sees it and skips — stock never moves twice.
+        const current = await tx.get(orderRef);
+        if ((current.data() as Order | undefined)?.stockApplied === true) {
+          alreadyApplied = true;
+          return;
+        }
+
         const productRefs = productIds.map((id) => db().collection('products').doc(id));
         const productDocs = await Promise.all(productRefs.map((ref) => tx.get(ref)));
 
-        const updates: { ref: (typeof productRefs)[number]; next: StockUpdate }[] = [];
+        const updates: {
+          ref: (typeof productRefs)[number];
+          productId: string;
+          next: StockUpdate;
+          moves: { variantId: string; delta: number }[];
+        }[] = [];
         for (let i = 0; i < productDocs.length; i++) {
           const productDoc = productDocs[i];
           const ref = productRefs[i];
           const productId = productIds[i];
           if (productDoc == null || ref == null || productId == null) continue;
 
-          const next = productDoc.exists
-            ? applyLinesToStock(
-                productDoc.data() as StockedProduct,
-                linesByProduct.get(productId) ?? [],
-              )
-            : null;
+          const product = productDoc.data() as StockedProduct;
+          const lines = linesByProduct.get(productId) ?? [];
+          const next = productDoc.exists ? applyLinesToStock(product, lines) : null;
           if (!next) {
             outOfStock = true;
             break;
           }
-          updates.push({ ref, next });
+          updates.push({ ref, productId, next, moves: saleMoves(product, lines) });
         }
 
         if (outOfStock) {
@@ -58,11 +78,25 @@ export const onOrderCreate = onDocumentCreated(
             updatedAt: FieldValue.serverTimestamp(),
           });
         } else {
-          for (const { ref, next } of updates) {
+          for (const { ref, productId, next, moves } of updates) {
             tx.update(ref, { ...next, updatedAt: FieldValue.serverTimestamp() });
+            for (const { variantId, delta } of moves) {
+              tx.create(db().collection('stockMoves').doc(), {
+                productId,
+                variantId,
+                delta,
+                reason: 'sale',
+                orderId,
+                by: 'system',
+                createdAt: FieldValue.serverTimestamp(),
+              });
+            }
           }
+          tx.update(orderRef, { stockApplied: true, updatedAt: FieldValue.serverTimestamp() });
         }
       });
+
+      if (alreadyApplied) return;
 
       // Load customer locale
       const userDoc = await db().collection('users').doc(order.userId).get();

@@ -162,6 +162,16 @@ async function main() {
     });
   }
   console.log(`  ${PRODUCTS.length} products`);
+
+  // Delivery pricing with a minimum order, so the cart's "free delivery in X"
+  // and the checkout/rules minimum (minOrderOk) are visible locally.
+  await put('settings/delivery', {
+    defaultFee: int(30000),
+    regions: map({ 'tashkent-city': int(20000) }),
+    freeFrom: int(500000),
+    minOrder: int(100000),
+  });
+  console.log('  settings/delivery (minOrder 100 000, free from 500 000)');
   console.log('Done.');
 }
 

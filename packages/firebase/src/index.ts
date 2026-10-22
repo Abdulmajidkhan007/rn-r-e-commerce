@@ -49,6 +49,15 @@ export {
 } from './orders';
 
 export {
+  InventoryError,
+  changeOrderStatus,
+  adjustStock,
+  getStockMoves,
+  cancelOwnOrder,
+} from './inventory';
+export type { InventoryErrorCode, StatusChangeResult, StockAdjustment } from './inventory';
+
+export {
   newProductId,
   newCategoryId,
   createProduct,

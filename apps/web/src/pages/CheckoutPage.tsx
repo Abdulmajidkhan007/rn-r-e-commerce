@@ -11,7 +11,12 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
-import { deliveryFeeFor, evaluatePromo, type PaymentProvider } from '@kidswear/core';
+import {
+  deliveryFeeFor,
+  evaluatePromo,
+  minOrderShortfall,
+  type PaymentProvider,
+} from '@kidswear/core';
 import { availableProviders, useCheckout, useDeliverySettings } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
@@ -75,7 +80,8 @@ export default function CheckoutPage(): React.ReactElement {
   const discount = promoResult?.ok ? promoResult.discount : 0;
   const deliveryFee = selected ? deliveryFeeFor(delivery, selected.region, subtotal - discount) : 0;
   const totals = computeOrderTotals(items, { discount, deliveryFee });
-  const placeDisabled = !selected || items.length === 0;
+  const belowMin = minOrderShortfall(delivery, subtotal - discount) > 0;
+  const placeDisabled = !selected || items.length === 0 || belowMin;
 
   const handleAddAddress = async (values: AddressFormValues): Promise<boolean> => {
     const ok = await addAddress(values);
@@ -117,6 +123,14 @@ export default function CheckoutPage(): React.ReactElement {
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {tk(error)}
+        </Alert>
+      )}
+      {belowMin && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          {t('cart.minOrderLeft', {
+            min: formatPrice(delivery?.minOrder ?? 0, language),
+            amount: formatPrice(minOrderShortfall(delivery, subtotal - discount), language),
+          })}
         </Alert>
       )}
 

@@ -192,7 +192,10 @@
     "remaining": "Qolgan summa",
     "checkout": "Buyurtma berish",
     "remove": "Oʻchirish",
-    "quantity": "Miqdor"
+    "quantity": "Miqdor",
+    "freeDeliveryLeft": "Bepul yetkazishga {{amount}} qoldi",
+    "freeDeliveryReached": "Yetkazib berish bepul",
+    "minOrderLeft": "Eng kam buyurtma — {{min}}. Yana {{amount}} qo'shing"
   },
   "checkout": {
     "shippingAddress": "Yetkazib berish manzili",
@@ -213,7 +216,8 @@
       "emptyCart": "Savatcha boʻsh",
       "noAddress": "Yetkazish manzilini tanlang",
       "outOfStock": "Baʼzi mahsulotlar omborda yetarli emas",
-      "generic": "Buyurtma berishda xatolik. Qayta urining"
+      "generic": "Buyurtma berishda xatolik. Qayta urining",
+      "belowMinOrder": "Buyurtma eng kam summadan kam"
     }
   },
   "orders": {
@@ -222,10 +226,14 @@
     "orderDate": "Sana",
     "items": "Mahsulotlar",
     "paid": "Toʻlangan",
-    "cancelOrder": "Bekor qilish",
+    "cancelOrder": "Buyurtmani bekor qilish",
     "confirmCancel": "Buyurtmani bekor qilasizmi?",
     "viewOrder": "Koʻrish",
-    "cancelError": "Bekor qilishda xatolik"
+    "cancelError": "Bekor qilishda xatolik",
+    "cancelled": "Buyurtma bekor qilindi",
+    "cancelOnlyPending": "Buyurtmani faqat to'lovdan oldin bekor qilish mumkin",
+    "confirmCancelBody": "Buyurtma bekor qilinadi. Bu amalni ortga qaytarib bo'lmaydi.",
+    "keepOrder": "Buyurtmani saqlab qolish"
   },
   "payment": {
     "processing": "Toʻlov amalga oshirilmoqda...",
@@ -327,7 +335,9 @@
     "noOrders": "Buyurtmalar yoʻq",
     "orderId": "Buyurtma",
     "total": "Jami",
-    "viewDetail": "Batafsil"
+    "viewDetail": "Batafsil",
+    "stockTaken": "Holat yangilandi, zaxiradan yechildi",
+    "stockReturned": "Holat yangilandi, zaxira qaytarildi"
   },
   "notifications": {
     "title": "Bildirishnomalar",
@@ -500,7 +510,9 @@
     "reportNote": "Faqat toʻlangan buyurtmalar (depozit va undan keyingi holatlar), Toshkent vaqti boʻyicha.",
     "topProducts": "Eng koʻp sotilgan",
     "sold": "Sotildi",
-    "noSales": "Hali sotuv yoʻq"
+    "noSales": "Hali sotuv yoʻq",
+    "minOrder": "Eng kam buyurtma summasi",
+    "minOrderHint": "0 — cheklov yo'q (chegirmadan keyingi summa)"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -512,5 +524,53 @@
     "language": "Til",
     "toggleTheme": "Mavzuni almashtirish",
     "changeLanguage": "Tilni oʻzgartirish"
+  },
+  "inventory": {
+    "title": "Ombor",
+    "subtitle": "Zaxira, kirim, chiqim, inventarizatsiya va jurnal",
+    "stockTab": "Zaxira",
+    "journalTab": "Jurnal",
+    "search": "Mahsulot qidirish",
+    "product": "Mahsulot",
+    "variant": "Tur",
+    "stock": "Zaxira",
+    "actions": "Amallar",
+    "noVariant": "Yagona tur",
+    "intake": "Kirim",
+    "writeoff": "Hisobdan chiqarish",
+    "count": "Inventarizatsiya",
+    "quantity": "Soni",
+    "countedQuantity": "Haqiqiy soni",
+    "note": "Izoh (ixtiyoriy)",
+    "current": "Hozir: {{count}}",
+    "difference": "Farq: {{delta}}",
+    "apply": "Saqlash",
+    "done": "Saqlandi ({{delta}})",
+    "noChange": "Farq yo'q — hech narsa yozilmadi",
+    "noProducts": "Mahsulot yo'q",
+    "noMoves": "Jurnal bo'sh",
+    "date": "Sana",
+    "delta": "O'zgarish",
+    "reason": "Sabab",
+    "order": "Buyurtma",
+    "by": "Kim",
+    "lowStock": "Kam qoldi",
+    "outOfStock": "Tugagan",
+    "reasons": {
+      "sale": "Sotuv",
+      "return": "Qaytish",
+      "intake": "Kirim",
+      "writeoff": "Hisobdan chiqarish",
+      "inventory": "Inventarizatsiya"
+    },
+    "errors": {
+      "orderNotFound": "Buyurtma topilmadi",
+      "productNotFound": "Mahsulot topilmadi",
+      "insufficient": "Zaxira yetarli emas — hech narsa o'zgarmadi",
+      "missingVariant": "Mahsulot turi topilmadi — hech narsa o'zgarmadi",
+      "invalidQuantity": "Musbat butun son kiriting",
+      "generic": "Saqlab bo'lmadi"
+    },
+    "shortfallFor": "{{name}} ({{variant}}) uchun zaxira yetmaydi"
   }
 }

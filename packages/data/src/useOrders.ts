@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import type { Order } from '@kidswear/core';
-import { subscribeOrder, subscribeOrdersByUser, updateOrderStatus } from '@kidswear/firebase';
+import { cancelOwnOrder, subscribeOrder, subscribeOrdersByUser } from '@kidswear/firebase';
 
 export interface UserOrdersState {
   orders: Order[];
@@ -66,12 +66,13 @@ export interface UseCancelOrderResult {
 }
 
 /**
- * Owner-cancel mutation. Should only be offered for pending/deposit_paid orders;
- * Firestore rules enforce that an owner may only transition to 'cancelled'.
+ * Owner-cancel mutation. Offer it only while the order is `pending`
+ * (`canCustomerCancel`); Firestore rules allow exactly pending → cancelled with
+ * `cancelReason: 'customer'`.
  */
 export function useCancelOrder(): UseCancelOrderResult {
   const mutation = useMutation({
-    mutationFn: (id: string) => updateOrderStatus(id, 'cancelled'),
+    mutationFn: cancelOwnOrder,
   });
   return {
     cancel: mutation.mutateAsync,

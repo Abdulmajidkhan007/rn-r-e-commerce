@@ -192,7 +192,10 @@
     "remaining": "Remaining",
     "checkout": "Checkout",
     "remove": "Remove",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "freeDeliveryLeft": "{{amount}} more for free delivery",
+    "freeDeliveryReached": "Delivery is free",
+    "minOrderLeft": "Minimum order is {{min}}. Add {{amount}} more"
   },
   "checkout": {
     "shippingAddress": "Shipping address",
@@ -213,7 +216,8 @@
       "emptyCart": "Your cart is empty",
       "noAddress": "Please select a shipping address",
       "outOfStock": "Some items are no longer in stock",
-      "generic": "Could not place the order. Please try again"
+      "generic": "Could not place the order. Please try again",
+      "belowMinOrder": "The order is below the minimum amount"
     }
   },
   "orders": {
@@ -225,7 +229,11 @@
     "cancelOrder": "Cancel order",
     "confirmCancel": "Cancel this order?",
     "viewOrder": "View",
-    "cancelError": "Could not cancel the order"
+    "cancelError": "Could not cancel the order",
+    "cancelled": "Order cancelled",
+    "cancelOnlyPending": "An order can only be cancelled before payment",
+    "confirmCancelBody": "The order will be cancelled. This cannot be undone.",
+    "keepOrder": "Keep order"
   },
   "payment": {
     "processing": "Processing payment...",
@@ -327,7 +335,9 @@
     "noOrders": "No orders",
     "orderId": "Order",
     "total": "Total",
-    "viewDetail": "Details"
+    "viewDetail": "Details",
+    "stockTaken": "Status updated, stock taken",
+    "stockReturned": "Status updated, stock returned"
   },
   "notifications": {
     "title": "Notifications",
@@ -500,7 +510,9 @@
     "reportNote": "Paid orders only (deposit paid and later), by Tashkent time.",
     "topProducts": "Best sellers",
     "sold": "Sold",
-    "noSales": "No sales yet"
+    "noSales": "No sales yet",
+    "minOrder": "Minimum order amount",
+    "minOrderHint": "0 — no minimum (amount after discount)"
   },
   "settings": {
     "title": "Settings",
@@ -512,5 +524,53 @@
     "language": "Language",
     "toggleTheme": "Toggle theme",
     "changeLanguage": "Change language"
+  },
+  "inventory": {
+    "title": "Warehouse",
+    "subtitle": "Stock, intake, write-offs, stocktaking and journal",
+    "stockTab": "Stock",
+    "journalTab": "Journal",
+    "search": "Search products",
+    "product": "Product",
+    "variant": "Variant",
+    "stock": "Stock",
+    "actions": "Actions",
+    "noVariant": "Single variant",
+    "intake": "Intake",
+    "writeoff": "Write-off",
+    "count": "Stocktake",
+    "quantity": "Quantity",
+    "countedQuantity": "Counted quantity",
+    "note": "Note (optional)",
+    "current": "Now: {{count}}",
+    "difference": "Difference: {{delta}}",
+    "apply": "Save",
+    "done": "Saved ({{delta}})",
+    "noChange": "No difference — nothing recorded",
+    "noProducts": "No products",
+    "noMoves": "The journal is empty",
+    "date": "Date",
+    "delta": "Change",
+    "reason": "Reason",
+    "order": "Order",
+    "by": "By",
+    "lowStock": "Low",
+    "outOfStock": "Out",
+    "reasons": {
+      "sale": "Sale",
+      "return": "Return",
+      "intake": "Intake",
+      "writeoff": "Write-off",
+      "inventory": "Stocktake"
+    },
+    "errors": {
+      "orderNotFound": "Order not found",
+      "productNotFound": "Product not found",
+      "insufficient": "Not enough stock — nothing was changed",
+      "missingVariant": "Product variant not found — nothing was changed",
+      "invalidQuantity": "Enter a positive whole number",
+      "generic": "Could not save"
+    },
+    "shortfallFor": "Not enough stock for {{name}} ({{variant}})"
   }
 }
