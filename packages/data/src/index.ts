@@ -45,6 +45,8 @@ export {
   useDeleteCategory,
   useAllOrders,
   useUpdateOrderStatus,
+  useStockMoves,
+  useAdjustStock,
 } from './useAdmin';
 export type {
   CreateProductVars,
@@ -54,6 +56,9 @@ export type {
   AllOrdersState,
   UpdateOrderStatusVars,
 } from './useAdmin';
+
+export { stockErrorMessage } from './inventory';
+export type { StockErrorMessage } from './inventory';
 
 export { summarizeDashboard, LOW_STOCK_THRESHOLD } from './dashboard';
 export type { DashboardStats } from './dashboard';

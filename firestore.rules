@@ -61,6 +61,15 @@ service cloud.firestore {
         : s.regions.get(d.shippingAddress.region, s.defaultFee);
     }
 
+    // settings/delivery.minOrder: smallest subtotal (after discount) accepted.
+    // Mirrors @kidswear/core minOrderShortfall. Same document as deliveryOk,
+    // so the get() is served from the per-request cache.
+    function minOrderOk(d) {
+      return !exists(/databases/$(database)/documents/settings/delivery)
+        || d.subtotal - discountOf(d)
+             >= get(/databases/$(database)/documents/settings/delivery).data.get('minOrder', 0);
+    }
+
     function totalsOk(d) {
       return d.total == d.subtotal - discountOf(d) + feeOf(d)
         && d.depositAmount == math.round(d.total * 0.5);
@@ -106,8 +115,9 @@ service cloud.firestore {
 
     // Orders: a signed-in user creates their own order in a valid initial state
     // (deposit_paid must have paidAmount == depositAmount; pending must be
-    // unpaid). Owners/admins read. Admins update freely; an owner may ONLY
-    // cancel a pending/deposit_paid order (status-only change). Never deleted.
+    // unpaid). Owners/admins read. Admins update (status changes go through a
+    // client transaction that also moves stock — see changeOrderStatus); an
+    // owner may ONLY cancel a still-pending order. Never deleted.
     match /orders/{orderId} {
       // A client may only create an order it has not paid for (status
       // 'pending'), or one settled by the in-app mock gateway. Hosted gateways
@@ -115,6 +125,8 @@ service cloud.firestore {
       // and are flipped by the webhook, which runs with admin credentials and
       // bypasses these rules. Without this, a client could POST itself a
       // 'deposit_paid' order and claim a Payme payment that never happened.
+      // `stockApplied` belongs to the stock transaction: an order created
+      // with it would never have its stock taken.
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status in ['pending', 'deposit_paid']
@@ -124,17 +136,43 @@ service cloud.firestore {
               : request.resource.data.paidAmount == 0)
         && request.resource.data.keys().hasAll(
               ['items', 'subtotal', 'depositAmount', 'total', 'shippingAddress'])
+        && !('stockApplied' in request.resource.data)
+        && !('cancelReason' in request.resource.data)
         && promoOk(request.resource.data)
         && deliveryOk(request.resource.data)
+        && minOrderOk(request.resource.data)
         && totalsOk(request.resource.data);
       allow read: if isOwner(resource.data.userId) || isAdmin();
+      // Owner cancel: pending only (nothing paid, no stock taken), and only
+      // status + cancelReason ('customer') + updatedAt may change.
       allow update: if isAdmin()
         || (isOwner(resource.data.userId)
-            && resource.data.status in ['pending', 'deposit_paid']
+            && resource.data.status == 'pending'
             && request.resource.data.status == 'cancelled'
+            && request.resource.data.cancelReason == 'customer'
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['status', 'updatedAt']));
+                 .hasOnly(['status', 'cancelReason', 'updatedAt']));
       allow delete: if false;
+    }
+
+    // Stock journal: append-only, admin-only. Written in the same transaction
+    // as the product stock change it records; never edited or deleted, so the
+    // history cannot be rewritten after the fact.
+    match /stockMoves/{moveId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(
+             ['productId', 'variantId', 'delta', 'reason', 'orderId', 'note', 'by', 'createdAt'])
+        && sizeBetween(request.resource.data.productId, 1, 200)
+        && sizeBetween(request.resource.data.variantId, 1, 400)
+        && request.resource.data.delta is int
+        && request.resource.data.delta != 0
+        && request.resource.data.reason in ['sale', 'return', 'intake', 'writeoff', 'inventory']
+        && (!('orderId' in request.resource.data) || sizeBetween(request.resource.data.orderId, 1, 200))
+        && (!('note' in request.resource.data) || sizeBetween(request.resource.data.note, 1, 500))
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
     }
 
     // Users: owners and admins may read. Owners may create/update their own

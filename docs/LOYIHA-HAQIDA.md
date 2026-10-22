@@ -221,3 +221,65 @@ tanlash faqat type-check/lint'dan o'tdi, telefonda ko'rilmagan. Jonli
 (`kids-wear-007`) bazada sinalmagan. Cheklov: zaxira buyurtmada kamaymaydi
 (Spark — Functions yo'q), qator narxini qoidalar tekshirmaydi; katalog kartasi
 mahsulotning asosiy narxini ko'rsatadi ("… dan" emas).
+
+## 2026-10-22 — ombor
+
+**Muammo:** Spark'da buyurtma berilganda zaxira kamaymasdi — buni faqat Blaze'dagi
+`onOrderCreate` qilardi. Endi zaxirani admin klienti Firestore tranzaksiyasida yuritadi.
+
+- **Tasdiqlashda zaxira yechiladi.** Admin buyurtmani `processing` ga (yoki to'g'ridan
+  `shipped`/`delivered` ga) o'tkazganda bitta tranzaksiyada: har qator turining zaxirasi
+  kamayadi, `stock` = turlar yig'indisi, `stockMoves` ga "sotuv" yozuvi, buyurtmaga
+  `stockApplied: true`. Zaxira yetmasa tranzaksiya to'xtaydi — holat o'zgarmaydi, admin
+  "… (98 / oq) uchun zaxira yetmaydi" xabarini ko'radi.
+- **Ikki marta kamaymaydi.** `stockApplied` tranzaksiya ichida o'qiladi: qayta bosish,
+  `processing → shipped`, bir xil holatni qayta saqlash — zaxiraga tegmaydi. Blaze'dagi
+  `onOrderCreate` ham shu belgini o'qiydi/qo'yadi (va jurnalga `by: 'system'` yozadi), shuning
+  uchun Functions yoqilganda ham ikki yo'l bir-birini takrorlamaydi.
+- **Bekor/qaytarishda zaxira qaytadi.** Zaxirasi olingan buyurtma `cancelled` (yoki
+  to'lanmagan holatga) qaytarilsa — "qaytish" yozuvi, `stockApplied: false`. Qayta
+  tasdiqlansa yana bir marta yechiladi.
+- **`stockMoves` jurnali:** `{productId, variantId, delta, reason, orderId?, note?, by,
+  createdAt}`; sabablar: sotuv, qaytish, kirim, hisobdan chiqarish, inventarizatsiya. Faqat
+  admin yozadi/o'qiydi; tahrirlab ham, o'chirib ham bo'lmaydi (qoidada).
+- **"Ombor" sahifasi** — veb `/admin/inventory` va mobil admin ekrani: mahsulot × tur
+  zaxirasi (0 — qizil, ≤5 — sariq), qidiruv, kirim, hisobdan chiqarish, inventarizatsiya
+  (haqiqiy son → farq jurnalga), jurnal. Har amal tranzaksiyada. Turlarsiz (eski) mahsulot
+  bitta "Yagona tur" qatori bo'lib ko'rinadi.
+- **Mijoz bekor qilishi:** faqat `pending` buyurtmani, tasdiqlash dialogi bilan (veb +
+  mobil). Qoidada: faqat egasi, faqat `pending → cancelled`, `cancelReason: 'customer'`,
+  boshqa maydon o'zgarmaydi. Avval `deposit_paid` ni ham bekor qila olardi — endi yo'q
+  (pul to'langan, qaytarish admin ishi). Uz tilida dialogning ikkala tugmasi ham "Bekor
+  qilish" edi — endi "Buyurtmani saqlab qolish" / "Buyurtmani bekor qilish".
+- **Eng kam buyurtma:** `settings/delivery.minOrder` (admin "Yetkazib berish"
+  sahifasida). Checkout tekshiradi (tugma o'chadi, ogohlantirish) va qoidalar ham
+  (`minOrderOk`, chegirmadan keyingi summa). Savatda "Bepul yetkazishga X qoldi" (bepul
+  chegara bo'lsa) va eng kam summaga yetmasa ogohlantirish.
+- **Yo'l-yo'lakay tuzatildi:** buyurtma `serverTimestamp()` bilan yangilangach lokal
+  snapshot'da `updatedAt` vaqtincha `null` bo'lib, Zod konverteri xato tashlardi (sahifada
+  ushlanmagan xato). Konverter endi `serverTimestamps: 'estimate'` bilan o'qiydi.
+- `firebase.json` ga Auth emulyatori porti (9099) qo'shildi; `seed-emulator.mjs`
+  `settings/delivery` ni (minOrder 100 000, bepul 500 000 dan) yozadi.
+
+**Tekshirildi:** `type-check`, `lint`, `test` (unit), `test:rules` yashil — qoidalar
+testlari 61 → 71 (mijoz jurnal/zaxiraga yoza olmaydi, boshqaning va `pending` bo'lmagan
+buyurtmani bekor qila olmaydi, `minOrder` dan kam rad etiladi, admin tranzaksiyasi
+o'tadi). Vebda Firestore + Auth emulyatori va seed bilan Chromium (Playwright), 25/25:
+mijoz (390 px) savatda "Bepul yetkazishga … qoldi" → buyurtma (`deposit_paid`, zaxira
+hali o'sha) → admin "Tayyorlanmoqda": tur zaxirasi 3 → 2, `stock` = yig'indi,
+`stockApplied`, jurnalda sotuv −1 → "Jo'natildi": zaxira o'zgarmadi → "Bekor qilindi":
+zaxira qaytdi, qaytish +1 → qayta tasdiq/bekor ham bir martadan; zaxirasiz turga
+buyurtma tasdiqlanmadi (holat `pending` qoldi, ogohlantirish); mijoz o'z `pending`
+buyurtmasini bekor qildi (`cancelReason: 'customer'`), to'langanida tugma yo'q; `minOrder`
+dan kam buyurtmani qoidalar rad etdi; Ombor: kirim +5, chiqim −2, inventarizatsiya
+(farq jurnalda), zaxiradan ko'p chiqim rad etildi, jurnal hamma yozuvni ko'rsatadi;
+dark rejim 390 px da gorizontal skrollsiz.
+
+**Sinalmagan:** mobil ilova (APK) — Ombor ekrani, buyurtma bekor qilish, savatdagi
+bepul yetkazish/minimal summa va admin holat o'zgartirish faqat type-check/lint'dan
+o'tdi, telefonda ko'rilmagan. Jonli (`kids-wear-007`) bazada sinalmagan. Blaze
+`onOrderCreate` dagi belgi/jurnal o'zgarishi faqat type-check va unit test (Functions
+o'chiq). Cheklovlar: zaxira faqat admin tasdiqlaganda yechiladi — tasdiqgacha bitta
+oxirgi donani ikki mijoz buyurtma qilishi mumkin (tasdiqda ikkinchisi to'xtaydi);
+qo'lda tahrirlash (mahsulot formasi) jurnalga yozilmaydi; o'chirilgan mahsulot
+qaytarilganda zaxira qaytmaydi (qator o'tkazib yuboriladi).

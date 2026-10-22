@@ -3,7 +3,8 @@ import { FlatList, View } from 'react-native';
 import { ActivityIndicator, Button, Card, Menu, Snackbar, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Order, OrderStatus } from '@kidswear/core';
-import { useAllOrders, useUpdateOrderStatus } from '@kidswear/data';
+import { useAuth } from '@kidswear/auth';
+import { stockErrorMessage, useAllOrders, useUpdateOrderStatus } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { formatDateTime, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
@@ -82,12 +83,31 @@ export function AdminOrdersScreen(): React.ReactElement {
   const language = useAppSelector((s) => s.ui.language);
   const [filter, setFilter] = useState<OrderStatus | ''>('');
   const [filterMenu, setFilterMenu] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const { orders, loading } = useAllOrders(filter || undefined);
+  const { user } = useAuth();
   const updateStatus = useUpdateOrderStatus();
 
+  // Runs in the stock transaction: a shortfall aborts it and the status stays.
   const onUpdate = (id: string, status: OrderStatus): void => {
-    updateStatus.mutate({ id, status }, { onSuccess: () => setSaved(true) });
+    if (!user) return;
+    updateStatus.mutate(
+      { id, status, by: user.uid },
+      {
+        onSuccess: ({ action }) =>
+          setNotice(
+            action === 'apply'
+              ? t('adminOrders.stockTaken')
+              : action === 'return'
+                ? t('adminOrders.stockReturned')
+                : t('adminOrders.statusUpdated'),
+          ),
+        onError: (error) => {
+          const msg = stockErrorMessage(error, orders.find((o) => o.id === id));
+          setNotice(t(msg.key, { defaultValue: msg.key, ...msg.params }));
+        },
+      },
+    );
   };
 
   return (
@@ -146,8 +166,8 @@ export function AdminOrdersScreen(): React.ReactElement {
         />
       )}
 
-      <Snackbar visible={saved} onDismiss={() => setSaved(false)} duration={2500}>
-        {t('adminOrders.statusUpdated')}
+      <Snackbar visible={notice !== null} onDismiss={() => setNotice(null)} duration={4000}>
+        {notice ?? ''}
       </Snackbar>
     </View>
   );

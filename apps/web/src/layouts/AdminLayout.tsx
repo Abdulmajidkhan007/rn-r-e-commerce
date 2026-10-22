@@ -23,6 +23,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import ArticleIcon from '@mui/icons-material/Article';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import WarehouseIcon from '@mui/icons-material/Warehouse';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -37,6 +38,7 @@ const ITEMS = [
   { to: '/admin/products', labelKey: 'admin.products', icon: <Inventory2Icon /> },
   { to: '/admin/categories', labelKey: 'admin.categories', icon: <CategoryIcon /> },
   { to: '/admin/orders', labelKey: 'admin.orders', icon: <ReceiptLongIcon /> },
+  { to: '/admin/inventory', labelKey: 'inventory.title', icon: <WarehouseIcon /> },
   { to: '/admin/reports', labelKey: 'adminContent.reports', icon: <BarChartIcon /> },
   { to: '/admin/messages', labelKey: 'adminContent.messages', icon: <MailIcon /> },
   { to: '/admin/blog', labelKey: 'adminContent.blog', icon: <ArticleIcon /> },

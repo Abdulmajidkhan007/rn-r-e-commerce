@@ -12,10 +12,12 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Select from '@mui/material/Select';
 import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { alpha, useTheme } from '@mui/material/styles';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import type { OrderStatus } from '@kidswear/core';
-import { useAllOrders, useUpdateOrderStatus } from '@kidswear/data';
+import { useAuth } from '@kidswear/auth';
+import { stockErrorMessage, useAllOrders, useUpdateOrderStatus } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { formatPrice, formatDateTime } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
@@ -43,15 +45,44 @@ const STATUS_LABEL = {
 
 export default function AdminOrdersPage(): React.ReactElement {
   const { t } = useTranslation();
+  const tk = (key: string, params?: Record<string, string>): string =>
+    t(key, { defaultValue: key, ...params });
   const theme = useTheme();
   const language = useAppSelector((s) => s.ui.language);
   const [filter, setFilter] = useState<OrderStatus | ''>('');
   const { orders, loading } = useAllOrders(filter || undefined);
+  const { user } = useAuth();
   const updateStatus = useUpdateOrderStatus();
-  const [saved, setSaved] = useState(false);
+  const [notice, setNotice] = useState<{ severity: 'success' | 'error'; text: string } | null>(
+    null,
+  );
 
+  // The status write runs in the stock transaction: a shortfall aborts it and
+  // the select snaps back to the stored status (the live snapshot never moved).
   const onChangeStatus = (id: string, status: OrderStatus): void => {
-    updateStatus.mutate({ id, status }, { onSuccess: () => setSaved(true) });
+    if (!user) return;
+    updateStatus.mutate(
+      { id, status, by: user.uid },
+      {
+        onSuccess: ({ action }) =>
+          setNotice({
+            severity: 'success',
+            text:
+              action === 'apply'
+                ? t('adminOrders.stockTaken')
+                : action === 'return'
+                  ? t('adminOrders.stockReturned')
+                  : t('adminOrders.statusUpdated'),
+          }),
+        onError: (error) => {
+          const msg = stockErrorMessage(
+            error,
+            orders.find((o) => o.id === id),
+          );
+          setNotice({ severity: 'error', text: tk(msg.key, msg.params) });
+        },
+      },
+    );
   };
 
   return (
@@ -124,6 +155,8 @@ export default function AdminOrdersPage(): React.ReactElement {
                       <Select
                         size="small"
                         value={o.status}
+                        disabled={updateStatus.isPending}
+                        inputProps={{ 'aria-label': `${t('adminOrders.updateStatus')} ${o.id}` }}
                         onChange={(e) => onChangeStatus(o.id, e.target.value as OrderStatus)}
                       >
                         {STATUSES.map((s) => (
@@ -142,11 +175,19 @@ export default function AdminOrdersPage(): React.ReactElement {
       </Card>
 
       <Snackbar
-        open={saved}
-        autoHideDuration={2500}
-        onClose={() => setSaved(false)}
-        message={t('adminOrders.statusUpdated')}
-      />
+        open={notice !== null}
+        autoHideDuration={notice?.severity === 'error' ? 6000 : 2500}
+        onClose={() => setNotice(null)}
+      >
+        <Alert
+          severity={notice?.severity ?? 'success'}
+          variant="filled"
+          onClose={() => setNotice(null)}
+          data-testid="order-status-notice"
+        >
+          {notice?.text}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

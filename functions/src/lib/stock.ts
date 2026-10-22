@@ -37,3 +37,29 @@ export function applyLinesToStock(
   }
   return { stock: next.reduce((sum, v) => sum + v.stock, 0), variants: next };
 }
+
+/** Mirror of @kidswear/core DEFAULT_VARIANT_ID. */
+export const DEFAULT_VARIANT_ID = 'default';
+
+/**
+ * Journal rows (`stockMoves`) for a sale `applyLinesToStock` accepted: one per
+ * variant, negative. Mirrors @kidswear/core `orderLinesStockChange` deltas.
+ */
+export function saleMoves(
+  product: StockedProduct,
+  lines: readonly OrderItem[],
+): { variantId: string; delta: number }[] {
+  const variants = product.variants ?? [];
+  const byVariant = new Map<string, number>();
+  for (const line of lines) {
+    const variant =
+      variants.length === 0
+        ? undefined
+        : line.variantId
+          ? variants.find((v) => v.id === line.variantId)
+          : variants.find((v) => v.size === (line.size ?? '') && v.color === (line.color ?? ''));
+    const id = variant?.id ?? DEFAULT_VARIANT_ID;
+    byVariant.set(id, (byVariant.get(id) ?? 0) - line.quantity);
+  }
+  return [...byVariant].map(([variantId, delta]) => ({ variantId, delta }));
+}

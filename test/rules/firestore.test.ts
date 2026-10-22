@@ -13,6 +13,7 @@ import {
   getDoc,
   getDocs,
   query,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -331,44 +332,144 @@ describe('orders — read', () => {
 describe('orders — update', () => {
   beforeEach(async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'orders/o1'), orderData());
+      await setDoc(
+        doc(ctx.firestore(), 'orders/o1'),
+        orderData({ status: 'pending', paidAmount: 0 }),
+      );
+      await setDoc(doc(ctx.firestore(), 'orders/paid'), orderData());
     });
   });
 
-  it('lets the owner cancel a deposit_paid order', async () => {
-    await assertSucceeds(updateDoc(doc(customerDb(), 'orders/o1'), { status: 'cancelled' }));
+  const customerCancel = { status: 'cancelled', cancelReason: 'customer' };
+
+  it('lets the owner cancel their pending order', async () => {
+    await assertSucceeds(
+      updateDoc(doc(customerDb(), 'orders/o1'), {
+        ...customerCancel,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('requires cancelReason "customer" on an owner cancel', async () => {
+    await assertFails(updateDoc(doc(customerDb(), 'orders/o1'), { status: 'cancelled' }));
+    await assertFails(
+      updateDoc(doc(customerDb(), 'orders/o1'), { status: 'cancelled', cancelReason: 'admin' }),
+    );
+  });
+
+  it('stops the owner from cancelling once the deposit is paid', async () => {
+    await assertFails(updateDoc(doc(customerDb(), 'orders/paid'), customerCancel));
   });
 
   it('stops the owner from changing status to anything but cancelled', async () => {
-    await assertFails(updateDoc(doc(customerDb(), 'orders/o1'), { status: 'shipped' }));
+    await assertFails(updateDoc(doc(customerDb(), 'orders/o1'), { status: 'processing' }));
     await assertFails(updateDoc(doc(customerDb(), 'orders/o1'), { status: 'delivered' }));
   });
 
-  it('stops the owner from editing money while cancelling', async () => {
-    // Status-only change: smuggling a refund past the rules must fail.
+  it('stops the owner from editing anything else while cancelling', async () => {
+    // Status-only change: smuggling a refund or the stock flag past the rules must fail.
     await assertFails(
-      updateDoc(doc(customerDb(), 'orders/o1'), { status: 'cancelled', paidAmount: 0 }),
+      updateDoc(doc(customerDb(), 'orders/o1'), { ...customerCancel, paidAmount: 0, total: 1 }),
+    );
+    await assertFails(
+      updateDoc(doc(customerDb(), 'orders/o1'), { ...customerCancel, stockApplied: true }),
     );
   });
 
   it('stops a different customer from cancelling', async () => {
-    await assertFails(updateDoc(doc(otherDb(), 'orders/o1'), { status: 'cancelled' }));
+    await assertFails(updateDoc(doc(otherDb(), 'orders/o1'), customerCancel));
   });
 
   it('lets an admin move the order through fulfilment', async () => {
-    await assertSucceeds(updateDoc(doc(adminDb(), 'orders/o1'), { status: 'shipped' }));
+    await assertSucceeds(updateDoc(doc(adminDb(), 'orders/paid'), { status: 'shipped' }));
   });
 
   it('stops the owner from cancelling once it has shipped', async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), 'orders/o2'), orderData({ status: 'shipped' }));
     });
-    await assertFails(updateDoc(doc(customerDb(), 'orders/o2'), { status: 'cancelled' }));
+    await assertFails(updateDoc(doc(customerDb(), 'orders/o2'), customerCancel));
   });
 
   it('never allows deletion, even by an admin', async () => {
     await assertFails(deleteDoc(doc(customerDb(), 'orders/o1')));
     await assertFails(deleteDoc(doc(adminDb(), 'orders/o1')));
+  });
+
+  it('rejects an order created with the stock flag or a cancel reason', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'orders/n1'), orderData({ stockApplied: true })));
+    await assertFails(
+      setDoc(doc(customerDb(), 'orders/n2'), orderData({ cancelReason: 'customer' })),
+    );
+  });
+});
+
+describe('stock journal & admin stock transaction', () => {
+  const move = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    productId: 'p1',
+    variantId: 'default',
+    delta: -1,
+    reason: 'sale',
+    orderId: 'o1',
+    by: ADMIN,
+    createdAt: serverTimestamp(),
+    ...over,
+  });
+
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'products/p1'), { stock: 5 });
+      await setDoc(doc(ctx.firestore(), 'orders/o1'), orderData());
+      await setDoc(doc(ctx.firestore(), 'stockMoves/m0'), { ...move(), createdAt: 1 });
+    });
+  });
+
+  it('a customer can neither write nor read the journal', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'stockMoves/m1'), move({ by: CUSTOMER })));
+    await assertFails(getDoc(doc(customerDb(), 'stockMoves/m0')));
+    await assertFails(getDocs(collection(customerDb(), 'stockMoves')));
+  });
+
+  it('a customer cannot take stock or flag an order as stocked', async () => {
+    await assertFails(updateDoc(doc(customerDb(), 'products/p1'), { stock: 4 }));
+    await assertFails(updateDoc(doc(customerDb(), 'orders/o1'), { stockApplied: true }));
+  });
+
+  it('an admin appends rows; nobody edits or deletes them', async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), 'stockMoves/m1'), move()));
+    await assertSucceeds(getDocs(collection(adminDb(), 'stockMoves')));
+    await assertFails(updateDoc(doc(adminDb(), 'stockMoves/m0'), { delta: -2 }));
+    await assertFails(deleteDoc(doc(adminDb(), 'stockMoves/m0')));
+  });
+
+  it('rejects malformed rows, even from an admin', async () => {
+    await assertFails(setDoc(doc(adminDb(), 'stockMoves/a'), move({ reason: 'gift' })));
+    await assertFails(setDoc(doc(adminDb(), 'stockMoves/b'), move({ delta: 0 })));
+    await assertFails(setDoc(doc(adminDb(), 'stockMoves/c'), move({ delta: 1.5 })));
+    await assertFails(setDoc(doc(adminDb(), 'stockMoves/d'), move({ by: CUSTOMER })));
+    await assertFails(setDoc(doc(adminDb(), 'stockMoves/e'), move({ createdAt: 1 })));
+    await assertFails(setDoc(doc(adminDb(), 'stockMoves/f'), move({ extra: true })));
+  });
+
+  it("passes the admin's confirm transaction: stock, journal and flag together", async () => {
+    const db = adminDb();
+    await assertSucceeds(
+      runTransaction(db, async (tx) => {
+        const order = await tx.get(doc(db, 'orders/o1'));
+        const product = await tx.get(doc(db, 'products/p1'));
+        if (order.get('stockApplied') === true) return;
+        tx.update(doc(db, 'products/p1'), { stock: Number(product.get('stock')) - 1 });
+        tx.set(doc(collection(db, 'stockMoves')), move());
+        tx.update(doc(db, 'orders/o1'), { status: 'processing', stockApplied: true });
+      }),
+    );
+    let after: unknown;
+    // withSecurityRulesDisabled resolves to void, so read through a closure.
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      after = (await getDoc(doc(ctx.firestore(), 'products/p1'))).get('stock');
+    });
+    if (after !== 4) throw new Error(`expected stock 4, got ${after}`);
   });
 });
 
@@ -553,6 +654,18 @@ describe('orders — delivery fee and totals', () => {
   it('must be zero while delivery is not configured', async () => {
     await assertSucceeds(setDoc(doc(customerDb(), 'orders/o1'), orderData()));
     await assertFails(setDoc(doc(customerDb(), 'orders/o2'), inRegion('fergana', 40_000)));
+  });
+
+  it('rejects an order below the minimum, measured after the discount', async () => {
+    await seed('settings/delivery', { ...settings, minOrder: 150_000 });
+    await assertFails(setDoc(doc(customerDb(), 'orders/o1'), inRegion('fergana', 40_000)));
+    await seed('settings/delivery', { ...settings, minOrder: 100_000 });
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o2'), inRegion('fergana', 40_000)));
+  });
+
+  it('has no minimum while minOrder is absent', async () => {
+    await seed('settings/delivery', settings);
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/o1'), inRegion('fergana', 40_000)));
   });
 
   it('rejects a total or deposit that does not add up', async () => {

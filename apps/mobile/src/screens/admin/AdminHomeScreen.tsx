@@ -98,6 +98,13 @@ export function AdminHomeScreen(): React.ReactElement {
           onPress={() => navigation.navigate('AdminReports')}
         />
         <List.Item
+          title={t('inventory.title')}
+          description={t('inventory.subtitle')}
+          left={(props) => <List.Icon {...props} icon="warehouse" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminInventory')}
+        />
+        <List.Item
           title={t('adminContent.messages')}
           left={(props) => <List.Icon {...props} icon="email-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}

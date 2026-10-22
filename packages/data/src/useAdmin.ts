@@ -6,24 +6,29 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import type { Order, OrderStatus, Product } from '@kidswear/core';
+import type { Order, OrderStatus, Product, StockMove } from '@kidswear/core';
 import {
+  adjustStock,
+  changeOrderStatus,
   createCategory,
   createProduct,
   deleteCategory,
   deleteProduct,
   getProducts,
+  getStockMoves,
   subscribeAllOrders,
   updateCategory,
-  updateOrderStatus,
   updateProduct,
   type CategoryInput,
   type ProductInput,
+  type StatusChangeResult,
+  type StockAdjustment,
 } from '@kidswear/firebase';
 
 const PRODUCTS_KEY = ['products'] as const;
 const ADMIN_PRODUCTS_KEY = ['products', 'admin'] as const;
 const CATEGORIES_KEY = ['categories'] as const;
+const STOCK_MOVES_KEY = ['stockMoves'] as const;
 
 // --- Admin product read (ALL products, including inactive) ---
 
@@ -133,9 +138,48 @@ export function useAllOrders(statusFilter?: OrderStatus): AllOrdersState {
 export interface UpdateOrderStatusVars {
   id: string;
   status: OrderStatus;
+  /** Admin uid, recorded on the stock journal rows. */
+  by: string;
 }
-export function useUpdateOrderStatus(): UseMutationResult<void, Error, UpdateOrderStatusVars> {
+
+/** Stock moved: refresh every cached product read and the journal. */
+function invalidateStock(qc: ReturnType<typeof useQueryClient>): Promise<void> {
+  return Promise.all([
+    qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+    qc.invalidateQueries({ queryKey: ['product'] }),
+    qc.invalidateQueries({ queryKey: STOCK_MOVES_KEY }),
+  ]).then(() => undefined);
+}
+
+/**
+ * Admin status change. Confirming an order takes its stock, cancelling a
+ * confirmed one returns it — in one transaction (see `changeOrderStatus`).
+ * Fails with `InventoryError` (status unchanged) when stock runs short.
+ */
+export function useUpdateOrderStatus(): UseMutationResult<
+  StatusChangeResult,
+  Error,
+  UpdateOrderStatusVars
+> {
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: UpdateOrderStatusVars) => updateOrderStatus(id, status),
+    mutationFn: ({ id, status, by }: UpdateOrderStatusVars) => changeOrderStatus(id, status, by),
+    onSuccess: (result) => (result.action === 'none' ? undefined : invalidateStock(qc)),
+  });
+}
+
+// --- Warehouse (Ombor) ---
+
+/** Newest stock journal rows (admin). */
+export function useStockMoves(): UseQueryResult<StockMove[]> {
+  return useQuery({ queryKey: STOCK_MOVES_KEY, queryFn: () => getStockMoves() });
+}
+
+/** Intake / write-off / inventory count on one variant; resolves to the applied delta. */
+export function useAdjustStock(): UseMutationResult<number, Error, StockAdjustment> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: adjustStock,
+    onSuccess: () => invalidateStock(qc),
   });
 }

@@ -36,4 +36,5 @@ export type RootStackParamList = {
   AdminBlog: undefined;
   AdminPromos: undefined;
   AdminDelivery: undefined;
+  AdminInventory: undefined;
 };

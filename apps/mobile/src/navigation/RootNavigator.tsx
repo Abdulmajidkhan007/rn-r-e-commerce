@@ -34,6 +34,7 @@ import { AdminMessagesScreen } from '@/screens/admin/AdminMessagesScreen';
 import { AdminBlogScreen } from '@/screens/admin/AdminBlogScreen';
 import { AdminPromosScreen } from '@/screens/admin/AdminPromosScreen';
 import { AdminDeliveryScreen } from '@/screens/admin/AdminDeliveryScreen';
+import { AdminInventoryScreen } from '@/screens/admin/AdminInventoryScreen';
 import { FavoritesScreen } from '@/screens/FavoritesScreen';
 import { BlogScreen } from '@/screens/BlogScreen';
 import { BlogPostScreen } from '@/screens/BlogPostScreen';
@@ -260,6 +261,13 @@ export function RootNavigator(): ReactElement {
         {() => (
           <AdminGate>
             <AdminPromosScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminInventory" options={{ title: t('inventory.title') }}>
+        {() => (
+          <AdminGate>
+            <AdminInventoryScreen />
           </AdminGate>
         )}
       </Stack.Screen>

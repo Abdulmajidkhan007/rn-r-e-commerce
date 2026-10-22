@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import {
   deliveryFeeFor,
   evaluatePromo,
+  minOrderShortfall,
   normalizePromoCode,
   stockCoversLines,
   type Address,
@@ -42,6 +43,7 @@ const ERR = {
   emptyCart: 'checkout.errors.emptyCart',
   noAddress: 'checkout.errors.noAddress',
   outOfStock: 'checkout.errors.outOfStock',
+  belowMinOrder: 'checkout.errors.belowMinOrder',
   promoInvalid: 'promo.errors.invalid',
   payment: 'payment.failed',
   providerUnavailable: 'payment.providerUnavailable',
@@ -123,6 +125,10 @@ export function useCheckout(options: UseCheckoutOptions | PaymentService = {}): 
       const promoResult = code ? evaluatePromo(promo, subtotalOnly, Date.now()) : null;
       if (promoResult && !promoResult.ok) throw new Error(ERR.promoInvalid);
       const discount = promoResult?.ok ? promoResult.discount : 0;
+      // The rules re-check this (minOrderOk) against the same document.
+      if (minOrderShortfall(delivery, subtotalOnly - discount) > 0) {
+        throw new Error(ERR.belowMinOrder);
+      }
       const deliveryFee = deliveryFeeFor(delivery, shippingAddress.region, subtotalOnly - discount);
 
       const { subtotal, depositAmount, total } = computeOrderTotals(items, {

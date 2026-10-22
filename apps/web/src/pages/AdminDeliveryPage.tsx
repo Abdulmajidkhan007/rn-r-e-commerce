@@ -31,6 +31,7 @@ function DeliveryForm({ initial }: { initial: DeliverySettings | null }): React.
   const settings = initial;
   const [defaultFee, setDefaultFee] = useState(initial ? String(initial.defaultFee) : '');
   const [freeFrom, setFreeFrom] = useState(initial ? String(initial.freeFrom) : '0');
+  const [minOrder, setMinOrder] = useState(initial?.minOrder ? String(initial.minOrder) : '0');
   const [regions, setRegions] = useState<Record<string, string>>(() =>
     initial
       ? Object.fromEntries(Object.entries(initial.regions).map(([k, v]) => [k, String(v)]))
@@ -42,6 +43,7 @@ function DeliveryForm({ initial }: { initial: DeliverySettings | null }): React.
     const parsed = DeliverySettingsSchema.safeParse({
       defaultFee: Number(defaultFee),
       freeFrom: Number(freeFrom || 0),
+      ...(Number(minOrder || 0) > 0 ? { minOrder: Number(minOrder) } : {}),
       regions: Object.fromEntries(
         Object.entries(regions)
           .filter(([, v]) => v.trim() !== '')
@@ -88,6 +90,15 @@ function DeliveryForm({ initial }: { initial: DeliverySettings | null }): React.
               helperText={t('adminContent.freeFromHint')}
               value={freeFrom}
               onChange={(e) => setFreeFrom(e.target.value)}
+              slotProps={som}
+            />
+            <TextField
+              fullWidth
+              type="number"
+              label={t('adminContent.minOrder')}
+              helperText={t('adminContent.minOrderHint')}
+              value={minOrder}
+              onChange={(e) => setMinOrder(e.target.value)}
               slotProps={som}
             />
           </Stack>

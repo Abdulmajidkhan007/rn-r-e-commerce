@@ -5,10 +5,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector, updateQty, removeItem } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
+import { useDeliverySettings } from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { Card, PriceTag, ProductImage, QuantityStepper } from '@/components';
+import { CartThresholds } from '@/components/cart/CartThresholds';
 
 export function CartScreen(): React.ReactElement {
   const { t } = useTranslation();
@@ -20,6 +22,7 @@ export function CartScreen(): React.ReactElement {
   const items = useAppSelector((s) => s.cart.items);
   const language = useAppSelector((s) => s.ui.language);
 
+  const { data: delivery } = useDeliverySettings();
   const totals = computeOrderTotals(items);
 
   if (items.length === 0) {
@@ -70,6 +73,8 @@ export function CartScreen(): React.ReactElement {
         <Text variant="headlineLarge" style={{ fontWeight: '800' }}>
           {t('cart.cart')}
         </Text>
+
+        <CartThresholds settings={delivery} amount={totals.subtotal} language={language} />
 
         {items.map((item) => (
           <Card key={`${item.productId}-${item.size}-${item.color}`}>

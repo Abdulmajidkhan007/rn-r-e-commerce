@@ -13,6 +13,7 @@ export * from './cart';
 export * from './address';
 export * from './payment';
 export * from './order';
+export * from './inventory';
 export * from './user';
 export * from './forms';
 export * from './contact';

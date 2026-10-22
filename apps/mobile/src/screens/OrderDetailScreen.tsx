@@ -1,8 +1,19 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { ActivityIndicator, Button, Card, Dialog, Divider, Portal, Text } from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Button,
+  Card,
+  Dialog,
+  Divider,
+  HelperText,
+  Portal,
+  Text,
+  useTheme,
+} from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { canCustomerCancel } from '@kidswear/core';
 import { useCancelOrder, useOrder } from '@kidswear/data';
 import { useAppSelector } from '@kidswear/store';
 import { formatDate, formatPrice } from '@kidswear/utils';
@@ -19,7 +30,8 @@ export function OrderDetailScreen(): React.ReactElement {
   const id = params?.id ?? '';
   const language = useAppSelector((s) => s.ui.language);
   const { order, loading } = useOrder(id);
-  const { cancel, isPending } = useCancelOrder();
+  const theme = useTheme();
+  const { cancel, isPending, error: cancelError } = useCancelOrder();
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   if (loading) {
@@ -39,12 +51,16 @@ export function OrderDetailScreen(): React.ReactElement {
     );
   }
 
-  const canCancel = order.status === 'pending' || order.status === 'deposit_paid';
+  const canCancel = canCustomerCancel(order.status);
   const remaining = order.total - order.paidAmount;
   const addr = order.shippingAddress;
 
   const doCancel = async (): Promise<void> => {
-    await cancel(order.id);
+    try {
+      await cancel(order.id);
+    } catch {
+      // Surfaced through `cancelError`; the live order snapshot shows the outcome.
+    }
     setConfirmVisible(false);
   };
 
@@ -106,10 +122,16 @@ export function OrderDetailScreen(): React.ReactElement {
         </Card.Content>
       </Card>
 
+      {cancelError ? (
+        <HelperText type="error" visible>
+          {t('orders.cancelError')}
+        </HelperText>
+      ) : null}
+
       {canCancel ? (
         <Button
           mode="outlined"
-          textColor="red"
+          textColor={theme.colors.error}
           disabled={isPending}
           onPress={() => setConfirmVisible(true)}
         >
@@ -120,9 +142,16 @@ export function OrderDetailScreen(): React.ReactElement {
       <Portal>
         <Dialog visible={confirmVisible} onDismiss={() => setConfirmVisible(false)}>
           <Dialog.Title>{t('orders.confirmCancel')}</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">{t('orders.confirmCancelBody')}</Text>
+          </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setConfirmVisible(false)}>{t('actions.cancel')}</Button>
-            <Button textColor="red" disabled={isPending} onPress={() => void doCancel()}>
+            <Button onPress={() => setConfirmVisible(false)}>{t('orders.keepOrder')}</Button>
+            <Button
+              textColor={theme.colors.error}
+              disabled={isPending}
+              onPress={() => void doCancel()}
+            >
               {t('orders.cancelOrder')}
             </Button>
           </Dialog.Actions>

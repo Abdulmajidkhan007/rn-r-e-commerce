@@ -65,7 +65,10 @@ export function createConverter<T>(
       };
     },
     fromFirestore(snapshot: QueryDocumentSnapshot, snapshotOptions?: SnapshotOptions): T {
-      const raw = snapshot.data(snapshotOptions);
+      // A local write with serverTimestamp() is echoed to listeners before the
+      // server resolves it; without 'estimate' that field reads as null and
+      // the schema rejects the whole document mid-update.
+      const raw = snapshot.data({ serverTimestamps: 'estimate', ...snapshotOptions });
       const normalized = timestampsToMillis(raw);
       return schema.parse({ ...normalized, [idField]: snapshot.id });
     },
