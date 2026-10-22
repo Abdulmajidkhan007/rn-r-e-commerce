@@ -37,6 +37,10 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 | Payme Subscribe (karta ulash), Uzum Pay | Payme/Click jonli bo'lmaguncha erta |
 | Instagram / Facebook / YouTube avto-post | Meta/Google ruxsati kerak; Faza 20 dan keyin, ixtiyoriy |
 
+## Hozirgi holat (2026-10-22)
+
+**To'xtatildi:** Faza 1–5 tugadi. **Faza 6 dan davom — haftalik limit yangilangach** (egasi qarori, limit 59%).
+
 ## Fazalar ro'yxati
 
 | # | Faza | Blaze | Hajm | Bog'liq | Model | Holat |
@@ -45,7 +49,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 | 2 | Mahsulot turlari (o'lcham×rang: zaxira, narx, kod) | yo'q | L | — | Opus | ✅ PR #9 merge, 2026-10-22; mobil telefonda sinalmagan |
 | 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | ✅ PR #11 egasi merge qildi, 2026-10-22; mobil telefonda sinalmagan |
 | 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ✅ PR #13 egasi merge qildi, 2026-10-22; telefonda va haqiqiy o'tkazma bilan sinalmagan |
-| 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | 🔄 ishchi ochildi 2026-10-22 |
+| 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ✅ PR #15 merge, 2026-10-22; mobil telefonda sinalmagan |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ⏳ |
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ⏳ |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ⏳ |
@@ -92,7 +96,8 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Tayyor:** mijoz chek yuklaydi, admin tasdiqlaydi, holat real-time o'zgaradi; boshqa foydalanuvchi chekni o'qiy olmaydi; qoidalar testlari.
 - **Model:** Opus — to'lov va shaxsiy ma'lumot.
 
-### Faza 5 — Sharhlar
+### Faza 5 — Sharhlar ✅ (2026-10-22)
+- **Natija:** PR #15 merge, CI yashil, qoidalar 84 → 97 test. Sharh `reviews/{orderId}_{productId}`: faqat `delivered` buyurtma egasi, buyurtmaning birinchi 20 qatoridagi mahsulotga; 7 kun tahrir; admin yashiradi/featured qiladi, reyting admin moderatsiyasida qayta hisoblanadi. Vebda emulyatorda 32/32 oqim. Sinalmagan: telefonda, jonli bazada, kompozit indekslar (emulyator tekshirmaydi).
 - **Maqsad:** reyting hozir faqat ko'rinadi, yozib bo'lmaydi.
 - **Ishlar:** `reviews` kolleksiyasi; faqat `delivered` buyurtmasi bor xaridor yozadi (qoidada buyurtmani `get` bilan tekshirish), bitta mahsulotga bitta sharh; admin yashiradi; `rating`/`reviewCount` admin moderatsiyasida qayta hisoblanadi; bosh sahifada "Mijozlar fikri" (admin tanlaganlar); veb+mobil.
 - **Tayyor:** xarid qilmagan sharh yoza olmaydi (test); reyting yangilanadi; ikkala platformada.
@@ -151,4 +156,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-22 (Faza 4 tugadi)*
+*Oxirgi yangilanish: 2026-10-22 (Faza 5 tugadi; Faza 6 dan davom — haftalik limit yangilangach)*
