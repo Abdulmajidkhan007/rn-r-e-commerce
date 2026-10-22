@@ -44,8 +44,8 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 | 1 | Mahsulot kartasi bugfix (APK 1.0.10 skrinshotlari) | yo'q | S | — | Sonnet | ✅ PR #7 merge, 2026-10-21; telefonda sinalmagan |
 | 2 | Mahsulot turlari (o'lcham×rang: zaxira, narx, kod) | yo'q | L | — | Opus | ✅ PR #9 merge, 2026-10-22; mobil telefonda sinalmagan |
 | 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | ✅ PR #11 egasi merge qildi, 2026-10-22; mobil telefonda sinalmagan |
-| 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | 🔄 ishchi ochildi 2026-10-22 (egasi merge qiladi) |
-| 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ⏳ |
+| 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ✅ PR #13 egasi merge qildi, 2026-10-22; telefonda va haqiqiy o'tkazma bilan sinalmagan |
+| 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | 🔄 ishchi ochildi 2026-10-22 |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ⏳ |
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ⏳ |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ⏳ |
@@ -85,7 +85,8 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Tayyor:** buyurtma tasdiqlanganda zaxira kamayadi va jurnalga yoziladi; ikki marta kamaymaydi (idempotent); mijoz faqat o'z kutilayotgan buyurtmasini bekor qiladi; qoidalar testlari.
 - **Model:** Opus — tranzaksiya, idempotentlik va qoidalar.
 
-### Faza 4 — Kartaga o'tkazma + chek
+### Faza 4 — Kartaga o'tkazma + chek ✅ (2026-10-22)
+- **Natija:** PR #13, egasi merge qildi. CI yashil, qoidalar 71 → 84 test. Chek siqilgan JPEG sifatida `receipts/{orderId}_r1…r5` (≤5), faqat egasi va admin o'qiydi; admin tasdig'i tranzaksiyada chek + buyurtma `deposit_paid`. Vebda emulyatorda 32/32 oqim. Egasi qiladigan: admin panelda karta ma'lumotini kiritib o'tkazmani yoqish. Telefonda va haqiqiy o'tkazma bilan sinalmagan.
 - **Maqsad:** Spark'da haqiqiy pul olish (hozir faqat "Sinov rejimi").
 - **Ishlar:** `settings/payment` (karta raqami, egasi) admin sozlaydi; checkout'da "Kartaga o'tkazma" usuli; mijoz chek rasmini yuklaydi — `productImages` kabi siqilgan JPEG Firestore `receipts/{id}` ga (faqat egasi va admin o'qiydi, PDF yo'q — Storage kelganda); admin buyurtma sahifasida chekni ko'rib ✅/❌; `deposit_paid` ga faqat admin o'tkazadi; buyurtmaga 5 tadan ko'p chek yo'q.
 - **Tayyor:** mijoz chek yuklaydi, admin tasdiqlaydi, holat real-time o'zgaradi; boshqa foydalanuvchi chekni o'qiy olmaydi; qoidalar testlari.
@@ -150,4 +151,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-22 (Faza 3 tugadi)*
+*Oxirgi yangilanish: 2026-10-22 (Faza 4 tugadi)*
