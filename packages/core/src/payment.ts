@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 /**
- * Payment providers for the 50% deposit. Both are Uzbek gateways that drive the
- * merchant from their side: the customer is sent to the provider's checkout, and
- * the provider then calls our Cloud Function to confirm. `mock` keeps the
- * original stubbed flow available for local development and tests.
+ * Payment providers for the 50% deposit. `payme`/`click` are Uzbek gateways
+ * that drive the merchant from their side: the customer is sent to the
+ * provider's checkout, and the provider then calls our Cloud Function to
+ * confirm. `transfer` is a manual card-to-card transfer (Spark): the customer
+ * uploads a receipt and an admin confirms it. `mock` keeps the original
+ * stubbed flow available for local development and tests.
  */
-export const PaymentProviderSchema = z.enum(['payme', 'click', 'mock']);
+export const PaymentProviderSchema = z.enum(['payme', 'click', 'mock', 'transfer']);
 export type PaymentProvider = z.infer<typeof PaymentProviderSchema>;
 
 /**

@@ -14,16 +14,25 @@ import Select from '@mui/material/Select';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { alpha, useTheme } from '@mui/material/styles';
+import Badge from '@mui/material/Badge';
+import Button from '@mui/material/Button';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import type { OrderStatus } from '@kidswear/core';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import type { Order, OrderStatus } from '@kidswear/core';
 import { useAuth } from '@kidswear/auth';
-import { stockErrorMessage, useAllOrders, useUpdateOrderStatus } from '@kidswear/data';
+import {
+  stockErrorMessage,
+  useAllOrders,
+  usePendingReceiptCounts,
+  useUpdateOrderStatus,
+} from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { formatPrice, formatDateTime } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { TableSkeleton } from '@/components/admin/TableSkeleton';
+import { ReceiptReviewDialog } from '@/components/admin/ReceiptReviewDialog';
 
 const STATUSES: readonly OrderStatus[] = [
   'pending',
@@ -56,6 +65,10 @@ export default function AdminOrdersPage(): React.ReactElement {
   const [notice, setNotice] = useState<{ severity: 'success' | 'error'; text: string } | null>(
     null,
   );
+  const pendingReceipts = usePendingReceiptCounts(true);
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  // Looked up from the live list so the dialog follows the order's status.
+  const reviewOrder: Order | null = orders.find((o) => o.id === reviewId) ?? null;
 
   // The status write runs in the stock transaction: a shortfall aborts it and
   // the select snaps back to the stored status (the live snapshot never moved).
@@ -114,7 +127,7 @@ export default function AdminOrdersPage(): React.ReactElement {
 
       <Card variant="outlined" sx={{ boxShadow: 'none' }}>
         {loading ? (
-          <TableSkeleton rows={6} columns={6} />
+          <TableSkeleton rows={6} columns={7} />
         ) : orders.length === 0 ? (
           <EmptyState title={t('adminOrders.noOrders')} />
         ) : (
@@ -129,6 +142,7 @@ export default function AdminOrdersPage(): React.ReactElement {
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t('admin.active')}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t('adminOrders.updateStatus')}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{t('receipts.reviewTitle')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -167,12 +181,43 @@ export default function AdminOrdersPage(): React.ReactElement {
                       </Select>
                     </Stack>
                   </TableCell>
+                  <TableCell>
+                    {o.payment?.provider === 'transfer' && (
+                      <Badge
+                        color="error"
+                        badgeContent={pendingReceipts.get(o.id) ?? 0}
+                        aria-label={t('receipts.pendingBadge', {
+                          count: pendingReceipts.get(o.id) ?? 0,
+                        })}
+                      >
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<ReceiptIcon />}
+                          onClick={() => setReviewId(o.id)}
+                          data-testid={`receipts-${o.id}`}
+                        >
+                          {t('receipts.reviewTitle')}
+                        </Button>
+                      </Badge>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </Card>
+
+      {user && (
+        <ReceiptReviewDialog
+          order={reviewOrder}
+          adminUid={user.uid}
+          language={language}
+          onClose={() => setReviewId(null)}
+          onDone={(text) => setNotice({ severity: 'success', text })}
+        />
+      )}
 
       <Snackbar
         open={notice !== null}

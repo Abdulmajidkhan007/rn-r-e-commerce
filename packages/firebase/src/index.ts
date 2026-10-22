@@ -95,6 +95,8 @@ export {
   deletePromoCode,
   getDeliverySettings,
   saveDeliverySettings,
+  getPaymentSettings,
+  savePaymentSettings,
   subscribeFavorites,
   setFavorite,
 } from './content';
@@ -108,6 +110,15 @@ export {
   deleteStorageObject,
 } from './storage';
 export type { UploadData } from './storage';
+
+export {
+  ReceiptError,
+  uploadReceipt,
+  subscribeOrderReceipts,
+  subscribePendingReceipts,
+  reviewReceipt,
+} from './receipts';
+export type { ReceiptErrorCode, ReceiptReview } from './receipts';
 
 export { PRODUCT_IMAGE_BACKEND, saveProductImage, getInlineImage } from './productImages';
 export type { ProductImageBackend, EncodedImage } from './productImages';

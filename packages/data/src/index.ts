@@ -80,9 +80,20 @@ export {
   useDeletePromoCode,
   useDeliverySettings,
   useSaveDeliverySettings,
+  usePaymentSettings,
+  useSavePaymentSettings,
   useFavorites,
 } from './useContent';
 export type { FavoritesState } from './useContent';
+
+export {
+  useOrderReceipts,
+  usePendingReceiptCounts,
+  useUploadReceipt,
+  useReviewReceipt,
+  receiptErrorKey,
+} from './useReceipts';
+export type { OrderReceiptsState, UploadReceiptVars } from './useReceipts';
 
 export { summarizeSales } from './reports';
 export type { SalesReport, SalesBucket, TopProduct } from './reports';

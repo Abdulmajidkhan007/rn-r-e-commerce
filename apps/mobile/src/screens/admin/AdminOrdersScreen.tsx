@@ -4,11 +4,17 @@ import { ActivityIndicator, Button, Card, Menu, Snackbar, Text } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Order, OrderStatus } from '@kidswear/core';
 import { useAuth } from '@kidswear/auth';
-import { stockErrorMessage, useAllOrders, useUpdateOrderStatus } from '@kidswear/data';
+import {
+  stockErrorMessage,
+  useAllOrders,
+  usePendingReceiptCounts,
+  useUpdateOrderStatus,
+} from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { formatDateTime, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
+import { ReceiptReviewModal } from '@/components/admin/ReceiptReviewModal';
 
 const STATUSES: readonly OrderStatus[] = [
   'pending',
@@ -32,24 +38,32 @@ function OrderRow({
   order,
   language,
   onUpdate,
+  pendingReceipts,
+  onReceipts,
 }: {
   order: Order;
   language: 'uz' | 'en' | 'ru';
   onUpdate: (status: OrderStatus) => void;
+  pendingReceipts: number;
+  onReceipts: () => void;
 }): React.ReactElement {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <Card mode="outlined">
       <Card.Content style={{ gap: 6 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
           <Text variant="bodySmall" style={{ opacity: 0.7 }}>
             {formatDateTime(order.createdAt, language)}
           </Text>
           <OrderStatusChip status={order.status} />
         </View>
         <Text variant="titleSmall">{order.shippingAddress.fullName}</Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
           <Text variant="bodyMedium">{formatPrice(order.total, language)}</Text>
           <Menu
             visible={menuOpen}
@@ -72,6 +86,13 @@ function OrderRow({
             ))}
           </Menu>
         </View>
+        {order.payment?.provider === 'transfer' ? (
+          <Button mode="contained-tonal" icon="receipt" onPress={onReceipts}>
+            {pendingReceipts > 0
+              ? `${t('receipts.reviewTitle')} · ${t('receipts.pendingBadge', { count: pendingReceipts })}`
+              : t('receipts.reviewTitle')}
+          </Button>
+        ) : null}
       </Card.Content>
     </Card>
   );
@@ -87,6 +108,10 @@ export function AdminOrdersScreen(): React.ReactElement {
   const { orders, loading } = useAllOrders(filter || undefined);
   const { user } = useAuth();
   const updateStatus = useUpdateOrderStatus();
+  const pendingReceipts = usePendingReceiptCounts(true);
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  // Looked up from the live list so the modal follows the order's status.
+  const reviewOrder = orders.find((o) => o.id === reviewId) ?? null;
 
   // Runs in the stock transaction: a shortfall aborts it and the status stays.
   const onUpdate = (id: string, status: OrderStatus): void => {
@@ -103,7 +128,10 @@ export function AdminOrdersScreen(): React.ReactElement {
                 : t('adminOrders.statusUpdated'),
           ),
         onError: (error) => {
-          const msg = stockErrorMessage(error, orders.find((o) => o.id === id));
+          const msg = stockErrorMessage(
+            error,
+            orders.find((o) => o.id === id),
+          );
           setNotice(t(msg.key, { defaultValue: msg.key, ...msg.params }));
         },
       },
@@ -151,7 +179,13 @@ export function AdminOrdersScreen(): React.ReactElement {
           data={orders}
           keyExtractor={(o) => o.id}
           renderItem={({ item }) => (
-            <OrderRow order={item} language={language} onUpdate={(s) => onUpdate(item.id, s)} />
+            <OrderRow
+              order={item}
+              language={language}
+              onUpdate={(s) => onUpdate(item.id, s)}
+              pendingReceipts={pendingReceipts.get(item.id) ?? 0}
+              onReceipts={() => setReviewId(item.id)}
+            />
           )}
           contentContainerStyle={{
             paddingHorizontal: 16,
@@ -165,6 +199,16 @@ export function AdminOrdersScreen(): React.ReactElement {
           }
         />
       )}
+
+      {user ? (
+        <ReceiptReviewModal
+          order={reviewOrder}
+          adminUid={user.uid}
+          language={language}
+          onClose={() => setReviewId(null)}
+          onDone={setNotice}
+        />
+      ) : null}
 
       <Snackbar visible={notice !== null} onDismiss={() => setNotice(null)} duration={4000}>
         {notice ?? ''}

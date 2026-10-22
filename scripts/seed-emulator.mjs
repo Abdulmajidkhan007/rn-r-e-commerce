@@ -172,6 +172,17 @@ async function main() {
     minOrder: int(100000),
   });
   console.log('  settings/delivery (minOrder 100 000, free from 500 000)');
+
+  // Card transfer (Faza 4). A fake, all-zero card number: never put a real
+  // card in the repo — the admin sets the real one in Admin → Payment settings.
+  await put('settings/payment', {
+    transferEnabled: bool(true),
+    cardNumber: str('8600000000000000'),
+    cardHolder: str('KIDSWEAR TEST'),
+    bank: str('Test bank'),
+    note: str("Izohga buyurtma raqamini yozing"),
+  });
+  console.log('  settings/payment (transfer on, fake card 8600 0000 0000 0000)');
   console.log('Done.');
 }
 

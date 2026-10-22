@@ -698,3 +698,39 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
 - **Converter reads pending server timestamps as estimates.** A latency-compensated snapshot
   of a doc just written with `serverTimestamp()` has the field as `null`, which failed schema
   validation inside `onSnapshot`. `serverTimestamps: 'estimate'` fixes it for every collection.
+
+## Card transfer + receipts on Spark (2026-10-22)
+
+- **Manual card transfer is a payment provider (`transfer`), not a gateway.** The order is
+  created `pending` / `paidAmount: 0` like a hosted gateway, but instead of a webhook an admin
+  approves an uploaded receipt. The client still never declares itself paid: the orders create
+  rule keeps `deposit_paid` for `mock` only, and additionally refuses `transfer` orders unless
+  `settings/payment.transferEnabled` is true.
+- **`settings/payment` is public and display-only.** The card number must be readable by every
+  customer, so it lives in the existing public `settings/*` documents (admin write). Digits are
+  stored, formatting is a pure function (`formatCardNumber`). The seed uses an all-zero fake
+  card; a real card is entered in the admin panel, never committed.
+- **Receipts are compressed JPEGs in Firestore** (`receipts/{id}`), the same Spark workaround
+  and byte budget as `productImages` (≤420 000 chars, `data:image/jpeg;base64` only). No PDF
+  until Storage exists. Unlike product photos they are private: owner and admins read.
+- **The 5-receipt cap is enforced by slot ids, not a counter.** Ids are `{orderId}_r1…_r5`;
+  the rules accept only those ids, and a `setDoc` over an existing doc is an update, which the
+  customer may not do. So the cap holds with no field on the order — a counter the customer
+  would have to maintain (and could forge) is avoided, and the customer gets no order write
+  permission at all. Rejected receipts keep their slot (audit trail; nothing is deleted).
+- **Approval is one client transaction (`reviewReceipt`).** It re-reads the receipt (must be
+  `pending`) and the order (must be `pending`, `transfer`, and `stockActionFor(pending →
+  deposit_paid)` must be `none`), then writes receipt `approved` + order `deposit_paid`,
+  `paidAmount = depositAmount`, `payment.state = 'paid'`, `payment.transactionId = receiptId`.
+  A double click finds the receipt already reviewed and writes nothing. Stock is untouched,
+  consistent with Inventory on Spark: it moves when the admin confirms (`processing`).
+- **Admin review is a one-way, field-limited update.** Rules allow only `status`
+  (approved/rejected), `reviewedBy == auth.uid`, `reviewedAt == request.time` and `note`, and
+  only while the receipt is `pending`. Rejection requires a note (UI + `ReceiptError`), which
+  the customer sees live; they then upload into the next free slot.
+- **Customers query receipts with `userId == uid`.** A query by `orderId` alone cannot be
+  proven to return only their documents, so the rules would refuse it; admins query by
+  `orderId` only. Both are equality-only, so no composite index is needed.
+- **Mobile copy uses Share, not a clipboard package.** React Native no longer ships a
+  clipboard; adding a native module for one button was not worth an untested APK change. The
+  number is selectable and Share opens the system sheet (which has Copy on Android).

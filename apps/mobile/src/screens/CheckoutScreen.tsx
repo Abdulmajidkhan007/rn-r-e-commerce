@@ -9,10 +9,16 @@ import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/au
 import {
   deliveryFeeFor,
   evaluatePromo,
+  isTransferAvailable,
   minOrderShortfall,
   type PaymentProvider,
 } from '@kidswear/core';
-import { availableProviders, useCheckout, useDeliverySettings } from '@kidswear/data';
+import {
+  availableProviders,
+  useCheckout,
+  useDeliverySettings,
+  usePaymentSettings,
+} from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { AddressDialog } from '@/components/profile/AddressDialog';
@@ -36,12 +42,20 @@ export function CheckoutScreen(): React.ReactElement {
   const { checkout, isPending, error } = useCheckout({ providers: paymentProviders });
 
   // 'mock' stays available so the flow works before any gateway contract is
-  // signed; a configured gateway takes precedence as the default.
+  // signed; a configured gateway takes precedence as the default. Card
+  // transfer (settings/payment) comes first when the admin has switched it on.
+  const { data: paymentSettings } = usePaymentSettings();
+  const transferOn = isTransferAvailable(paymentSettings);
   const providers = useMemo<PaymentProvider[]>(() => {
     const hosted = availableProviders(paymentProviders);
-    return hosted.length > 0 ? hosted : ['mock'];
-  }, []);
-  const [provider, setProvider] = useState<PaymentProvider>(() => providers[0] ?? 'mock');
+    return [
+      ...(transferOn ? (['transfer'] as const) : []),
+      ...(hosted.length > 0 ? hosted : (['mock'] as const)),
+    ];
+  }, [transferOn]);
+  const [chosen, setChosen] = useState<PaymentProvider | null>(null);
+  const provider: PaymentProvider =
+    chosen && providers.includes(chosen) ? chosen : (providers[0] ?? 'mock');
 
   const [selectedId, setSelectedId] = useState('');
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -97,6 +111,11 @@ export function CheckoutScreen(): React.ReactElement {
       placedRef.current = true;
       dispatch(clearCart());
 
+      if (provider === 'transfer') {
+        // The card and the receipt upload live on the order screen.
+        navigation.replace('OrderDetail', { id: orderId });
+        return;
+      }
       if (checkoutUrl) {
         // Hosted gateway: hand off to the browser. The order stays 'pending'
         // until their webhook confirms it, and the orders screen — which is a
@@ -187,13 +206,18 @@ export function CheckoutScreen(): React.ReactElement {
           {/* Only shown when there is an actual choice to make. */}
           {providers.length > 1 ? (
             <RadioButton.Group
-              onValueChange={(v) => setProvider(v as PaymentProvider)}
+              onValueChange={(v) => setChosen(v as PaymentProvider)}
               value={provider}
             >
               {providers.map((p) => (
                 <RadioButton.Item key={p} value={p} label={t(`payment.${p}`)} />
               ))}
             </RadioButton.Group>
+          ) : null}
+          {provider === 'transfer' ? (
+            <HelperText type="info" visible>
+              {t('transfer.checkoutHint')}
+            </HelperText>
           ) : null}
 
           <Divider />

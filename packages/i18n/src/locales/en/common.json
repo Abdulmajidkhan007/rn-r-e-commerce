@@ -246,7 +246,8 @@
     "redirecting": "Opening the payment page…",
     "awaitingConfirmation": "Waiting for payment confirmation. Your order updates as soon as it clears.",
     "providerUnavailable": "That payment method is not available right now",
-    "depositNote": "Pay 50% now, the rest on delivery"
+    "depositNote": "Pay 50% now, the rest on delivery",
+    "transfer": "Card transfer"
   },
   "admin": {
     "dashboard": "Dashboard",
@@ -512,7 +513,8 @@
     "sold": "Sold",
     "noSales": "No sales yet",
     "minOrder": "Minimum order amount",
-    "minOrderHint": "0 — no minimum (amount after discount)"
+    "minOrderHint": "0 — no minimum (amount after discount)",
+    "payment": "Payment settings"
   },
   "settings": {
     "title": "Settings",
@@ -572,5 +574,63 @@
       "generic": "Could not save"
     },
     "shortfallFor": "Not enough stock for {{name}} ({{variant}})"
+  },
+  "transfer": {
+    "title": "Card transfer",
+    "instructions": "Transfer the deposit to the card below, then upload a photo of the receipt on this page. Once an admin checks it, the order becomes \"Deposit paid\".",
+    "checkoutHint": "After you order you will see the card number and upload a receipt photo.",
+    "cardNumber": "Card number",
+    "cardHolder": "Card holder",
+    "bank": "Bank",
+    "amount": "Amount to transfer",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Could not copy — please type the number",
+    "unavailable": "Card transfer is switched off right now. Please contact us.",
+    "enabled": "Enable card transfer",
+    "note": "Note for customers",
+    "noteHint": "E.g. put the order number in the transfer comment",
+    "settingsNote": "The card number is only shown to customers. The app never charges a card; you approve each receipt yourself.",
+    "invalid": "When enabled, a 16-digit card number and the holder name are required.",
+    "copyMobileHint": "Long-press the number to copy it, or use Share → Copy.",
+    "share": "Share"
+  },
+  "receipts": {
+    "title": "Payment receipt",
+    "upload": "Upload receipt photo",
+    "uploadAnother": "Upload a new receipt",
+    "uploading": "Uploading…",
+    "hint": "Images only (screenshot or photo), compressed on your device. PDF is not accepted yet.",
+    "left": "{{count}} more receipts allowed",
+    "empty": "No receipt uploaded yet",
+    "uploaded": "Receipt sent. Please wait for confirmation.",
+    "statusPending": "Under review",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "rejectedReason": "Reason: {{note}}",
+    "view": "View receipt",
+    "image": "Receipt photo",
+    "reviewTitle": "Receipts",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectReason": "Reason for rejection (shown to the customer)",
+    "approved": "Receipt approved, order is \"Deposit paid\"",
+    "rejected": "Receipt rejected",
+    "pendingBadge": "{{count}} new receipts",
+    "paidVia": "Paid by card transfer",
+    "close": "Close",
+    "errors": {
+      "notTransfer": "This order is not paid by card transfer",
+      "notPending": "The order is no longer pending — receipts are closed",
+      "approved": "A receipt is already approved",
+      "limit": "At most 5 receipts per order",
+      "tooLarge": "The image is too large to compress. Pick a smaller one.",
+      "notJpeg": "Unsupported image format",
+      "notFound": "Receipt not found",
+      "alreadyReviewed": "This receipt has already been reviewed",
+      "orderNotPending": "The order is not pending — it cannot be approved",
+      "noteRequired": "Please enter a reason",
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }

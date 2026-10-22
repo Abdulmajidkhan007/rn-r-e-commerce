@@ -12,6 +12,7 @@ import {
   type ContactMessage,
   type ContactStatus,
   type DeliverySettings,
+  type PaymentSettings,
   type PromoCode,
 } from '@kidswear/core';
 import {
@@ -21,12 +22,14 @@ import {
   getAllPosts,
   getContactMessages,
   getDeliverySettings,
+  getPaymentSettings,
   getPromoCode,
   getPromoCodes,
   getPublishedPostBySlug,
   getPublishedPosts,
   saveBlogPost,
   saveDeliverySettings,
+  savePaymentSettings,
   savePromoCode,
   sendContactMessage,
   setContactMessageStatus,
@@ -44,6 +47,7 @@ export const contentKeys = {
   blogPost: (slug: string) => ['blog', 'post', slug] as const,
   promos: ['promos'] as const,
   delivery: ['settings', 'delivery'] as const,
+  payment: ['settings', 'payment'] as const,
 };
 
 // --- Contact ----------------------------------------------------------------
@@ -156,6 +160,20 @@ export function useSaveDeliverySettings(): UseMutationResult<void, Error, Delive
   return useMutation({
     mutationFn: saveDeliverySettings,
     onSuccess: () => qc.invalidateQueries({ queryKey: contentKeys.delivery }),
+  });
+}
+
+// --- Payment settings (card transfer) -------------------------------------
+
+export function usePaymentSettings(): UseQueryResult<PaymentSettings | null> {
+  return useQuery({ queryKey: contentKeys.payment, queryFn: getPaymentSettings });
+}
+
+export function useSavePaymentSettings(): UseMutationResult<void, Error, PaymentSettings> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: savePaymentSettings,
+    onSuccess: () => qc.invalidateQueries({ queryKey: contentKeys.payment }),
   });
 }
 

@@ -16,10 +16,12 @@ import { canCustomerCancel } from '@kidswear/core';
 import { useOrder, useCancelOrder } from '@kidswear/data';
 import { formatDate, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
+import { useAuth } from '@kidswear/auth';
 import { useTranslation } from '@kidswear/i18n';
 import { Card, ProductImage, Skeleton } from '@/components';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
+import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
 import { regionLabel } from '@/lib/region';
 
 export default function OrderDetailPage(): React.ReactElement {
@@ -27,6 +29,7 @@ export default function OrderDetailPage(): React.ReactElement {
   const { id = '' } = useParams();
   const language = useAppSelector((s) => s.ui.language);
   const { order, loading } = useOrder(id);
+  const { user } = useAuth();
   const { cancel, isPending, error: cancelError } = useCancelOrder();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -91,6 +94,10 @@ export default function OrderDetailPage(): React.ReactElement {
         <Card>
           <OrderStatusTimeline status={order.status} />
         </Card>
+
+        {order.payment?.provider === 'transfer' && user && (
+          <ReceiptsSection order={order} userId={user.uid} language={language} />
+        )}
 
         <Card>
           <Stack spacing={1.5}>

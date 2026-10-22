@@ -246,7 +246,8 @@
     "redirecting": "To'lov sahifasiga o'tilmoqda…",
     "awaitingConfirmation": "To'lov tasdiqlanishi kutilmoqda. Tasdiqlangach buyurtmangiz holati yangilanadi.",
     "providerUnavailable": "Bu to'lov usuli hozircha mavjud emas",
-    "depositNote": "Hozir 50% oldindan to'lov, qolgani yetkazib berishda"
+    "depositNote": "Hozir 50% oldindan to'lov, qolgani yetkazib berishda",
+    "transfer": "Kartaga o'tkazma"
   },
   "admin": {
     "dashboard": "Boshqaruv paneli",
@@ -512,7 +513,8 @@
     "sold": "Sotildi",
     "noSales": "Hali sotuv yoʻq",
     "minOrder": "Eng kam buyurtma summasi",
-    "minOrderHint": "0 — cheklov yo'q (chegirmadan keyingi summa)"
+    "minOrderHint": "0 — cheklov yo'q (chegirmadan keyingi summa)",
+    "payment": "To'lov sozlamalari"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -572,5 +574,63 @@
       "generic": "Saqlab bo'lmadi"
     },
     "shortfallFor": "{{name}} ({{variant}}) uchun zaxira yetmaydi"
+  },
+  "transfer": {
+    "title": "Kartaga o'tkazma",
+    "instructions": "Depozit summasini quyidagi kartaga o'tkazing, so'ng shu sahifada chek rasmini yuklang. Admin chekni tekshirgach buyurtma «Oldindan to'langan» bo'ladi.",
+    "checkoutHint": "Buyurtmadan keyin karta raqami ko'rsatiladi va chek rasmini yuklaysiz.",
+    "cardNumber": "Karta raqami",
+    "cardHolder": "Karta egasi",
+    "bank": "Bank",
+    "amount": "O'tkaziladigan summa",
+    "copy": "Nusxa olish",
+    "copied": "Nusxa olindi",
+    "copyFailed": "Nusxa olinmadi — raqamni qo'lda yozing",
+    "unavailable": "Kartaga o'tkazma hozircha o'chirilgan. Admin bilan bog'laning.",
+    "enabled": "Kartaga o'tkazmani yoqish",
+    "note": "Mijozga izoh",
+    "noteHint": "Masalan: izohga buyurtma raqamini yozing",
+    "settingsNote": "Karta raqami faqat mijozga ko'rsatish uchun. Ilova kartadan pul yechmaydi; har bir chekni siz tasdiqlaysiz.",
+    "invalid": "Yoqilgan bo'lsa: 16 xonali karta raqami va karta egasi majburiy.",
+    "copyMobileHint": "Raqamni bosib turib nusxa oling yoki «Ulashish» orqali nusxalang.",
+    "share": "Ulashish"
+  },
+  "receipts": {
+    "title": "To'lov cheki",
+    "upload": "Chek rasmini yuklash",
+    "uploadAnother": "Yangi chek yuklash",
+    "uploading": "Yuklanmoqda…",
+    "hint": "Faqat rasm (skrinshot yoki surat). Rasm qurilmada siqiladi. PDF hozircha qabul qilinmaydi.",
+    "left": "Yana {{count}} ta chek yuklash mumkin",
+    "empty": "Hali chek yuklanmagan",
+    "uploaded": "Chek yuborildi. Tasdiqlanishini kuting.",
+    "statusPending": "Tekshirilmoqda",
+    "statusApproved": "Tasdiqlandi",
+    "statusRejected": "Rad etildi",
+    "rejectedReason": "Sabab: {{note}}",
+    "view": "Chekni ko'rish",
+    "image": "Chek rasmi",
+    "reviewTitle": "Cheklar",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "rejectReason": "Rad etish sababi (mijoz ko'radi)",
+    "approved": "Chek tasdiqlandi, buyurtma «Oldindan to'langan»",
+    "rejected": "Chek rad etildi",
+    "pendingBadge": "{{count}} ta yangi chek",
+    "paidVia": "Kartaga o'tkazma bilan to'langan",
+    "close": "Yopish",
+    "errors": {
+      "notTransfer": "Bu buyurtma kartaga o'tkazma bilan emas",
+      "notPending": "Buyurtma kutilayotgan holatda emas — chek qabul qilinmaydi",
+      "approved": "Chek allaqachon tasdiqlangan",
+      "limit": "Bitta buyurtmaga 5 tadan ko'p chek yuklab bo'lmaydi",
+      "tooLarge": "Rasm juda katta, siqib bo'lmadi. Kichikroq rasm tanlang.",
+      "notJpeg": "Rasm formati qo'llab-quvvatlanmaydi",
+      "notFound": "Chek topilmadi",
+      "alreadyReviewed": "Bu chek allaqachon ko'rib chiqilgan",
+      "orderNotPending": "Buyurtma kutilayotgan holatda emas — tasdiqlab bo'lmaydi",
+      "noteRequired": "Rad etish sababini yozing",
+      "generic": "Xatolik yuz berdi. Qayta urinib ko'ring."
+    }
   }
 }
