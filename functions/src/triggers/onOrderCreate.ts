@@ -4,7 +4,8 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../lib/admin.js';
 import { sendToUid, sendToAdmins } from '../lib/push.js';
 import { localeFor, getCopy } from '../lib/i18n.js';
-import type { Order } from '../types.js';
+import type { Order, OrderItem } from '../types.js';
+import { applyLinesToStock, type StockUpdate, type StockedProduct } from '../lib/stock.js';
 
 export const onOrderCreate = onDocumentCreated(
   'orders/{orderId}',
@@ -15,13 +16,13 @@ export const onOrderCreate = onDocumentCreated(
 
       const orderId = event.params.orderId;
 
-      // Aggregate qty per productId
-      const qtyMap = new Map<string, number>();
+      // Group lines per product: variants of one product share its document.
+      const linesByProduct = new Map<string, OrderItem[]>();
       for (const item of order.items) {
-        qtyMap.set(item.productId, (qtyMap.get(item.productId) ?? 0) + item.quantity);
+        linesByProduct.set(item.productId, [...(linesByProduct.get(item.productId) ?? []), item]);
       }
 
-      const productIds = [...qtyMap.keys()];
+      const productIds = [...linesByProduct.keys()];
       const orderRef = db().collection('orders').doc(orderId);
 
       let outOfStock = false;
@@ -30,16 +31,24 @@ export const onOrderCreate = onDocumentCreated(
         const productRefs = productIds.map((id) => db().collection('products').doc(id));
         const productDocs = await Promise.all(productRefs.map((ref) => tx.get(ref)));
 
+        const updates: { ref: (typeof productRefs)[number]; next: StockUpdate }[] = [];
         for (let i = 0; i < productDocs.length; i++) {
           const productDoc = productDocs[i];
+          const ref = productRefs[i];
           const productId = productIds[i];
-          if (productDoc == null || productId == null) continue;
+          if (productDoc == null || ref == null || productId == null) continue;
 
-          const requestedQty = qtyMap.get(productId) ?? 0;
-          if (!productDoc.exists || (productDoc.data()?.['stock'] ?? 0) < requestedQty) {
+          const next = productDoc.exists
+            ? applyLinesToStock(
+                productDoc.data() as StockedProduct,
+                linesByProduct.get(productId) ?? [],
+              )
+            : null;
+          if (!next) {
             outOfStock = true;
             break;
           }
+          updates.push({ ref, next });
         }
 
         if (outOfStock) {
@@ -49,17 +58,8 @@ export const onOrderCreate = onDocumentCreated(
             updatedAt: FieldValue.serverTimestamp(),
           });
         } else {
-          for (let i = 0; i < productDocs.length; i++) {
-            const productDoc = productDocs[i];
-            const productId = productIds[i];
-            if (productDoc == null || productId == null) continue;
-
-            const currentStock = productDoc.data()?.['stock'] as number ?? 0;
-            const requestedQty = qtyMap.get(productId) ?? 0;
-            tx.update(db().collection('products').doc(productId), {
-              stock: currentStock - requestedQty,
-              updatedAt: FieldValue.serverTimestamp(),
-            });
+          for (const { ref, next } of updates) {
+            tx.update(ref, { ...next, updatedAt: FieldValue.serverTimestamp() });
           }
         }
       });

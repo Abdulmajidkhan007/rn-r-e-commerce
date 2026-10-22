@@ -11,6 +11,7 @@
 import { readFileSync } from 'node:fs';
 import { cert, initializeApp, type ServiceAccount } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { buildVariantMatrix, totalVariantStock } from '../packages/core/src/variant.ts';
 
 interface Localized {
   uz: string;
@@ -55,6 +56,20 @@ const SIZES = ['1-2y', '3-4y', '5-6y', '7-8y'];
 const COLORS = ['red', 'blue', 'green', 'yellow', 'pink'];
 const STOCKS = [20, 12, 0, 3, 8]; // mix of in-stock / out / low
 
+/**
+ * Size × colour variants with a deterministic stock spread (some sold out) and
+ * a dearer largest size, so the storefront shows both disabled combinations
+ * and per-variant prices. A product whose base stock is 0 is sold out entirely.
+ */
+function variantsFor(n: number, price: number, baseStock: number) {
+  return buildVariantMatrix(SIZES, COLORS.slice(0, 3)).map((v, i) => ({
+    ...v,
+    stock: baseStock === 0 || (n + i) % 4 === 0 ? 0 : ((n * 7 + i) % 6) + 1,
+    ...(v.size === SIZES[SIZES.length - 1] ? { price: price + 15000 } : {}),
+    sku: `KW-${n}-${v.size}-${v.color}`.toUpperCase(),
+  }));
+}
+
 function imagesFor(id: string): string[] {
   return [1, 2, 3].map((n) => `https://picsum.photos/seed/${id}-${n}/600/800`);
 }
@@ -79,6 +94,7 @@ async function seed(): Promise<void> {
       n += 1;
       const id = `prod-${c.slug}-${i}`;
       const price = 80000 + n * 15000;
+      const variants = variantsFor(n, price, STOCKS[n % STOCKS.length] ?? 0);
       batch.set(db.collection('products').doc(id), {
         name: {
           uz: `${c.name.uz} ${i}`,
@@ -96,7 +112,9 @@ async function seed(): Promise<void> {
         images: imagesFor(id),
         sizes: SIZES,
         colors: COLORS.slice(0, 3),
-        stock: STOCKS[n % STOCKS.length],
+        stock: totalVariantStock(variants),
+        variants,
+        variantsExcluded: [],
         rating: 3.5 + (n % 3) * 0.5,
         reviewCount: (n * 7) % 50,
         isActive: true,

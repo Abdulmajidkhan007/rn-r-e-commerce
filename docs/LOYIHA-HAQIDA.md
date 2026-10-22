@@ -16,7 +16,7 @@ tokenlari ustida — biri o'zgarsa, ikkinchisi ortda qolmaydi.
 | Qism | Holat | Izoh |
 |---|---|---|
 | Katalog, qidiruv, saralash, toifa filtri | ✅ | Qidiruv serverda: `searchTokens` + Firestore so'rovi |
-| Mahsulot sahifasi, o'lcham/rang, savat | ✅ | Savat redux-persist bilan saqlanadi |
+| Mahsulot sahifasi, o'lcham/rang, savat | ✅ | Savat redux-persist bilan saqlanadi. 2026-10-22 dan zaxira va narx har o'lcham×rang turi uchun alohida (vebda sinalgan, telefonda emas) |
 | Checkout + depozit | ✅ | Spark'da faqat "Sinov rejimi (test)" to'lovi |
 | Payme / Click | 🔒 kod tayyor | Cloud Functions (Blaze) + merchant shartnomasi kerak |
 | Buyurtmalar tarixi va holati (real-time) | ✅ | |
@@ -170,3 +170,54 @@ ko'rildi (rasmli va placeholder).
 **Telefonda hali sinalmagan:** mobil o'zgarishlarning barchasi (rasm to'ldirishi,
 nishon/yurakcha o'lchami, ustunlar soni, pastki padding, ulashish tugmasi) —
 APK qurilmadi, faqat tip/lint tekshiruvidan o'tdi. Telefonda tasdiqlash kerak.
+
+## 2026-10-22 — mahsulot turlari
+
+Bolalar kiyimi o'lcham bo'yicha tugaydi, shuning uchun zaxira (va xohlansa narx)
+endi har **o'lcham × rang** turi uchun alohida.
+
+**Nima qilindi:**
+
+- **Model** (`@kidswear/core`, `variant.ts`): mahsulotda `variants` —
+  `{id, size, color, stock, price?, sku?}`; turlar `sizes × colors` dan yasaladi,
+  admin o'chirgan kombinatsiyalar `variantsExcluded` da saqlanadi. Narx berilmasa —
+  mahsulot narxi. Hammasi Zod sxemadan (`z.infer`).
+- **Eski mahsulotlar:** `variants` yo'q bo'lsa bitta "standart" tur (mahsulot
+  `stock`/narxi) — ma'lumotni migratsiya qilish shart emas, shuning uchun backfill
+  skripti yozilmadi. Admin eski mahsulotni ochsa, turlar jadvali 0 zaxira bilan
+  chiqadi va "zaxirani turlar bo'yicha taqsimlang" eslatmasi ko'rinadi.
+- **Mahsulot `stock`** = turlar yig'indisi — admin mutatsiyasi har saqlashda
+  hisoblaydi; katalogdagi `StockBadge` o'zgarmay ishlaydi.
+- **Admin forma** (veb + mobil): o'lcham/rang kiritilgach jadval (vebda — jadval,
+  telefonda — har tur alohida blok): zaxira, narx (ixtiyoriy), kod; turni olib
+  tashlash va qaytarish. Yo'l-yo'lakay xato tuzatildi: o'lcham/rang maydonida
+  vergul yozib bo'lmasdi (matn har harfda ro'yxatdan qayta yasalib, vergulni
+  yutib yuborardi) — ikkinchi o'lchamni faqat paste bilan kiritish mumkin edi.
+- **Mahsulot sahifasi** (veb + mobil): zaxirasi 0 bo'lgan kombinatsiya o'chiq va
+  ustidan chizilgan; tanlangan tur narxi va "Omborda: N dona" ko'rsatiladi; turlar
+  narxi har xil bo'lsa tanlovgacha "… dan". Tanlash mantiqi umumiy
+  (`describeVariantPicker`).
+- **Savat/buyurtma:** qator `variantId` saqlaydi; bir mahsulotning turli turlari
+  alohida qator. Eski (redux-persist) savat qatorlari `variantId` siz ham ishlaydi.
+  Checkout zaxirani tur bo'yicha qayta tekshiradi.
+- **Qoidalar:** xatti-harakat o'zgarmadi (mahsulot yozish — faqat admin;
+  `totalsOk`, `promoOk`, `deliveryOk` tegilmadi). Qoidalar testlari 57 → 61.
+- **Seed:** `seed-emulator.mjs` va `seed.ts` turlar bilan (ba'zilari 0 zaxira,
+  katta o'lcham qimmatroq); emulyator seed'ida 2 ta mahsulot ataylab turlarsiz.
+- **Cloud Function** `onOrderCreate` (Blaze'da yoqiladi) endi turning zaxirasini
+  kamaytiradi va `stock` ni yig'indi qiladi — hozir ishlamaydi, faqat unit test.
+
+**Tekshirildi:** `type-check`, `lint`, `test` (unit 200), `test:rules` (61) yashil.
+Vebda Firestore + Auth emulyatori va `seed-emulator.mjs` bilan Chromium
+(Playwright) oqimi: admin 3 o'lcham × 2 rang mahsulot yaratdi, har turga zaxira,
+bir turga alohida narx va kod berdi (saqlangan `stock` = yig'indi 15) → mijoz
+(390 px) 98-o'lchamni tanlaganda zaxirasiz "ko'k" o'chiq → 110/ko'k (175 000)
+va 104/qizil savatga alohida qator bo'lib tushdi → buyurtma `deposit_paid`,
+qatorlarda `variantId` bor. Turlarsiz mahsulot ham savatga qo'shiladi.
+Dark (1280 px) rejimda ham ko'rildi.
+
+**Sinalmagan:** mobil ilova (APK) — admin turlar bloki va mahsulot ekranidagi
+tanlash faqat type-check/lint'dan o'tdi, telefonda ko'rilmagan. Jonli
+(`kids-wear-007`) bazada sinalmagan. Cheklov: zaxira buyurtmada kamaymaydi
+(Spark — Functions yo'q), qator narxini qoidalar tekshirmaydi; katalog kartasi
+mahsulotning asosiy narxini ko'rsatadi ("… dan" emas).

@@ -6,6 +6,7 @@
  */
 export * from './localized';
 export * from './category';
+export * from './variant';
 export * from './product';
 export * from './productImage';
 export * from './cart';

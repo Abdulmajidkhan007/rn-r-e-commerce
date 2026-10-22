@@ -27,7 +27,9 @@ A running log of notable choices. Phase 0 (foundation) entries below.
 - Zod schemas are the single source of truth; types are `z.infer<typeof XSchema>`.
 - Timestamps (`createdAt`/`updatedAt`) are **epoch milliseconds (`number`)** — see the
   Firebase section for why this changed from the original ISO-string plan.
-- A cart/order line's identity is `productId + size + color`.
+- A cart/order line's identity is `productId + size + color`. Since product variants
+  (2026-10-22) that pair is also the variant identity; lines additionally carry an optional
+  `variantId` (see "Product variants").
 
 ## State (`@kidswear/store`)
 
@@ -628,3 +630,29 @@ from `<app>/node_modules`, which is empty here because npm hoists deps to the ro
 task with no matching files succeeds silently. `vectoricons.iconFontsDir` now points at the root
 `node_modules`, and the APK workflow fails unless `assets/fonts/MaterialCommunityIcons.ttf` is in
 the APK.
+
+## Product variants (2026-10-22)
+
+- **Stock (and optionally price) live per size × colour.** `Product.variants?: {id, size, color,
+stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` minus
+  `variantsExcluded` (ids the admin removed, kept so a later axis edit does not resurrect them).
+  `id = variantIdFor(size, color)` is deterministic (URI-encoded `size|color`). An empty axis
+  contributes one `''` value. Helpers live in `@kidswear/core/variant.ts` (pure, tested).
+- **Product `stock` stays, as the variants' sum.** The admin mutations (`createProduct` /
+  `updateProduct`) recompute it on every write that carries variants, so catalog `StockBadge`,
+  low-stock dashboard and the server-side sort keep reading one field.
+- **No data migration.** A product without `variants` is "legacy": `productVariants()` yields one
+  synthetic `default` variant from its `stock`/`price`, its size/colour lists stay descriptive,
+  and every pick sells from the shared stock. Opening such a product in the admin form builds a
+  zero-stock matrix (unless it is a single combination, which inherits the stock) and shows a
+  notice — splitting shared stock is the admin's decision, never guessed. Hence no backfill script.
+- **Cart/order lines carry optional `variantId`.** Line identity is unchanged, so redux-persist
+  carts from before variants keep working; re-adding the same pick upgrades the old line.
+  Checkout re-checks stock per variant (`stockCoversLines`, lines summed per variant so legacy
+  lines in several sizes cannot oversell the shared stock).
+- **Rules unchanged in behaviour.** Product writes stay admin-only (variants included); order
+  money checks (`promoOk`, `deliveryOk`, `totalsOk`) are untouched. Line prices — now possibly a
+  variant's own — remain client-supplied until Cloud Functions can reprice.
+- **Dormant Functions follow along.** `onOrderCreate` (Blaze-only) decrements the ordered variant
+  and rewrites `stock` as the sum (`functions/src/lib/stock.ts`), so turning Functions on later
+  does not desync the two.

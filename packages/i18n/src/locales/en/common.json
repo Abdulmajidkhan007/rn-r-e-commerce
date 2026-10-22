@@ -175,7 +175,11 @@
     "featured": "Featured",
     "newArrivals": "New arrivals",
     "loadMore": "Load more",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "variantUnavailable": "This option is sold out",
+    "variantInStock": "In stock: {{count}}",
+    "priceFrom": "from {{price}}",
+    "chooseVariant": "Choose a size and colour"
   },
   "cart": {
     "cart": "Cart",
@@ -285,7 +289,20 @@
       "categoryRequired": "Select a category",
       "stockMin": "Stock cannot be negative",
       "slugRequired": "Slug is required"
-    }
+    },
+    "variants": "Variants (size × colour)",
+    "variantsHint": "Once sizes and colours are entered, set stock, an optional price and a code for each combination. An empty price uses the product price.",
+    "variantsTotalStock": "Total stock: {{count}}",
+    "variantSize": "Size",
+    "variantColor": "Colour",
+    "variantStock": "Stock",
+    "variantPrice": "Price",
+    "variantSku": "Code (SKU)",
+    "variantRemove": "Remove variant",
+    "variantsRestore": "Restore removed ({{count}})",
+    "variantsEmpty": "All variants removed — the product cannot be bought",
+    "variantsLegacy": "This product was created without variants (shared stock: {{count}}). Split the stock across variants — after saving, the total equals their sum.",
+    "variantAny": "—"
   },
   "dashboardStats": {
     "totalProducts": "Total products",

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LocalizedTextSchema } from './localized';
+import { ProductVariantSchema } from './variant';
 
 /**
  * Timestamps are exposed in TS as epoch milliseconds (number) so they stay
@@ -21,7 +22,19 @@ export const ProductSchema = z.object({
   images: z.array(z.string()),
   sizes: z.array(z.string()),
   colors: z.array(z.string()),
+  /**
+   * Product-level stock. For a product with `variants` it is their sum,
+   * recomputed by the admin mutations — kept so catalog badges and low-stock
+   * reports need no per-variant read.
+   */
   stock: z.number().int().nonnegative(),
+  /**
+   * Per size × colour stock/price. Absent on products written before variants:
+   * `productVariants()` then yields one default variant from `stock`/`price`.
+   */
+  variants: z.array(ProductVariantSchema).optional(),
+  /** Ids of size × colour combinations the admin removed from the matrix. */
+  variantsExcluded: z.array(z.string()).optional(),
   rating: z.number().min(0).max(5),
   reviewCount: z.number().int().nonnegative(),
   isActive: z.boolean(),

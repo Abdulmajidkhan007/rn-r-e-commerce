@@ -21,8 +21,9 @@ service cloud.firestore {
     // Mirror @kidswear/core evaluatePromo / deliveryFeeFor and
     // @kidswear/utils computeOrderTotals. The client computes, the rules
     // re-compute: a hand-written order cannot invent a discount or skip
-    // delivery. (Line prices are still client-supplied — server-side repricing
-    // needs Cloud Functions; see docs/REJA.md.)
+    // delivery. (Line prices — including a variant's own price — are still
+    // client-supplied; server-side repricing needs Cloud Functions; see
+    // docs/REJA.md.)
     function discountOf(d) {
       return ('discount' in d) ? d.discount : 0;
     }
@@ -75,7 +76,9 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Products: public read; admin-only writes.
+    // Products: public read; admin-only writes. That covers `variants` too:
+    // per size × colour stock/price is only ever written by an admin, and the
+    // admin mutation keeps `stock` equal to the variants' sum.
     match /products/{productId} {
       allow read: if true;
       allow write: if isAdmin();
