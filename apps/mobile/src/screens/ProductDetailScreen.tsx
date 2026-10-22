@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import {
   Dimensions,
   FlatList,
   ScrollView,
+  Share,
   View,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
-import { ActivityIndicator, Button, Chip, Snackbar, Text, useTheme } from 'react-native-paper';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  ActivityIndicator,
+  Button,
+  Chip,
+  IconButton,
+  Snackbar,
+  Text,
+  useTheme,
+} from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProduct, useProducts } from '@kidswear/data';
 import { useAppDispatch, addItem } from '@kidswear/store';
@@ -81,6 +90,7 @@ export function ProductDetailScreen(): React.ReactElement {
   const localized = useLocalized();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
   const id = params?.id ?? '';
   const { data: product, isLoading, isError, refetch } = useProduct(id);
@@ -90,6 +100,22 @@ export function ProductDetailScreen(): React.ReactElement {
   const [color, setColor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+
+  const shareName = product ? localized(product.name) : undefined;
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight:
+        shareName === undefined
+          ? undefined
+          : () => (
+              <IconButton
+                icon="share-variant-outline"
+                accessibilityLabel={t('catalog.share')}
+                onPress={() => void Share.share({ message: shareName })}
+              />
+            ),
+    });
+  }, [navigation, shareName, t]);
 
   if (isLoading) {
     return (
