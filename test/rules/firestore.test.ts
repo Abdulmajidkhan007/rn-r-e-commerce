@@ -16,6 +16,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   where,
 } from 'firebase/firestore';
@@ -970,5 +971,178 @@ describe('card transfer — orders and receipts', () => {
     }
     // The order is no longer pending: no more receipts.
     await assertFails(setDoc(doc(customerDb(), 'receipts/t1_r2'), receipt()));
+  });
+});
+
+describe('reviews', () => {
+  const delivered = (over: Record<string, unknown> = {}): Record<string, unknown> =>
+    orderData({
+      status: 'delivered',
+      items: [
+        { productId: 'p1', quantity: 1, price: 50_000 },
+        { productId: 'p2', quantity: 1, price: 50_000 },
+      ],
+      ...over,
+    });
+  // The exact shape `submitReview` writes.
+  const review = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    productId: 'p2',
+    userId: CUSTOMER,
+    orderId: 'd1',
+    authorName: 'Ali V.',
+    rating: 5,
+    text: 'Zo‘r sifat',
+    status: 'visible',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...over,
+  });
+  const stored = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    ...review(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+    ...over,
+  });
+
+  beforeEach(async () => {
+    await seed('orders/d1', delivered());
+    await seed('products/p1', { rating: 0, reviewCount: 0 });
+    await seed('products/p2', { rating: 0, reviewCount: 0 });
+  });
+
+  it('the buyer reviews a product of their delivered order', async () => {
+    await assertSucceeds(setDoc(doc(customerDb(), 'reviews/d1_p2'), review()));
+  });
+
+  it('finds the product on any of the first 20 order lines', async () => {
+    const items = Array.from({ length: 20 }, (_, i) => ({ productId: `q${i}`, quantity: 1 }));
+    await seed('orders/long', delivered({ items }));
+    await assertSucceeds(
+      setDoc(doc(customerDb(), 'reviews/long_q19'), review({ orderId: 'long', productId: 'q19' })),
+    );
+  });
+
+  it('someone who did not buy the product cannot review it', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'reviews/d1_p9'), review({ productId: 'p9' })));
+    // No order at all.
+    await assertFails(
+      setDoc(doc(customerDb(), 'reviews/none_p1'), review({ orderId: 'none', productId: 'p1' })),
+    );
+    await assertFails(setDoc(doc(anonDb(), 'reviews/d1_p2'), review()));
+  });
+
+  it('an order that is not delivered yet does not qualify', async () => {
+    for (const status of ['pending', 'deposit_paid', 'processing', 'shipped', 'cancelled']) {
+      await seed('orders/d1', delivered({ status }));
+      await assertFails(setDoc(doc(customerDb(), 'reviews/d1_p2'), review()));
+    }
+  });
+
+  it("another customer's order does not qualify", async () => {
+    await assertFails(setDoc(doc(otherDb(), 'reviews/d1_p2'), review({ userId: OTHER })));
+    // Nor writing in the buyer's name.
+    await assertFails(setDoc(doc(otherDb(), 'reviews/d1_p2'), review()));
+  });
+
+  it('the id must be {orderId}_{productId}', async () => {
+    await assertFails(setDoc(doc(customerDb(), 'reviews/whatever'), review()));
+    await assertFails(setDoc(doc(customerDb(), 'reviews/d1_p1'), review()));
+  });
+
+  it('a second review of the same order line is refused', async () => {
+    await assertSucceeds(setDoc(doc(customerDb(), 'reviews/d1_p2'), review()));
+    await assertFails(setDoc(doc(customerDb(), 'reviews/d1_p2'), review({ rating: 1 })));
+  });
+
+  it('a customer cannot create it hidden, featured or with a bad shape', async () => {
+    const db = customerDb();
+    await assertFails(setDoc(doc(db, 'reviews/d1_p2'), review({ status: 'hidden' })));
+    await assertFails(setDoc(doc(db, 'reviews/d1_p2'), review({ featured: true })));
+    await assertFails(setDoc(doc(db, 'reviews/d1_p2'), review({ rating: 6 })));
+    await assertFails(setDoc(doc(db, 'reviews/d1_p2'), review({ rating: 4.5 })));
+    await assertFails(setDoc(doc(db, 'reviews/d1_p2'), review({ text: 'a'.repeat(1001) })));
+    await assertFails(setDoc(doc(db, 'reviews/d1_p2'), review({ authorName: '' })));
+  });
+
+  it('a customer cannot feature, hide or delete a review, even their own', async () => {
+    await seed('reviews/d1_p2', stored());
+    const ref = doc(customerDb(), 'reviews/d1_p2');
+    await assertFails(updateDoc(ref, { featured: true }));
+    await assertFails(updateDoc(ref, { status: 'hidden' }));
+    await assertFails(deleteDoc(ref));
+    await assertFails(updateDoc(doc(otherDb(), 'reviews/d1_p2'), { featured: true }));
+  });
+
+  it('a customer cannot write product ratings', async () => {
+    await assertFails(updateDoc(doc(customerDb(), 'products/p2'), { rating: 5, reviewCount: 1 }));
+  });
+
+  it('the author edits stars and text within 7 days only', async () => {
+    await seed('reviews/d1_p2', stored());
+    const ref = doc(customerDb(), 'reviews/d1_p2');
+    await assertSucceeds(
+      updateDoc(ref, { rating: 3, text: 'Yaxshi', updatedAt: serverTimestamp() }),
+    );
+    await assertFails(updateDoc(ref, { authorName: 'X', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(otherDb(), 'reviews/d1_p2'), { rating: 1 }));
+
+    const eightDaysAgo = Timestamp.fromMillis(Date.now() - 8 * 86_400_000);
+    await seed('reviews/d1_p2', stored({ createdAt: eightDaysAgo, updatedAt: eightDaysAgo }));
+    await assertFails(updateDoc(ref, { rating: 1, updatedAt: serverTimestamp() }));
+  });
+
+  it('visible reviews are public; hidden ones only for the author and admins', async () => {
+    await seed('reviews/d1_p2', stored());
+    await seed('reviews/d1_p1', stored({ productId: 'p1', status: 'hidden' }));
+
+    await assertSucceeds(getDoc(doc(anonDb(), 'reviews/d1_p2')));
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(anonDb(), 'reviews'),
+          where('productId', '==', 'p2'),
+          where('status', '==', 'visible'),
+        ),
+      ),
+    );
+    await assertFails(getDoc(doc(anonDb(), 'reviews/d1_p1')));
+    await assertFails(getDoc(doc(otherDb(), 'reviews/d1_p1')));
+    // An unfiltered list could include hidden reviews.
+    await assertFails(
+      getDocs(query(collection(otherDb(), 'reviews'), where('productId', '==', 'p1'))),
+    );
+
+    await assertSucceeds(getDoc(doc(customerDb(), 'reviews/d1_p1')));
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(customerDb(), 'reviews'),
+          where('orderId', '==', 'd1'),
+          where('userId', '==', CUSTOMER),
+        ),
+      ),
+    );
+    await assertSucceeds(getDoc(doc(adminDb(), 'reviews/d1_p1')));
+  });
+
+  it('admin moderation: status/featured with the product recount, and delete', async () => {
+    await seed('reviews/d1_p2', stored());
+    const db = adminDb();
+    // The `moderateReview` transaction: review flags + product aggregate together.
+    await assertSucceeds(
+      runTransaction(db, async (tx) => {
+        await tx.get(doc(db, 'reviews/d1_p2'));
+        tx.update(doc(db, 'reviews/d1_p2'), {
+          status: 'hidden',
+          featured: true,
+          updatedAt: serverTimestamp(),
+        });
+        tx.update(doc(db, 'products/p2'), { rating: 0, reviewCount: 0 });
+      }),
+    );
+    // Admins moderate; they do not rewrite what the customer said.
+    await assertFails(updateDoc(doc(db, 'reviews/d1_p2'), { text: 'edited' }));
+    await assertFails(updateDoc(doc(db, 'reviews/d1_p2'), { status: 'deleted' }));
+    await assertSucceeds(deleteDoc(doc(db, 'reviews/d1_p2')));
   });
 });

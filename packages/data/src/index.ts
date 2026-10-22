@@ -95,6 +95,20 @@ export {
 } from './useReceipts';
 export type { OrderReceiptsState, UploadReceiptVars } from './useReceipts';
 
+export {
+  reviewKeys,
+  reviewErrorKey,
+  useProductReviews,
+  useFeaturedReviews,
+  useOrderReviews,
+  useSubmitReview,
+  useEditReview,
+  useAdminReviews,
+  useModerateReview,
+  useRecomputeRatings,
+} from './useReviews';
+export type { UseProductReviewsResult, OrderReviewsState, EditReviewVars } from './useReviews';
+
 export { summarizeSales } from './reports';
 export type { SalesReport, SalesBucket, TopProduct } from './reports';
 

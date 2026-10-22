@@ -216,6 +216,79 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Reviews: id {orderId}_{productId}, so one review per product per order
+    // (a second write to the same id is an update, refused below). Only the
+    // order's owner creates one, only for a `delivered` order that has the
+    // product among its lines, always `visible` and never `featured`. Visible
+    // reviews are public; hidden ones only for their author and admins. The
+    // author may change rating/text for 7 days; admins change status/featured
+    // and delete. Product `rating`/`reviewCount` are recomputed by the admin
+    // client (products stay admin-write) — see DECISIONS.md "Reviews".
+    match /reviews/{reviewId} {
+      function reviewOrderPath(d) {
+        return /databases/$(database)/documents/orders/$(d.orderId);
+      }
+
+      // The rules language has no loops: check order lines 0..19 one by one
+      // (REVIEWABLE_LINES_MAX in @kidswear/core). Works on every order ever
+      // written, no extra field or migration needed.
+      function lineIs(items, i, pid) {
+        return items.size() > i && items[i].get('productId', '') == pid;
+      }
+
+      function orderHasProduct(items, pid) {
+        return lineIs(items, 0, pid) || lineIs(items, 1, pid) || lineIs(items, 2, pid)
+          || lineIs(items, 3, pid) || lineIs(items, 4, pid) || lineIs(items, 5, pid)
+          || lineIs(items, 6, pid) || lineIs(items, 7, pid) || lineIs(items, 8, pid)
+          || lineIs(items, 9, pid) || lineIs(items, 10, pid) || lineIs(items, 11, pid)
+          || lineIs(items, 12, pid) || lineIs(items, 13, pid) || lineIs(items, 14, pid)
+          || lineIs(items, 15, pid) || lineIs(items, 16, pid) || lineIs(items, 17, pid)
+          || lineIs(items, 18, pid) || lineIs(items, 19, pid);
+      }
+
+      function ownDeliveredOrderWith(d) {
+        return exists(reviewOrderPath(d))
+          && get(reviewOrderPath(d)).data.userId == request.auth.uid
+          && get(reviewOrderPath(d)).data.status == 'delivered'
+          && orderHasProduct(get(reviewOrderPath(d)).data.items, d.productId);
+      }
+
+      function reviewBodyOk(d) {
+        return d.rating is int && d.rating >= 1 && d.rating <= 5
+          && d.text is string && d.text.size() <= 1000;
+      }
+
+      allow read: if resource.data.status == 'visible'
+        || isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['productId', 'userId', 'orderId', 'authorName',
+             'rating', 'text', 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.userId == request.auth.uid
+        && sizeBetween(request.resource.data.orderId, 1, 200)
+        && sizeBetween(request.resource.data.productId, 1, 200)
+        && reviewId == request.resource.data.orderId + '_' + request.resource.data.productId
+        && sizeBetween(request.resource.data.authorName, 1, 60)
+        && reviewBodyOk(request.resource.data)
+        && request.resource.data.status == 'visible'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && ownDeliveredOrderWith(request.resource.data);
+      allow update: if (isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'featured', 'updatedAt'])
+          && request.resource.data.status in ['visible', 'hidden']
+          && (!('featured' in request.resource.data) || request.resource.data.featured is bool))
+        || (isSignedIn()
+          && resource.data.userId == request.auth.uid
+          && request.time < resource.data.createdAt + duration.value(7, 'd')
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['rating', 'text', 'updatedAt'])
+          && request.resource.data.updatedAt == request.time
+          && reviewBodyOk(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
     // Stock journal: append-only, admin-only. Written in the same transaction
     // as the product stock change it records; never edited or deleted, so the
     // history cannot be rewritten after the fact.

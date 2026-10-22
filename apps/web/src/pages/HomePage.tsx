@@ -12,6 +12,7 @@ import { useCategories, useProducts } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { Skeleton } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
+import { FeaturedReviews } from '@/components/reviews/FeaturedReviews';
 import { useLocalized } from '@/lib/useLocalized';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { pickDeals } from '@/lib/deals';
@@ -146,6 +147,8 @@ export default function HomePage(): React.ReactElement {
           <SectionHeader title={t('catalog.newArrivals')} to="/catalog" />
           <ProductGrid products={newest} isLoading={isLoading} placeholders={NEWEST_COUNT / 2} />
         </Stack>
+
+        <FeaturedReviews />
       </Stack>
     </Container>
   );

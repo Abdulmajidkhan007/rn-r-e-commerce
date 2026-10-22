@@ -734,3 +734,52 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
 - **Mobile copy uses Share, not a clipboard package.** React Native no longer ships a
   clipboard; adding a native module for one button was not worth an untested APK change. The
   number is selectable and Share opens the system sheet (which has Copy on Android).
+
+## Reviews on Spark (2026-10-22)
+
+- **`reviews/{orderId}_{productId}`, one review per product per order.** The deterministic id
+  is checked by the rules (`reviewId == orderId + '_' + productId`); a second write to the same
+  id is an update, which a customer may only do to `rating`/`text`, so a duplicate review (or
+  overwriting `createdAt`/`status`) is refused. A product bought in two sizes on one order gets
+  one review; buying it again in a later order allows another.
+- **Purchase check reads the order's real `items`, no `productIds` field.** The rules language
+  has no loops, but list indexing works, so `orderHasProduct` checks lines 0…19 one by one
+  (`items.size() > i && items[i].productId == pid`). Considered alternative: a client-written
+  `productIds` array on the order checked with `in`. Rejected because the rules could not tie
+  it to `items` either — a customer could list a product they never bought, have the cheap
+  order delivered and review the expensive one — and old orders would need a backfill. With the
+  unrolled check **every existing order works as is**, nothing to migrate. Cost: only the first
+  `REVIEWABLE_LINES_MAX = 20` lines are reviewable (the UI hides the button beyond that,
+  `reviewableProductIds`). The `get()` of the order is one billed read (repeat `get`s of the
+  same path are cached within a request).
+- **Create rule:** signed in, `userId == auth.uid`, the order exists, belongs to the caller and
+  is `delivered`, the product is on it; exact key set; `rating` int 1–5; `text` ≤1000;
+  `authorName` 1–60; `status == 'visible'`; no `featured`; both timestamps `== request.time`.
+- **Read:** `visible` for everyone, `hidden` only for the author and admins. Public queries
+  must filter `status == 'visible'`; the order page queries `orderId + userId` (so the author
+  sees a hidden review's notice).
+- **Author edits `rating`/`text` for 7 days** (`request.time < createdAt + 7d`,
+  `REVIEW_EDIT_WINDOW_MS`, `canEditReview`). Admins change only `status`/`featured`
+  (+`updatedAt`) — they moderate, they never rewrite a customer's words — and only they
+  delete. Nobody else deletes.
+- **`products.rating`/`reviewCount` stay admin-write; the admin client recounts them.** A
+  customer cannot write products, and Spark has no trigger, so a new review does **not** change
+  the stored rating until an admin acts. `moderateReview` (show/hide/feature/delete) reads the
+  product's reviews, then in one `runTransaction` writes the review change and the product's
+  `summarizeReviews` (mean of visible stars, one decimal) with that change applied. A client
+  transaction cannot run a query, so a review posted between that read and the commit is picked
+  up by the next moderation or by **"Reytinglarni qayta hisoblash"** (`recomputeAllRatings`:
+  every product, batched, only changed ones written; products without reviews get 0/0). Owner
+  edits of stars also wait for the next moderation/recount.
+- **No second average on the product page.** The page shows the stored `rating`/`reviewCount`
+  (same number as anywhere else) and lists visible reviews under it. Averaging the loaded page
+  would disagree with the stored value and with itself as pages load; the difference
+  (unmoderated new reviews) is closed by the admin. Seed products' fake ratings were replaced
+  by values recomputed from the seeded reviews.
+- **"Mijozlar fikri"** = `featured == true && status == 'visible'`, newest 6. Featuring a hidden
+  review is allowed (it simply does not show). Composite indexes for the three review queries
+  are in `firestore.indexes.json` (the emulator does not enforce them).
+- **Author name is shortened on the client** ("Ali Valiyev" → "Ali V.", `authorDisplayName`) and
+  stored; it is customer-supplied text like the review itself (length-checked only).
+- Admin list loads the newest `ADMIN_REVIEWS_LIMIT = 200` (optionally by status); paging can come
+  when volume needs it.

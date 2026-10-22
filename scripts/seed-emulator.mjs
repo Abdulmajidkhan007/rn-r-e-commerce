@@ -7,9 +7,14 @@
  *
  * Usage (emulator must already be running):
  *   node scripts/seed-emulator.mjs [project-id]
+ *
+ * If the Auth emulator is up too, it also creates two emulator-only accounts
+ * (see DEMO_USERS) with a delivered order and reviews, so the review flow can
+ * be tried end to end. These passwords exist only in the local emulator.
  */
 const PROJECT = process.argv[2] ?? 'kidswear-local';
 const HOST = process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8080';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099';
 const BASE = `http://${HOST}/v1/projects/${PROJECT}/databases/(default)/documents`;
 
 // Mirrors @kidswear/utils.buildSearchTokens. Duplicated rather than imported so
@@ -39,6 +44,7 @@ const int = (n) => ({ integerValue: String(n) });
 const bool = (booleanValue) => ({ booleanValue });
 const arr = (values) => ({ arrayValue: { values } });
 const map = (fields) => ({ mapValue: { fields } });
+const ts = (ms) => ({ timestampValue: new Date(ms).toISOString() });
 const localized = (uz, en, ru) => map({ uz: str(uz), en: str(en), ru: str(ru) });
 
 const NOW = Date.now();
@@ -108,6 +114,79 @@ const variantValue = (v) =>
     sku: str(v.sku),
   });
 
+// Reviews by made-up buyers (their orders are not seeded — reviews are read
+// without them). [productId, author, rating, text, featured, hidden]
+const REVIEWS = [
+  [
+    'prod-1',
+    'Dilnoza R.',
+    5,
+    'Mato juda yumshoq, qizim bayramda kiydi. Oʻlchami aniq keldi.',
+    true,
+  ],
+  ['prod-1', 'Aziz T.', 4, 'Yaxshi koʻylak, yetkazish 2 kun oldi.'],
+  ['prod-4', 'Malika S.', 5, 'Jinsi qalin, yuvgandan keyin ham rangi oʻchmadi.', true],
+  ['prod-7', 'Sardor K.', 5, 'Qishga zoʻr kurtka — issiq va yengil.', true],
+  ['prod-7', 'Gulnora A.', 3, 'Yaxshi, lekin yengi biroz uzun ekan.'],
+  ['prod-10', 'Javohir M.', 4, 'Krossovka qulay, oʻgʻlim kun boʻyi kiyib yuribdi.', true],
+  ['prod-12', 'Nodira X.', 5, 'Yozga ideal sandal.'],
+  ['prod-12', 'Spam Bot', 1, 'Arzon telefonlar shu yerda!!!', false, true],
+];
+
+/** Mirrors @kidswear/core summarizeReviews (visible only, one decimal). */
+const RATINGS = new Map();
+for (const [productId, , rating, , , hidden] of REVIEWS) {
+  if (hidden) continue;
+  const r = RATINGS.get(productId) ?? { sum: 0, reviewCount: 0 };
+  r.sum += rating;
+  r.reviewCount += 1;
+  r.rating = Math.round((r.sum / r.reviewCount) * 10) / 10;
+  RATINGS.set(productId, r);
+}
+
+/** Emulator-only demo accounts. Never used outside the local emulator. */
+const DEMO_USERS = {
+  customer: { email: 'mijoz@kidswear.test', password: 'kidswear-demo', name: 'Ali Valiyev' },
+  admin: { email: 'admin@kidswear.test', password: 'kidswear-demo', name: 'Admin' },
+};
+
+async function authCall(path, body) {
+  const res = await fetch(`http://${AUTH_HOST}/identitytoolkit.googleapis.com/v1/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer owner' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+/** Creates (or finds) an emulator account and returns its uid; null without the Auth emulator. */
+async function demoUser({ email, password, name }, claims) {
+  try {
+    await fetch(`http://${AUTH_HOST}/`);
+  } catch {
+    return null;
+  }
+  let uid;
+  try {
+    ({ localId: uid } = await authCall('accounts:signUp?key=demo', {
+      email,
+      password,
+      displayName: name,
+    }));
+  } catch {
+    const { users } = await authCall(`projects/${PROJECT}/accounts:lookup`, { email: [email] });
+    uid = users[0].localId;
+  }
+  if (claims) {
+    await authCall(`projects/${PROJECT}/accounts:update`, {
+      localId: uid,
+      customAttributes: JSON.stringify(claims),
+    });
+  }
+  return uid;
+}
+
 async function put(path, fields) {
   const res = await fetch(`${BASE}/${path}`, {
     method: 'PATCH',
@@ -153,8 +232,9 @@ async function main() {
       colors: arr(COLORS.map(str)),
       stock: int(variants ? variants.reduce((sum, v) => sum + v.stock, 0) : stock),
       ...(variants ? { variants: arr(variants.map(variantValue)), variantsExcluded: arr([]) } : {}),
-      rating: { doubleValue: 4 + (n % 10) / 10 },
-      reviewCount: int(n * 3),
+      // Recounted from the seeded reviews below (as the admin "Recount ratings" does).
+      rating: { doubleValue: RATINGS.get(id)?.rating ?? 0 },
+      reviewCount: int(RATINGS.get(id)?.reviewCount ?? 0),
       isActive: bool(true),
       searchTokens: arr(buildTokens(name).map(str)),
       createdAt: int(NOW - n * 86_400_000),
@@ -180,9 +260,88 @@ async function main() {
     cardNumber: str('8600000000000000'),
     cardHolder: str('KIDSWEAR TEST'),
     bank: str('Test bank'),
-    note: str("Izohga buyurtma raqamini yozing"),
+    note: str('Izohga buyurtma raqamini yozing'),
   });
   console.log('  settings/payment (transfer on, fake card 8600 0000 0000 0000)');
+
+  // Reviews (Faza 5). Ids follow {orderId}_{productId}; the buyers' orders are
+  // fictional, so nobody can edit these.
+  let r = 0;
+  for (const [productId, author, rating, text, featured, hidden] of REVIEWS) {
+    const orderId = `seed-order-${++r}`;
+    const at = NOW - r * 2 * 86_400_000;
+    await put(`reviews/${orderId}_${productId}`, {
+      productId: str(productId),
+      userId: str(`seed-buyer-${r}`),
+      orderId: str(orderId),
+      authorName: str(author),
+      rating: int(rating),
+      text: str(text),
+      status: str(hidden ? 'hidden' : 'visible'),
+      ...(featured ? { featured: bool(true) } : {}),
+      createdAt: ts(at),
+      updatedAt: ts(at),
+    });
+  }
+  console.log(`  ${REVIEWS.length} reviews (4 featured, 1 hidden)`);
+
+  const customer = await demoUser(DEMO_USERS.customer);
+  const admin = await demoUser(DEMO_USERS.admin, { role: 'admin' });
+  if (customer && admin) {
+    for (const [uid, user, role] of [
+      [customer, DEMO_USERS.customer, 'customer'],
+      [admin, DEMO_USERS.admin, 'admin'],
+    ]) {
+      await put(`users/${uid}`, {
+        email: str(user.email),
+        displayName: str(user.name),
+        role: str(role),
+        addresses: arr([]),
+        createdAt: ts(NOW),
+      });
+    }
+    // A delivered order with two products the demo customer has not reviewed.
+    const item = (productId, name, price) =>
+      map({
+        productId: str(productId),
+        name: str(name),
+        image: str(`https://picsum.photos/seed/${productId}/600/750`),
+        price: int(price),
+        quantity: int(1),
+        size: str('98'),
+        color: str('oq'),
+      });
+    await put('orders/demo-delivered', {
+      userId: str(customer),
+      items: arr([
+        item('prod-2', 'Gulli koʻylak', 215000),
+        item('prod-8', 'Yengil kurtka', 280000),
+      ]),
+      subtotal: int(495000),
+      depositAmount: int(262500),
+      paidAmount: int(525000),
+      total: int(525000),
+      deliveryFee: int(30000),
+      status: str('delivered'),
+      payment: map({ provider: str('mock'), state: str('paid') }),
+      stockApplied: bool(true),
+      shippingAddress: map({
+        id: str('addr-1'),
+        fullName: str('Ali Valiyev'),
+        phone: str('+998901234567'),
+        region: str('tashkent-city'),
+        district: str('Chilonzor'),
+        street: str('Bunyodkor 12'),
+      }),
+      createdAt: ts(NOW - 10 * 86_400_000),
+      updatedAt: ts(NOW - 3 * 86_400_000),
+    });
+    console.log(
+      `  demo accounts: ${DEMO_USERS.customer.email} (delivered order), ${DEMO_USERS.admin.email}`,
+    );
+  } else {
+    console.log('  Auth emulator not running — demo accounts and order skipped');
+  }
   console.log('Done.');
 }
 

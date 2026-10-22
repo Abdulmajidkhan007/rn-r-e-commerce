@@ -134,6 +134,12 @@ export function AdminHomeScreen(): React.ReactElement {
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
           onPress={() => navigation.navigate('AdminPayment')}
         />
+        <List.Item
+          title={t('adminContent.reviews')}
+          left={(props) => <List.Icon {...props} icon="message-star-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('AdminReviews')}
+        />
       </Card>
     </ScrollView>
   );

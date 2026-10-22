@@ -12,8 +12,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { canCustomerCancel } from '@kidswear/core';
-import { useOrder, useCancelOrder } from '@kidswear/data';
+import { canCustomerCancel, reviewableProductIds } from '@kidswear/core';
+import { useOrder, useCancelOrder, useOrderReviews } from '@kidswear/data';
 import { formatDate, formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
@@ -22,6 +22,7 @@ import { Card, ProductImage, Skeleton } from '@/components';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
+import { OrderItemReview } from '@/components/reviews/OrderItemReview';
 import { regionLabel } from '@/lib/region';
 
 export default function OrderDetailPage(): React.ReactElement {
@@ -32,6 +33,10 @@ export default function OrderDetailPage(): React.ReactElement {
   const { user } = useAuth();
   const { cancel, isPending, error: cancelError } = useCancelOrder();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const { byProduct: reviews } = useOrderReviews(
+    order?.status === 'delivered' ? id : undefined,
+    user?.uid,
+  );
 
   if (loading) {
     return (
@@ -62,6 +67,13 @@ export default function OrderDetailPage(): React.ReactElement {
   const canCancel = canCustomerCancel(order.status);
   const remaining = order.total - order.paidAmount;
   const addr = order.shippingAddress;
+  const reviewable = new Set(reviewableProductIds(order));
+  // One review per product per order: a product on two lines (sizes) gets the
+  // button on its first line only.
+  const reviewLine = new Map<string, number>();
+  order.items.forEach((item, i) => {
+    if (!reviewLine.has(item.productId)) reviewLine.set(item.productId, i);
+  });
 
   const doCancel = async (): Promise<void> => {
     try {
@@ -102,29 +114,39 @@ export default function OrderDetailPage(): React.ReactElement {
         <Card>
           <Stack spacing={1.5}>
             <Typography variant="h6">{t('orders.items')}</Typography>
-            {order.items.map((item) => (
-              <Stack
-                key={`${item.productId}-${item.size}-${item.color}`}
-                direction="row"
-                spacing={1.5}
-                sx={{ alignItems: 'center' }}
-              >
-                <ProductImage
-                  src={item.image}
-                  alt={item.name}
-                  sx={{ width: 48, height: 48, borderRadius: 1.5 }}
-                />
-                <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
-                  <Typography variant="body2" noWrap>
-                    {item.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {item.quantity} × {formatPrice(item.price, language)} ({item.size}/{item.color})
+            {order.items.map((item, i) => (
+              <Stack key={`${item.productId}-${item.size}-${item.color}`} spacing={1}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <ProductImage
+                    src={item.image}
+                    alt={item.name}
+                    sx={{ width: 48, height: 48, borderRadius: 1.5 }}
+                  />
+                  <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
+                    <Typography variant="body2" noWrap>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {item.quantity} × {formatPrice(item.price, language)} ({item.size}/
+                      {item.color})
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatPrice(item.price * item.quantity, language)}
                   </Typography>
                 </Stack>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {formatPrice(item.price * item.quantity, language)}
-                </Typography>
+                {user && reviewable.has(item.productId) && reviewLine.get(item.productId) === i && (
+                  <Stack sx={{ pl: { xs: 0, sm: 7.5 } }}>
+                    <OrderItemReview
+                      order={order}
+                      productId={item.productId}
+                      productName={item.name}
+                      userId={user.uid}
+                      displayName={user.displayName}
+                      review={reviews.get(item.productId)}
+                    />
+                  </Stack>
+                )}
               </Stack>
             ))}
           </Stack>
