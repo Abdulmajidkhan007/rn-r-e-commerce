@@ -14,10 +14,16 @@ import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/au
 import {
   deliveryFeeFor,
   evaluatePromo,
+  isTransferAvailable,
   minOrderShortfall,
   type PaymentProvider,
 } from '@kidswear/core';
-import { availableProviders, useCheckout, useDeliverySettings } from '@kidswear/data';
+import {
+  availableProviders,
+  useCheckout,
+  useDeliverySettings,
+  usePaymentSettings,
+} from '@kidswear/data';
 import { computeOrderTotals, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
@@ -46,12 +52,20 @@ export default function CheckoutPage(): React.ReactElement {
   const { checkout, isPending, error } = useCheckout({ providers: paymentProviders });
 
   // 'mock' stays available so the flow works before any gateway contract is
-  // signed; a configured gateway takes precedence as the default.
+  // signed; a configured gateway takes precedence as the default. Card
+  // transfer (settings/payment) comes first when the admin has switched it on.
+  const { data: paymentSettings } = usePaymentSettings();
+  const transferOn = isTransferAvailable(paymentSettings);
   const providers = useMemo<PaymentProvider[]>(() => {
     const hosted = availableProviders(paymentProviders);
-    return hosted.length > 0 ? hosted : ['mock'];
-  }, []);
-  const [provider, setProvider] = useState<PaymentProvider>(() => providers[0] ?? 'mock');
+    return [
+      ...(transferOn ? (['transfer'] as const) : []),
+      ...(hosted.length > 0 ? hosted : ['mock' as const]),
+    ];
+  }, [transferOn]);
+  const [chosen, setChosen] = useState<PaymentProvider | null>(null);
+  const provider: PaymentProvider =
+    chosen && providers.includes(chosen) ? chosen : (providers[0] ?? 'mock');
 
   const addresses = user?.addresses ?? [];
   const [selectedId, setSelectedId] = useState<string>('');
@@ -102,6 +116,11 @@ export default function CheckoutPage(): React.ReactElement {
       placedRef.current = true;
       dispatch(clearCart());
 
+      if (provider === 'transfer') {
+        // The card and the receipt upload live on the order page.
+        navigate(`/orders/${orderId}`, { replace: true });
+        return;
+      }
       if (checkoutUrl) {
         // Hosted gateway: the order is 'pending' until their webhook confirms.
         // Leave the SPA entirely — this is an external payment page.
@@ -176,18 +195,20 @@ export default function CheckoutPage(): React.ReactElement {
             </Stack>
           </Card>
 
-          {/* 2. Payment — stub */}
+          {/* 2. Deposit — the stub wording only applies to the in-app test mode. */}
           <Card>
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">{t('checkout.paymentMethod')}</Typography>
               <Typography variant="caption" color="text.secondary">
-                {t('checkout.depositMock')}
+                {provider === 'mock' ? t('checkout.depositMock') : t('payment.depositNote')}
               </Typography>
               <Alert severity="info">
-                {t('checkout.paymentComingSoon', {
-                  defaultValue:
-                    "To'liq to'lov integratsiyasi tez orada qo'shiladi. Hozircha oldindan to'lov summasi:",
-                })}{' '}
+                {provider === 'mock'
+                  ? t('checkout.paymentComingSoon', {
+                      defaultValue:
+                        "To'liq to'lov integratsiyasi tez orada qo'shiladi. Hozircha oldindan to'lov summasi:",
+                    })
+                  : `${t('cart.deposit')}:`}{' '}
                 <strong>{formatPrice(totals.depositAmount, language)}</strong>
               </Alert>
             </Stack>
@@ -202,7 +223,12 @@ export default function CheckoutPage(): React.ReactElement {
           </Card>
 
           {/* 3. Payment method — rendered only when there is a choice. */}
-          <PaymentMethodPicker providers={providers} value={provider} onChange={setProvider} />
+          <PaymentMethodPicker providers={providers} value={provider} onChange={setChosen} />
+          {provider === 'transfer' && (
+            <Alert severity="info" data-testid="transfer-checkout-hint">
+              {t('transfer.checkoutHint')}
+            </Alert>
+          )}
 
           {/* 4. Review */}
           <Card>

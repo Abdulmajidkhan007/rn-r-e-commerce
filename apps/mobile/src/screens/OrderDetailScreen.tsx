@@ -16,11 +16,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { canCustomerCancel } from '@kidswear/core';
 import { useCancelOrder, useOrder } from '@kidswear/data';
 import { useAppSelector } from '@kidswear/store';
+import { useAuth } from '@kidswear/auth';
 import { formatDate, formatPrice } from '@kidswear/utils';
 import { useTranslation } from '@kidswear/i18n';
 import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import type { RootStackParamList } from '@/navigation/types';
+import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
 import { regionLabel } from '@/lib/region';
 
 export function OrderDetailScreen(): React.ReactElement {
@@ -30,6 +32,7 @@ export function OrderDetailScreen(): React.ReactElement {
   const id = params?.id ?? '';
   const language = useAppSelector((s) => s.ui.language);
   const { order, loading } = useOrder(id);
+  const { user } = useAuth();
   const theme = useTheme();
   const { cancel, isPending, error: cancelError } = useCancelOrder();
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -78,6 +81,10 @@ export function OrderDetailScreen(): React.ReactElement {
           <OrderStatusTimeline status={order.status} />
         </Card.Content>
       </Card>
+
+      {order.payment?.provider === 'transfer' && user ? (
+        <ReceiptsSection order={order} userId={user.uid} language={language} />
+      ) : null}
 
       <Card mode="outlined">
         <Card.Content style={{ gap: 6 }}>

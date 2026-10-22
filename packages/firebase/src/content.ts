@@ -29,6 +29,8 @@ import {
   type ContactStatus,
   type DeliverySettings,
   DeliverySettingsSchema,
+  type PaymentSettings,
+  PaymentSettingsSchema,
   type PromoCode,
   PromoCodeSchema,
 } from '@kidswear/core';
@@ -53,6 +55,7 @@ const blogCol = () => collection(getDb(), CONTENT_COLLECTIONS.blog).withConverte
 const promoCol = () =>
   collection(getDb(), CONTENT_COLLECTIONS.promoCodes).withConverter(promoConverter);
 const deliveryDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'delivery');
+const paymentSettingsDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'payment');
 const favoritesCol = (uid: string) =>
   collection(getDb(), 'users', uid, CONTENT_COLLECTIONS.favorites);
 
@@ -200,6 +203,20 @@ export async function getDeliverySettings(): Promise<DeliverySettings | null> {
 
 export async function saveDeliverySettings(settings: DeliverySettings): Promise<void> {
   await setDoc(deliveryDoc(), DeliverySettingsSchema.parse(settings));
+}
+
+// --- Payment settings (card transfer) ----------------------------------------
+
+/** null when the admin has not configured card transfers (they are then off). */
+export async function getPaymentSettings(): Promise<PaymentSettings | null> {
+  const snap = await getDoc(paymentSettingsDoc());
+  if (!snap.exists()) return null;
+  const parsed = PaymentSettingsSchema.safeParse(snap.data());
+  return parsed.success ? parsed.data : null;
+}
+
+export async function savePaymentSettings(settings: PaymentSettings): Promise<void> {
+  await setDoc(paymentSettingsDoc(), PaymentSettingsSchema.parse(settings));
 }
 
 // --- Favorites ----------------------------------------------------------------

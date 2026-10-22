@@ -33,7 +33,7 @@ export interface Order {
   /** Set by whichever path took the stock (this trigger or the admin client). */
   stockApplied?: boolean;
   payment?: {
-    provider: 'payme' | 'click' | 'mock';
+    provider: 'payme' | 'click' | 'mock' | 'transfer';
     state: 'created' | 'paid' | 'cancelled';
     transactionId?: string;
     createdAt?: number;

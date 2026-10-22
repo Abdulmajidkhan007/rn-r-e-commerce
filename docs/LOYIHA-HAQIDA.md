@@ -283,3 +283,70 @@ o'chiq). Cheklovlar: zaxira faqat admin tasdiqlaganda yechiladi — tasdiqgacha 
 oxirgi donani ikki mijoz buyurtma qilishi mumkin (tasdiqda ikkinchisi to'xtaydi);
 qo'lda tahrirlash (mahsulot formasi) jurnalga yozilmaydi; o'chirilgan mahsulot
 qaytarilganda zaxira qaytmaydi (qator o'tkazib yuboriladi).
+
+## 2026-10-22 — kartaga o'tkazma
+
+Spark'da haqiqiy pul olishning birinchi yo'li: mijoz depozitni do'kon kartasiga o'tkazadi,
+chek rasmini yuklaydi, admin tekshirib tasdiqlaydi.
+
+- **`settings/payment`** (hamma o'qiydi, admin yozadi): `transferEnabled`, `cardNumber`
+  (faqat raqamlar, ekranda `8600 0000 0000 0000` ko'rinishida), `cardHolder`, `bank`,
+  `note`. Admin → "To'lov sozlamalari" (veb `/admin/payment`, mobil admin menyusi). Yoqilgan
+  bo'lsa 16 xonali karta va egasi majburiy (`PaymentSettingsSchema`). Karta faqat
+  ko'rsatiladi — ilova hech qachon pul yechmaydi.
+- **Checkout:** `PaymentProviderSchema` ga `transfer` qo'shildi. O'tkazma yoqilgan bo'lsa
+  "Kartaga o'tkazma" birinchi va sukut bo'yicha tanlangan, "Sinov rejimi" ham qoladi.
+  Buyurtma `pending`, `paidAmount: 0`, `payment: { provider: 'transfer', state: 'created' }`
+  bilan yaratiladi va mijoz buyurtma sahifasiga o'tadi. Qoidalar o'tkazma o'chiq bo'lsa
+  (yoki `settings/payment` yo'q bo'lsa) bunday buyurtmani rad etadi; `deposit_paid` ni
+  mijoz o'zi yarata ham, o'zgartira ham olmaydi (avvalgidek faqat `mock`).
+- **Buyurtma sahifasi (mijoz):** karta raqami, egasi, bank, izoh, o'tkaziladigan summa
+  (depozit), vebda "Nusxa olish" (clipboard), mobilda raqam tanlanadigan matn + "Ulashish"
+  (RN'da o'rnatilgan clipboard yo'q — yangi native kutubxona qo'shmadim). "Chek rasmini
+  yuklash" → rasm qurilmada siqiladi (mahsulot rasmlari bilan bir xil ≤300 KB JPEG
+  byudjeti) → `receipts/{orderId}_r{1..5}`. Cheklar ro'yxati holati bilan (Tekshirilmoqda /
+  Tasdiqlandi / Rad etildi + sabab) real-time yangilanadi.
+- **Admin buyurtmalar:** `transfer` buyurtmalarda "Cheklar" tugmasi, yangi cheklar soni
+  nishonda (veb) / tugma matnida (mobil). Dialogda chek kattalashtiriladi; ✅ Tasdiqlash —
+  bitta tranzaksiyada chek `approved` va buyurtma `deposit_paid`, `paidAmount =
+  depositAmount`, `payment.state: 'paid'`, `payment.transactionId` = chek id
+  (`reviewReceipt`, `@kidswear/firebase/receipts.ts`). `deposit_paid` zaxira yechmaydi (Faza 3
+  qarori) — zaxira keyin admin "Tayyorlanmoqda" qilganda `changeOrderStatus` bilan.
+  ❌ Rad etish — sabab majburiy, mijozga ko'rinadi; mijoz keyingi slotga yangi chek yuklaydi.
+- **Qoidalar (`receipts`):** faqat buyurtma egasi, faqat o'zining `pending` + `transfer`
+  buyurtmasiga yaratadi; id faqat `{orderId}_r1…_r5` — 6-chek va mavjud slotni qayta yozish
+  rad etiladi; ≤420 000 belgi, faqat `data:image/jpeg;base64`; `status: 'pending'`,
+  `createdAt == request.time`. O'qish — egasi va admin. Mijoz o'zgartira/o'chira olmaydi;
+  admin faqat `status`/`reviewedBy`/`reviewedAt`/`note` ni, faqat `pending` chekda, bir marta
+  o'zgartiradi. Hech kim o'chira olmaydi.
+- **Seed:** `seed-emulator.mjs` `settings/payment` ni soxta karta (`8600 0000 0000 0000`,
+  "KIDSWEAR TEST") bilan yozadi. Haqiqiy karta repoga tushmaydi — admin panelda kiritiladi.
+- **PDF chek yo'q:** Firestore hujjatiga faqat siqilgan rasm sig'adi. Storage (Blaze)
+  kelganda PDF va asl rasmni Storage'ga o'tkazish kerak (xuddi `PRODUCT_IMAGE_BACKEND`
+  kabi).
+
+**Tekshirildi:** `type-check`, `lint`, `test` (unit 237, shundan 13 tasi yangi:
+karta formati, sozlamalar sxemasi, slot/limit, yuklash taqiqlari), `test:rules` 71 → 84
+(boshqa foydalanuvchi chekni o'qiy/yarata olmaydi, 6-chek rad, mijoz `approved` qila
+olmaydi va chekni o'chira olmaydi, mijoz `deposit_paid` qila olmaydi, o'tkazma o'chiq
+bo'lsa buyurtma rad, admin faqat ko'rib chiqish maydonlarini bir marta o'zgartiradi, admin
+tasdiq tranzaksiyasi o'tadi). Vebda Firestore + Auth emulyatori va seed bilan Chromium
+(Playwright), 32/32: mijoz (390 px) checkout'da "Kartaga o'tkazma" sukut bo'yicha → buyurtma
+`pending`/0 → sahifada karta `8600 0000 0000 0000`, summa, "Nusxa olish" 16 raqamni
+clipboard'ga oladi → chek yuklandi (JPEG, ~26 000 belgi, `_r1`) → boshqa mijoz chekni
+ko'rmaydi, REST o'qishi 403 → admin nishonda 1 ta yangi chek, kattalashtirdi, sabab bilan rad
+etdi → mijoz sahifasida sabab darhol ko'rindi, buyurtma `pending` → yangi chek (`_r2`) →
+admin tasdiqladi → buyurtma `deposit_paid`, `paidAmount = depositAmount`, `stockApplied`
+yo'q, mijoz sahifasi real-time yangilandi, yuklash tugmasi yo'qoldi → admin o'tkazmani
+o'chirdi → checkout'da variant yo'q; 16 xonasiz karta saqlanmadi → qayta yoqildi; dark rejim
+390 px da gorizontal skrollsiz.
+
+**Sinalmagan:** mobil ilova (APK) — checkout'dagi o'tkazma, chek tanlash/siqish
+(`react-native-image-picker` + resizer), "Ulashish", admin cheklar oynasi va To'lov
+sozlamalari ekrani faqat type-check/lint'dan o'tdi, telefonda ko'rilmagan. Jonli
+(`kids-wear-007`) bazada va haqiqiy bank o'tkazmasi bilan sinalmagan. Vebda HEIC
+(iPhone) rasm brauzer qo'llamasa siqilmaydi — umumiy xato chiqadi. Cheklovlar: rad etilgan
+cheklar ham 5 talik limitga kiradi (5 tasi rad etilsa mijoz admin bilan bog'lanadi); admin
+ro'yxatidagi nishon kutilayotgan cheklarni rasmlari bilan birga yuklaydi (kam bo'ladi,
+lekin trafik bor); qoidalar `deposit_paid` ni tasdiqlangan chekka bog'lamaydi — admin
+ishonchli (holat menyusidan qo'lda ham qo'yishi mumkin).

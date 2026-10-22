@@ -75,6 +75,17 @@ service cloud.firestore {
         && d.depositAmount == math.round(d.total * 0.5);
     }
 
+    function providerOf(d) {
+      return d.get('payment', {}).get('provider', '');
+    }
+
+    // Card transfer orders are accepted only while settings/payment has it on.
+    function transferOk(d) {
+      return providerOf(d) != 'transfer'
+        || (exists(/databases/$(database)/documents/settings/payment)
+            && get(/databases/$(database)/documents/settings/payment).data.transferEnabled == true);
+    }
+
     function sizeBetween(v, lo, hi) {
       return v is string && v.size() >= lo && v.size() <= hi;
     }
@@ -138,6 +149,7 @@ service cloud.firestore {
               ['items', 'subtotal', 'depositAmount', 'total', 'shippingAddress'])
         && !('stockApplied' in request.resource.data)
         && !('cancelReason' in request.resource.data)
+        && transferOk(request.resource.data)
         && promoOk(request.resource.data)
         && deliveryOk(request.resource.data)
         && minOrderOk(request.resource.data)
@@ -152,6 +164,55 @@ service cloud.firestore {
             && request.resource.data.cancelReason == 'customer'
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['status', 'cancelReason', 'updatedAt']));
+      allow delete: if false;
+    }
+
+    // Card-transfer receipts (Spark, no Storage): one compressed JPEG per
+    // document, ids are slots {orderId}_r1…_r5 — a create never overwrites, so
+    // that is the per-order cap. Only the order's owner creates one, and only
+    // for their own still-pending `transfer` order; owner and admins read.
+    // Customers never change or delete a receipt (so they cannot approve
+    // their own). An admin reviews a pending receipt once: only status,
+    // reviewedBy, reviewedAt and note change. Approval flips the order to
+    // deposit_paid in the same client transaction (reviewReceipt); the order
+    // rule already lets only admins do that.
+    match /receipts/{receiptId} {
+      function receiptOrderPath(d) {
+        return /databases/$(database)/documents/orders/$(d.orderId);
+      }
+
+      function receiptSlotOk(d) {
+        return receiptId in [d.orderId + '_r1', d.orderId + '_r2', d.orderId + '_r3',
+                             d.orderId + '_r4', d.orderId + '_r5'];
+      }
+
+      function ownPendingTransferOrder(d) {
+        return exists(receiptOrderPath(d))
+          && get(receiptOrderPath(d)).data.userId == request.auth.uid
+          && get(receiptOrderPath(d)).data.status == 'pending'
+          && providerOf(get(receiptOrderPath(d)).data) == 'transfer';
+      }
+
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['orderId', 'userId', 'data', 'status', 'createdAt'])
+        && request.resource.data.userId == request.auth.uid
+        && sizeBetween(request.resource.data.orderId, 1, 200)
+        && receiptSlotOk(request.resource.data)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 420000
+        && request.resource.data.data.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+')
+        && ownPendingTransferOrder(request.resource.data);
+      allow update: if isAdmin()
+        && resource.data.status == 'pending'
+        && request.resource.data.status in ['approved', 'rejected']
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'reviewedBy', 'reviewedAt', 'note'])
+        && request.resource.data.reviewedBy == request.auth.uid
+        && request.resource.data.reviewedAt == request.time
+        && (!('note' in request.resource.data) || sizeBetween(request.resource.data.note, 1, 500));
       allow delete: if false;
     }
 

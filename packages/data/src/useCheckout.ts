@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import {
   deliveryFeeFor,
   evaluatePromo,
+  isTransferAvailable,
   minOrderShortfall,
   normalizePromoCode,
   stockCoversLines,
@@ -9,7 +10,13 @@ import {
   type CartItem,
   type PaymentProvider,
 } from '@kidswear/core';
-import { createOrder, getDeliverySettings, getProductById, getPromoCode } from '@kidswear/firebase';
+import {
+  createOrder,
+  getDeliverySettings,
+  getPaymentSettings,
+  getProductById,
+  getPromoCode,
+} from '@kidswear/firebase';
 import { computeOrderTotals, genId } from '@kidswear/utils';
 import { mockPaymentService, type PaymentService } from './payment';
 import { buildCheckoutUrl, type PaymentProviderConfig } from './paymentProviders';
@@ -34,6 +41,8 @@ export interface CheckoutResult {
   /**
    * Present only for hosted gateways. The caller must send the customer here;
    * the order stays `pending` until the provider's webhook confirms it.
+   * Absent for `transfer` too: the caller opens the order, where the card and
+   * the receipt upload are.
    */
   checkoutUrl?: string;
 }
@@ -85,6 +94,8 @@ export interface UseCheckoutResult {
  *   server confirms.
  * - **Mock:** settle in-app first, then create the order already
  *   `deposit_paid`, matching what the rules accept for a paid create.
+ * - **Card transfer:** create `pending` / `paidAmount: 0`; the customer
+ *   uploads a receipt and an admin approves it (`reviewReceipt`).
  *
  * Stock is re-checked read-only; the client never writes product stock (that is
  * the Functions' job).
@@ -159,6 +170,20 @@ export function useCheckout(options: UseCheckoutOptions | PaymentService = {}): 
             state: 'paid',
             ...(payed.transactionId ? { transactionId: payed.transactionId } : {}),
           },
+        });
+        return { orderId };
+      }
+
+      if (provider === 'transfer') {
+        // Re-read: the rules refuse a transfer order while it is switched off.
+        if (!isTransferAvailable(await getPaymentSettings())) {
+          throw new Error(ERR.providerUnavailable);
+        }
+        const orderId = await createOrder({
+          ...base,
+          paidAmount: 0,
+          status: 'pending',
+          payment: { provider: 'transfer', state: 'created' },
         });
         return { orderId };
       }

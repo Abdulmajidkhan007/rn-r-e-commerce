@@ -756,3 +756,219 @@ describe('favorites', () => {
     );
   });
 });
+
+// Faza 4 (2026-10-22): card transfer + receipts.
+// ---------------------------------------------------------------------------
+
+describe('card transfer — orders and receipts', () => {
+  const jpeg = `data:image/jpeg;base64,${'A'.repeat(400_000)}`;
+  const paymentSettings = {
+    transferEnabled: true,
+    cardNumber: '8600000000000000',
+    cardHolder: 'KIDSWEAR TEST',
+    bank: 'Test',
+    note: '',
+  };
+  const transferOrder = (over: Record<string, unknown> = {}): Record<string, unknown> =>
+    orderData({
+      status: 'pending',
+      paidAmount: 0,
+      payment: { provider: 'transfer', state: 'created' },
+      ...over,
+    });
+  // The exact shape `uploadReceipt` writes.
+  const receipt = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    orderId: 't1',
+    userId: CUSTOMER,
+    data: jpeg,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+    ...over,
+  });
+
+  beforeEach(async () => {
+    await seed('settings/payment', paymentSettings);
+    await seed('orders/t1', transferOrder());
+  });
+
+  it('a customer creates a pending transfer order while transfers are on', async () => {
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/new'), transferOrder()));
+  });
+
+  it('a customer cannot create a transfer order already paid', async () => {
+    await assertFails(
+      setDoc(
+        doc(customerDb(), 'orders/x'),
+        transferOrder({ status: 'deposit_paid', paidAmount: 50_000 }),
+      ),
+    );
+    await assertFails(setDoc(doc(customerDb(), 'orders/y'), transferOrder({ paidAmount: 50_000 })));
+  });
+
+  it('refuses transfer orders while switched off or not configured', async () => {
+    await seed('settings/payment', { ...paymentSettings, transferEnabled: false });
+    await assertFails(setDoc(doc(customerDb(), 'orders/off'), transferOrder()));
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await deleteDoc(doc(ctx.firestore(), 'settings/payment'));
+    });
+    await assertFails(setDoc(doc(customerDb(), 'orders/none'), transferOrder()));
+  });
+
+  it('a customer cannot mark their own transfer order deposit_paid', async () => {
+    await assertFails(
+      updateDoc(doc(customerDb(), 'orders/t1'), { status: 'deposit_paid', paidAmount: 50_000 }),
+    );
+  });
+
+  it('settings/payment is public read, admin write', async () => {
+    await assertSucceeds(getDoc(doc(anonDb(), 'settings/payment')));
+    await assertFails(setDoc(doc(customerDb(), 'settings/payment'), paymentSettings));
+    await assertSucceeds(setDoc(doc(adminDb(), 'settings/payment'), paymentSettings));
+  });
+
+  it('the owner uploads a receipt; owner and admin read it, nobody else', async () => {
+    await assertSucceeds(setDoc(doc(customerDb(), 'receipts/t1_r1'), receipt()));
+    await assertSucceeds(getDoc(doc(customerDb(), 'receipts/t1_r1')));
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(customerDb(), 'receipts'),
+          where('orderId', '==', 't1'),
+          where('userId', '==', CUSTOMER),
+        ),
+      ),
+    );
+    await assertSucceeds(getDoc(doc(adminDb(), 'receipts/t1_r1')));
+    await assertSucceeds(
+      getDocs(query(collection(adminDb(), 'receipts'), where('orderId', '==', 't1'))),
+    );
+    await assertFails(getDoc(doc(otherDb(), 'receipts/t1_r1')));
+    await assertFails(getDoc(doc(anonDb(), 'receipts/t1_r1')));
+    // A query not limited to the caller's own receipts is refused outright.
+    await assertFails(
+      getDocs(query(collection(otherDb(), 'receipts'), where('orderId', '==', 't1'))),
+    );
+  });
+
+  it("another user cannot attach a receipt to someone else's order", async () => {
+    await assertFails(setDoc(doc(otherDb(), 'receipts/t1_r1'), receipt({ userId: OTHER })));
+    await assertFails(setDoc(doc(otherDb(), 'receipts/t1_r2'), receipt()));
+  });
+
+  it('refuses receipts for non-transfer or non-pending orders', async () => {
+    await seed('orders/m1', orderData());
+    await assertFails(setDoc(doc(customerDb(), 'receipts/m1_r1'), receipt({ orderId: 'm1' })));
+    await seed('orders/t2', transferOrder({ status: 'cancelled' }));
+    await assertFails(setDoc(doc(customerDb(), 'receipts/t2_r1'), receipt({ orderId: 't2' })));
+    await assertFails(setDoc(doc(customerDb(), 'receipts/zz_r1'), receipt({ orderId: 'zz' })));
+  });
+
+  it('caps an order at five receipts: a sixth slot is refused', async () => {
+    for (let n = 1; n <= 5; n += 1) {
+      await assertSucceeds(setDoc(doc(customerDb(), `receipts/t1_r${n}`), receipt()));
+    }
+    await assertFails(setDoc(doc(customerDb(), 'receipts/t1_r6'), receipt()));
+    await assertFails(setDoc(doc(customerDb(), 'receipts/t1_other'), receipt()));
+    // A taken slot cannot be overwritten either.
+    await assertFails(setDoc(doc(customerDb(), 'receipts/t1_r1'), receipt()));
+  });
+
+  it('rejects malformed receipts', async () => {
+    const db = customerDb();
+    await assertFails(setDoc(doc(db, 'receipts/t1_r1'), receipt({ status: 'approved' })));
+    await assertFails(setDoc(doc(db, 'receipts/t1_r1'), receipt({ createdAt: 1 })));
+    await assertFails(setDoc(doc(db, 'receipts/t1_r1'), receipt({ extra: true })));
+    await assertFails(
+      setDoc(doc(db, 'receipts/t1_r1'), receipt({ data: 'data:image/png;base64,AAAA' })),
+    );
+    await assertFails(
+      setDoc(
+        doc(db, 'receipts/t1_r1'),
+        receipt({ data: `data:image/jpeg;base64,${'A'.repeat(420_000)}` }),
+      ),
+    );
+    await assertFails(setDoc(doc(db, 'receipts/t1_r1'), receipt({ reviewedBy: CUSTOMER })));
+  });
+
+  it('a customer can neither approve, edit nor delete a receipt', async () => {
+    await seed('receipts/t1_r1', { ...receipt(), createdAt: 1 });
+    await assertFails(updateDoc(doc(customerDb(), 'receipts/t1_r1'), { status: 'approved' }));
+    await assertFails(updateDoc(doc(customerDb(), 'receipts/t1_r1'), { data: jpeg }));
+    await assertFails(deleteDoc(doc(customerDb(), 'receipts/t1_r1')));
+  });
+
+  it('an admin only changes the review fields, once', async () => {
+    await seed('receipts/t1_r1', { ...receipt(), createdAt: 1 });
+    const db = adminDb();
+    await assertFails(
+      updateDoc(doc(db, 'receipts/t1_r1'), {
+        status: 'rejected',
+        reviewedBy: ADMIN,
+        reviewedAt: serverTimestamp(),
+        data: jpeg.slice(0, 100),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(db, 'receipts/t1_r1'), {
+        status: 'rejected',
+        reviewedBy: CUSTOMER,
+        reviewedAt: serverTimestamp(),
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(db, 'receipts/t1_r1'), {
+        status: 'rejected',
+        reviewedBy: ADMIN,
+        reviewedAt: serverTimestamp(),
+        note: 'Summa mos emas',
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(db, 'receipts/t1_r1'), {
+        status: 'approved',
+        reviewedBy: ADMIN,
+        reviewedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(deleteDoc(doc(db, 'receipts/t1_r1')));
+    // After a rejection the customer uploads a new receipt in the next slot.
+    await assertSucceeds(setDoc(doc(customerDb(), 'receipts/t1_r2'), receipt()));
+  });
+
+  it("passes the admin's approval transaction: receipt approved, order deposit_paid", async () => {
+    await seed('receipts/t1_r1', { ...receipt(), createdAt: 1 });
+    const db = adminDb();
+    await assertSucceeds(
+      runTransaction(db, async (tx) => {
+        const r = await tx.get(doc(db, 'receipts/t1_r1'));
+        const o = await tx.get(doc(db, 'orders/t1'));
+        if (r.get('status') !== 'pending' || o.get('status') !== 'pending') return;
+        tx.update(doc(db, 'receipts/t1_r1'), {
+          status: 'approved',
+          reviewedBy: ADMIN,
+          reviewedAt: serverTimestamp(),
+        });
+        tx.update(doc(db, 'orders/t1'), {
+          status: 'deposit_paid',
+          paidAmount: o.get('depositAmount'),
+          'payment.state': 'paid',
+          'payment.paidAt': Date.now(),
+          'payment.transactionId': 't1_r1',
+          updatedAt: serverTimestamp(),
+        });
+      }),
+    );
+    let status: unknown;
+    let paid: unknown;
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const o = await getDoc(doc(ctx.firestore(), 'orders/t1'));
+      status = o.get('status');
+      paid = o.get('paidAmount');
+    });
+    if (status !== 'deposit_paid' || paid !== 50_000) {
+      throw new Error(`expected deposit_paid/50000, got ${String(status)}/${String(paid)}`);
+    }
+    // The order is no longer pending: no more receipts.
+    await assertFails(setDoc(doc(customerDb(), 'receipts/t1_r2'), receipt()));
+  });
+});
