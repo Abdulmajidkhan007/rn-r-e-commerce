@@ -43,8 +43,8 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 |---|---|---|---|---|---|---|
 | 1 | Mahsulot kartasi bugfix (APK 1.0.10 skrinshotlari) | yo'q | S | — | Sonnet | ✅ PR #7 merge, 2026-10-21; telefonda sinalmagan |
 | 2 | Mahsulot turlari (o'lcham×rang: zaxira, narx, kod) | yo'q | L | — | Opus | ✅ PR #9 merge, 2026-10-22; mobil telefonda sinalmagan |
-| 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | 🔄 ishchi ochildi 2026-10-22 (egasi merge qiladi) |
-| 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ⏳ |
+| 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | ✅ PR #11 egasi merge qildi, 2026-10-22; mobil telefonda sinalmagan |
+| 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | 🔄 ishchi ochildi 2026-10-22 (egasi merge qiladi) |
 | 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ⏳ |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ⏳ |
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ⏳ |
@@ -78,7 +78,8 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Tayyor:** admin 3 o'lcham × 2 rang yaratadi, har biriga zaxira beradi; mijoz faqat bor turni savatga qo'shadi; eski mahsulotlar buzilmaydi; qoidalar testlari yashil.
 - **Model:** Opus — ma'lumot modeli, migratsiya va qoidalar keyingi fazalarning hammasiga ta'sir qiladi.
 
-### Faza 3 — Ombor
+### Faza 3 — Ombor ✅ (2026-10-22)
+- **Natija:** PR #11, egasi merge qildi. CI yashil, qoidalar 61 → 71 test. Admin tasdiqlaganda zaxira tranzaksiyada kamayadi + `stockMoves` jurnali, `stockApplied` bilan idempotent; mijoz faqat `pending` ni bekor qiladi; eng kam summa qoidalarda. Vebda emulyatorda 25/25 oqim. Cheklov: zaxira checkout'da emas, tasdiqda yechiladi. Mobil telefonda sinalmagan.
 - **Maqsad:** Spark'da zaxira hozir **kamaymaydi** (faqat Blaze'dagi `onOrderCreate` qiladi). Buni Blaze'siz hal qilish.
 - **Ishlar:** admin buyurtmani `processing` ga o'tkazganda admin klienti tranzaksiyada tur zaxirasini kamaytiradi (yetmasa — ogohlantirish); `stockMoves` jurnali (kirim, chiqim, sotuv, qaytish); admin "Ombor" sahifasi: kirim/chiqim, inventarizatsiya; mijoz `pending` buyurtmani bekor qila oladi (qoidada faqat o'z buyurtmasi, faqat `pending`→`cancelled`); bekor/qaytarilganda zaxira qaytadi; eng kam buyurtma summasi va "bepul yetkazishga X so'm qoldi".
 - **Tayyor:** buyurtma tasdiqlanganda zaxira kamayadi va jurnalga yoziladi; ikki marta kamaymaydi (idempotent); mijoz faqat o'z kutilayotgan buyurtmasini bekor qiladi; qoidalar testlari.
@@ -149,4 +150,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-22 (Faza 2 tugadi)*
+*Oxirgi yangilanish: 2026-10-22 (Faza 3 tugadi)*
