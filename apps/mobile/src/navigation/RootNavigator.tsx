@@ -36,6 +36,7 @@ import { AdminPromosScreen } from '@/screens/admin/AdminPromosScreen';
 import { AdminDeliveryScreen } from '@/screens/admin/AdminDeliveryScreen';
 import { AdminPaymentScreen } from '@/screens/admin/AdminPaymentScreen';
 import { AdminInventoryScreen } from '@/screens/admin/AdminInventoryScreen';
+import { AdminReviewsScreen } from '@/screens/admin/AdminReviewsScreen';
 import { FavoritesScreen } from '@/screens/FavoritesScreen';
 import { BlogScreen } from '@/screens/BlogScreen';
 import { BlogPostScreen } from '@/screens/BlogPostScreen';
@@ -283,6 +284,13 @@ export function RootNavigator(): ReactElement {
         {() => (
           <AdminGate>
             <AdminPaymentScreen />
+          </AdminGate>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="AdminReviews" options={{ title: t('reviews.admin.title') }}>
+        {() => (
+          <AdminGate>
+            <AdminReviewsScreen />
           </AdminGate>
         )}
       </Stack.Screen>

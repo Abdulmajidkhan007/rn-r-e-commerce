@@ -514,7 +514,8 @@
     "noSales": "No sales yet",
     "minOrder": "Minimum order amount",
     "minOrderHint": "0 — no minimum (amount after discount)",
-    "payment": "Payment settings"
+    "payment": "Payment settings",
+    "reviews": "Reviews"
   },
   "settings": {
     "title": "Settings",
@@ -631,6 +632,58 @@
       "orderNotPending": "The order is not pending — it cannot be approved",
       "noteRequired": "Please enter a reason",
       "generic": "Something went wrong. Please try again."
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "count": "{{count}} reviews",
+    "noReviews": "No reviews yet. Be the first — from your order page once it is delivered.",
+    "showMore": "Show more",
+    "loadError": "Could not load reviews",
+    "write": "Write a review",
+    "edit": "Edit review",
+    "yourReview": "Your review",
+    "yourRating": "Your rating",
+    "text": "Your thoughts (optional)",
+    "textHelper": "{{count}}/{{max}}",
+    "submit": "Submit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "sent": "Thank you for your review!",
+    "pickRating": "Pick a star rating",
+    "editUntil": "You can edit until {{date}}",
+    "hiddenNotice": "This review was hidden by a moderator",
+    "anonymous": "Customer",
+    "featuredTitle": "What customers say",
+    "featuredSubtitle": "Reviews from our shoppers",
+    "ratingAria": "{{value}} out of 5",
+    "errors": {
+      "notDelivered": "You can review only a delivered order",
+      "notInOrder": "This product is not in your order",
+      "invalid": "Rating 1–5, text up to 1000 characters",
+      "editWindow": "The 7-day edit window has passed",
+      "notFound": "Review not found",
+      "generic": "Not saved. Please try again."
+    },
+    "admin": {
+      "title": "Reviews",
+      "all": "All",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "featured": "Featured",
+      "hide": "Hide",
+      "show": "Show",
+      "feature": "Feature",
+      "unfeature": "Unfeature",
+      "delete": "Delete",
+      "confirmDelete": "The review is deleted for good and the product rating is recounted.",
+      "product": "Product",
+      "order": "Order",
+      "noReviews": "No reviews",
+      "recompute": "Recount ratings",
+      "recomputed": "{{count}} products updated",
+      "ratingHint": "Product ratings update when you show, hide or delete a review, and with “Recount ratings”.",
+      "limitNote": "Showing the latest {{count}} reviews"
     }
   }
 }

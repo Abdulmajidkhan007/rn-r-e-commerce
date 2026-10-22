@@ -13,8 +13,8 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { canCustomerCancel } from '@kidswear/core';
-import { useCancelOrder, useOrder } from '@kidswear/data';
+import { canCustomerCancel, reviewableProductIds } from '@kidswear/core';
+import { useCancelOrder, useOrder, useOrderReviews } from '@kidswear/data';
 import { useAppSelector } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
 import { formatDate, formatPrice } from '@kidswear/utils';
@@ -23,6 +23,7 @@ import { OrderStatusChip } from '@/components/orders/OrderStatusChip';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import type { RootStackParamList } from '@/navigation/types';
 import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
+import { OrderItemReview } from '@/components/reviews/OrderItemReview';
 import { regionLabel } from '@/lib/region';
 
 export function OrderDetailScreen(): React.ReactElement {
@@ -36,6 +37,10 @@ export function OrderDetailScreen(): React.ReactElement {
   const theme = useTheme();
   const { cancel, isPending, error: cancelError } = useCancelOrder();
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const { byProduct: reviews } = useOrderReviews(
+    order?.status === 'delivered' ? id : undefined,
+    user?.uid,
+  );
 
   if (loading) {
     return (
@@ -57,6 +62,13 @@ export function OrderDetailScreen(): React.ReactElement {
   const canCancel = canCustomerCancel(order.status);
   const remaining = order.total - order.paidAmount;
   const addr = order.shippingAddress;
+  const reviewable = new Set(reviewableProductIds(order));
+  // One review per product per order: a product on two lines (sizes) gets the
+  // button on its first line only.
+  const reviewLine = new Map<string, number>();
+  order.items.forEach((item, i) => {
+    if (!reviewLine.has(item.productId)) reviewLine.set(item.productId, i);
+  });
 
   const doCancel = async (): Promise<void> => {
     try {
@@ -88,15 +100,24 @@ export function OrderDetailScreen(): React.ReactElement {
 
       <Card mode="outlined">
         <Card.Content style={{ gap: 6 }}>
-          {order.items.map((item) => (
-            <View
-              key={`${item.productId}-${item.size}-${item.color}`}
-              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
-            >
-              <Text variant="bodySmall" style={{ flex: 1 }}>
-                {item.name} × {item.quantity} ({item.size}/{item.color})
-              </Text>
-              <Text variant="bodySmall">{formatPrice(item.price * item.quantity, language)}</Text>
+          {order.items.map((item, i) => (
+            <View key={`${item.productId}-${item.size}-${item.color}`} style={{ gap: 4 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text variant="bodySmall" style={{ flex: 1 }}>
+                  {item.name} × {item.quantity} ({item.size}/{item.color})
+                </Text>
+                <Text variant="bodySmall">{formatPrice(item.price * item.quantity, language)}</Text>
+              </View>
+              {user && reviewable.has(item.productId) && reviewLine.get(item.productId) === i ? (
+                <OrderItemReview
+                  order={order}
+                  productId={item.productId}
+                  productName={item.name}
+                  userId={user.uid}
+                  displayName={user.displayName}
+                  review={reviews.get(item.productId)}
+                />
+              ) : null}
             </View>
           ))}
           <Divider />

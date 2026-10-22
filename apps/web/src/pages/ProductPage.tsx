@@ -14,10 +14,11 @@ import { useAppDispatch, addItem } from '@kidswear/store';
 import { describeVariantPicker } from '@kidswear/core';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
-import { PriceTag, QuantityStepper, Skeleton } from '@/components';
+import { PriceTag, QuantityStepper, Rating, Skeleton } from '@/components';
 import { StockBadge } from '@/components/catalog/StockBadge';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
+import { ProductReviews } from '@/components/reviews/ProductReviews';
 import { useLocalized } from '@/lib/useLocalized';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { FavoriteButton } from '@/components/catalog/FavoriteButton';
@@ -127,6 +128,25 @@ export default function ProductPage(): React.ReactElement {
             <FavoriteButton productId={product.id} size="medium" />
           </Stack>
 
+          {product.reviewCount > 0 && (
+            <Stack
+              component="a"
+              href="#reviews"
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', color: 'text.secondary', textDecoration: 'none' }}
+            >
+              <Rating
+                value={product.rating}
+                size="small"
+                aria-label={t('reviews.ratingAria', { value: product.rating })}
+              />
+              <Typography variant="body2">
+                {product.rating.toFixed(1)} · {t('reviews.count', { count: product.reviewCount })}
+              </Typography>
+            </Stack>
+          )}
+
           <PriceTag
             price={picker.price}
             compareAtPrice={product.compareAtPrice}
@@ -220,6 +240,8 @@ export default function ProductPage(): React.ReactElement {
           </Button>
         </Stack>
       </Box>
+
+      <ProductReviews product={product} />
 
       <RelatedProducts categoryId={product.categoryId} exclude={product.id} />
 

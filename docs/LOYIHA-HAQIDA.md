@@ -350,3 +350,69 @@ cheklar ham 5 talik limitga kiradi (5 tasi rad etilsa mijoz admin bilan bog'lana
 ro'yxatidagi nishon kutilayotgan cheklarni rasmlari bilan birga yuklaydi (kam bo'ladi,
 lekin trafik bor); qoidalar `deposit_paid` ni tasdiqlangan chekka bog'lamaydi — admin
 ishonchli (holat menyusidan qo'lda ham qo'yishi mumkin).
+
+## 2026-10-22 — sharhlar
+
+Mahsulotda reyting bor edi, lekin sharh yozib bo'lmasdi. Endi yetkazilgan buyurtmasi bor mijoz
+sharh yozadi, admin moderatsiya qiladi, reyting moderatsiyadan keyin yangilanadi.
+
+- **Model (`@kidswear/core/review.ts`):** `ReviewSchema` — `productId`, `userId`, `orderId`,
+  `authorName` ("Ali V."), `rating` (1–5 butun), `text` (≤1000, ixtiyoriy), `status`
+  (`visible`/`hidden`), `featured?`, `createdAt`, `updatedAt`. Yordamchilar:
+  `reviewableProductIds`, `canEditReview`, `summarizeReviews`, `authorDisplayName`.
+- **Kolleksiya:** `reviews/{orderId}_{productId}` — bitta buyurtmadagi bitta mahsulotga bitta
+  sharh.
+- **Qoidalar:** yaratish — faqat kirgan, `userId == auth.uid`, buyurtma o'ziniki va
+  `delivered`, mahsulot buyurtma qatorlarida bor (qoida `items` ning 0–19 qatorlarini birma-bir
+  tekshiradi — `productIds` maydoni qo'shilmadi, shuning uchun **eski buyurtmalar ham hech
+  qanday ko'chirishsiz ishlaydi**; sabab DECISIONS.md "Reviews on Spark"da), id shakli
+  tekshiriladi, `visible`, `featured` yo'q. O'qish: `visible` — hamma, `hidden` — muallif va
+  admin. Muallif 7 kun ichida faqat baho/matnni tahrirlaydi. Admin faqat `status`/`featured`
+  ni o'zgartiradi va o'chiradi.
+- **Reyting:** mijoz `products` ga yozolmaydi. Admin sharhni ko'rsatsa/yashirsa/"Mijozlar
+  fikri"ga qo'shsa/o'chirsa — bitta tranzaksiyada sharh va mahsulotning `rating`/`reviewCount`
+  i (ko'rinadigan sharhlar o'rtachasi, 1 xona) yoziladi. "Reytinglarni qayta hisoblash"
+  tugmasi hamma mahsulotni qayta sanaydi. Yangi sharh admin harakatigacha ro'yxatda ko'rinadi,
+  lekin mahsulot reytingi o'zgarmaydi (ataylab — mahsulot sahifasi faqat saqlangan reytingni
+  ko'rsatadi, ikki xil son chiqmasin).
+- **Veb:** mahsulot sahifasida sarlavha ostida yulduz + "4.5 · 2 ta sharh", pastda "Sharhlar"
+  ro'yxati (5 tadan, "Yana ko'rsatish"). Buyurtma sahifasida (`delivered`) har mahsulot
+  ostida "Sharh yozish" → forma (yulduz majburiy, matn ixtiyoriy) → "Sizning sharhingiz" +
+  "Sharhni tahrirlash" (7 kun) / "yashirilgan" belgisi. Bosh sahifada "Mijozlar fikri" (6
+  tagacha). Admin → "Sharhlar" (`/admin/reviews`): filtr (hammasi/ko'rinadi/yashirilgan),
+  yashirish/ko'rsatish, Mijozlar fikriga, o'chirish (tasdiq bilan), qayta hisoblash.
+- **Mobil:** xuddi shu — mahsulot ekrani, buyurtma ekrani (yulduz tanlagich bilan dialog),
+  bosh ekranda gorizontal "Mijozlar fikri", admin menyusida "Sharhlar" ekrani.
+- **Seed (`seed-emulator.mjs`):** 8 ta sharh (4 tasi featured, 1 tasi yashirilgan spam),
+  mahsulot reytinglari shulardan hisoblanadi. Auth emulyatori ishlayotgan bo'lsa ikkita faqat
+  emulyator uchun hisob (`mijoz@kidswear.test`, `admin@kidswear.test`, parol
+  `kidswear-demo`) va mijozga `delivered` buyurtma (`demo-delivered`, 2 mahsulot) yaratiladi.
+
+**Tekshirildi:** `type-check`, `lint` (faqat oldingi ogohlantirish), `test` 237 → 254 (17
+yangi: sxema/forma validatsiyasi, o'rtacha hisoblash, id, ism qisqartirish, 20 qator chegarasi,
+7 kunlik muddat), `test:rules` 84 → 97 (xarid qilmagan yoza olmaydi; `delivered` bo'lmagan
+buyurtma bilan yoza olmaydi; boshqaning buyurtmasi bilan yoza olmaydi; noto'g'ri id; takroriy
+sharh rad; mijoz `hidden`/`featured`/noto'g'ri baho bilan yarata olmaydi, featured/status
+o'zgartira va o'chira olmaydi; mahsulot reytingini yoza olmaydi; 7 kundan keyin tahrir rad;
+hidden boshqaga ko'rinmaydi, filtrsiz so'rov rad; admin moderatsiya tranzaksiyasi o'tadi,
+matnni o'zgartira olmaydi). Vebda Firestore + Auth emulyatori, seed va Chromium (Playwright),
+32/32: anonim 390 px — bosh sahifada 4 ta "Mijozlar fikri", spam yo'q; mahsulotda "4.5 · 2 ta
+sharh" va 2 sharh; yashirilgan sharh REST orqali anonimga 403 → mijoz buyurtma sahifasida 2 ta
+"Sharh yozish", yulduzsiz yuborib bo'lmaydi, 4 yulduz yubordi (`authorName: "Ali V."`), tugma
+"Sizning sharhingiz"ga aylandi, 5 ga tahrirladi; xuddi shu id bilan ikkinchi yaratish REST'da
+403; mahsulot sahifasida sharh ko'rindi, reyting hali 0/0 → admin "Mijozlar fikriga" qo'shdi
+→ mahsulot 5 · 1; yashirdi → 0 · 0; qaytardi → 5 · 1; boshqa sharhni o'chirdi → o'sha mahsulot
+qayta sanaldi; qo'lda buzilgan `reviewCount` "qayta hisoblash" bilan tuzaldi; filtr ishlaydi
+→ dark rejim 390 px: bosh sahifada yangi sharh (5 karta), mahsulotda "5.0 · 1", gorizontal
+skroll yo'q, sahifa xatolarisiz.
+
+**Sinalmagan:** mobil ilova (APK) — sharh ro'yxati, yulduz tanlagich dialogi, buyurtma
+ekranidagi tugmalar, bosh ekrandagi blok va admin "Sharhlar" ekrani faqat type-check/lint'dan
+o'tdi, telefonda ko'rilmagan. Jonli (`kids-wear-007`) bazada sinalmagan; yangi kompozit
+indekslar (`firestore.indexes.json`) emulyatorda tekshirilmaydi — deploy'dan keyin
+qurilishini kutish kerak. `scripts/seed.ts` (jonli seed) dagi soxta reytinglar o'zgartirilmadi
+— admin "qayta hisoblash" ni bossa ular haqiqiy (sharhsiz bo'lsa 0) qiymatga tushadi.
+Cheklovlar: yangi sharh admin harakatigacha reytingga kirmaydi; uzun buyurtmada (20 dan ortiq
+qator) keyingi mahsulotlarga sharh yozib bo'lmaydi; admin ro'yxati oxirgi 200 ta sharhni
+ko'rsatadi; muallif ismi mijoz yozgan matn (faqat uzunligi tekshiriladi).
+

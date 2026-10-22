@@ -21,3 +21,4 @@ export * from './blog';
 export * from './promo';
 export * from './delivery';
 export * from './transfer';
+export * from './review';

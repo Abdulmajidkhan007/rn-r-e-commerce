@@ -31,6 +31,8 @@ import { useLocalized } from '@/lib/useLocalized';
 import type { RootStackParamList } from '@/navigation/types';
 import { FavoriteButton } from '@/components/catalog/FavoriteButton';
 import { ProductImage } from '@/components/ProductImage';
+import { Rating } from '@/components/Rating';
+import { ProductReviews } from '@/components/reviews/ProductReviews';
 
 const { width } = Dimensions.get('window');
 
@@ -183,6 +185,15 @@ export function ProductDetailScreen(): React.ReactElement {
             <FavoriteButton productId={product.id} size={22} />
           </View>
 
+          {product.reviewCount > 0 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Rating value={product.rating} size={16} />
+              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                {product.rating.toFixed(1)} · {t('reviews.count', { count: product.reviewCount })}
+              </Text>
+            </View>
+          ) : null}
+
           <PriceTag
             price={picker.price}
             compareAtPrice={product.compareAtPrice}
@@ -265,6 +276,8 @@ export function ProductDetailScreen(): React.ReactElement {
           >
             {picked ? t('catalog.addToCart') : t('catalog.chooseVariant')}
           </Button>
+
+          <ProductReviews product={product} />
 
           {relatedProducts.length > 0 ? (
             <View style={{ gap: 12, marginTop: 12 }}>

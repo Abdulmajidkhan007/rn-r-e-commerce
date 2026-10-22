@@ -120,6 +120,19 @@ export {
 } from './receipts';
 export type { ReceiptErrorCode, ReceiptReview } from './receipts';
 
+export {
+  ReviewError,
+  submitReview,
+  editOwnReview,
+  subscribeOrderReviews,
+  getProductReviewsPage,
+  getFeaturedReviews,
+  getAdminReviews,
+  moderateReview,
+  recomputeAllRatings,
+} from './reviews';
+export type { ReviewErrorCode, SubmitReviewInput, ReviewPage, ReviewModeration } from './reviews';
+
 export { PRODUCT_IMAGE_BACKEND, saveProductImage, getInlineImage } from './productImages';
 export type { ProductImageBackend, EncodedImage } from './productImages';
 

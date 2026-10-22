@@ -7,6 +7,7 @@ import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { LanguageMenu, Skeleton, ThemeToggle } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
+import { FeaturedReviews } from '@/components/reviews/FeaturedReviews';
 import { useLocalized } from '@/lib/useLocalized';
 import { useProductGrid } from '@/lib/useProductGrid';
 
@@ -132,6 +133,8 @@ export function HomeScreen(): React.ReactElement {
           </Card>
         )}
       </View>
+
+      <FeaturedReviews />
 
       {/* Reachable signed out too — Profile (which also links them) needs an account. */}
       <View style={{ flexDirection: 'row', gap: 12 }}>

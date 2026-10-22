@@ -514,7 +514,8 @@
     "noSales": "Hali sotuv yoʻq",
     "minOrder": "Eng kam buyurtma summasi",
     "minOrderHint": "0 — cheklov yo'q (chegirmadan keyingi summa)",
-    "payment": "To'lov sozlamalari"
+    "payment": "To'lov sozlamalari",
+    "reviews": "Sharhlar"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -631,6 +632,58 @@
       "orderNotPending": "Buyurtma kutilayotgan holatda emas — tasdiqlab bo'lmaydi",
       "noteRequired": "Rad etish sababini yozing",
       "generic": "Xatolik yuz berdi. Qayta urinib ko'ring."
+    }
+  },
+  "reviews": {
+    "title": "Sharhlar",
+    "count": "{{count}} ta sharh",
+    "noReviews": "Hali sharh yoʻq. Birinchi boʻlib yozing — mahsulot yetkazilgach buyurtma sahifasidan.",
+    "showMore": "Yana koʻrsatish",
+    "loadError": "Sharhlarni yuklab boʻlmadi",
+    "write": "Sharh yozish",
+    "edit": "Sharhni tahrirlash",
+    "yourReview": "Sizning sharhingiz",
+    "yourRating": "Bahoyingiz",
+    "text": "Fikringiz (ixtiyoriy)",
+    "textHelper": "{{count}}/{{max}}",
+    "submit": "Yuborish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "sent": "Sharhingiz uchun rahmat!",
+    "pickRating": "Yulduzlardan birini tanlang",
+    "editUntil": "{{date}} gacha tahrirlash mumkin",
+    "hiddenNotice": "Sharh moderator tomonidan yashirilgan",
+    "anonymous": "Mijoz",
+    "featuredTitle": "Mijozlar fikri",
+    "featuredSubtitle": "Xaridorlarimiz nima deydi",
+    "ratingAria": "5 dan {{value}}",
+    "errors": {
+      "notDelivered": "Sharhni faqat yetkazilgan buyurtma uchun yozish mumkin",
+      "notInOrder": "Bu mahsulot buyurtmangizda yoʻq",
+      "invalid": "Baho 1–5, matn 1000 belgigacha",
+      "editWindow": "Tahrirlash muddati (7 kun) tugagan",
+      "notFound": "Sharh topilmadi",
+      "generic": "Saqlanmadi. Qayta urinib koʻring."
+    },
+    "admin": {
+      "title": "Sharhlar",
+      "all": "Hammasi",
+      "visible": "Koʻrinadi",
+      "hidden": "Yashirilgan",
+      "featured": "Mijozlar fikri",
+      "hide": "Yashirish",
+      "show": "Koʻrsatish",
+      "feature": "Mijozlar fikriga",
+      "unfeature": "Mijozlar fikridan olish",
+      "delete": "Oʻchirish",
+      "confirmDelete": "Sharh butunlay oʻchiriladi va mahsulot reytingi qayta hisoblanadi.",
+      "product": "Mahsulot",
+      "order": "Buyurtma",
+      "noReviews": "Sharhlar yoʻq",
+      "recompute": "Reytinglarni qayta hisoblash",
+      "recomputed": "{{count}} ta mahsulot yangilandi",
+      "ratingHint": "Mahsulot reytingi koʻrsatish/yashirish/oʻchirishda va «Qayta hisoblash» tugmasida yangilanadi.",
+      "limitNote": "Oxirgi {{count}} ta sharh koʻrsatilmoqda"
     }
   }
 }
