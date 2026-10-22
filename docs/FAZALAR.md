@@ -6,6 +6,10 @@
 > branch + PR, nazoratchi tekshiradi. Har ishchi: `npm run type-check && npm run lint && npm test`
 > (+ qoidalar o'zgarsa `npm run test:rules`).
 
+**Merge qoidasi (egasi, 2026-10-22, "A variant" — shu sessiyada tasdiqlangan):** Faza 2, 5, 6, 8, 9, 10, 11, 13 — nazoratchi
+CI yashil va diff tekshirilgach o'zi merge qiladi. Faza 3, 4, 7, 12 — nazoratchi tekshiradi, egasi
+merge qiladi; keyingi faza shundan keyin boshlanadi. Faza 14–20 — Blaze yoqilmaguncha boshlanmaydi.
+
 Model tanlash: arxitektura, ma'lumot modeli, xavfsizlik qoidalari, to'lov, maxfiy kalitlar → **Opus**;
 oddiy UI, matn, mexanik ish → **Sonnet**.
 
