@@ -246,6 +246,64 @@ describe('orders — create', () => {
   });
 });
 
+describe('product variants', () => {
+  const variants = [
+    { id: 'S|Red', size: 'S', color: 'Red', stock: 3 },
+    { id: 'M|Red', size: 'M', color: 'Red', stock: 0, price: 120_000, sku: 'KW-M-R' },
+  ];
+  const variantLines = [
+    { productId: 'p1', variantId: 'S|Red', size: 'S', color: 'Red', quantity: 1, price: 100_000 },
+    { productId: 'p1', variantId: 'M|Red', size: 'M', color: 'Red', quantity: 1, price: 120_000 },
+  ];
+
+  it('lets an admin write a product with variants', async () => {
+    await assertSucceeds(
+      setDoc(doc(adminDb(), 'products/p1'), {
+        price: 100_000,
+        stock: 3,
+        sizes: ['S', 'M'],
+        colors: ['Red'],
+        variants,
+        variantsExcluded: [],
+      }),
+    );
+  });
+
+  it('blocks a customer from touching variant stock', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'products/p1'), { stock: 3, variants });
+    });
+    await assertFails(
+      updateDoc(doc(customerDb(), 'products/p1'), {
+        variants: variants.map((v) => ({ ...v, stock: 99 })),
+      }),
+    );
+  });
+
+  it('accepts an order whose lines carry variantId — totals still checked', async () => {
+    const order = orderData({
+      items: variantLines,
+      subtotal: 220_000,
+      total: 220_000,
+      depositAmount: 110_000,
+      paidAmount: 110_000,
+    });
+    await assertSucceeds(setDoc(doc(customerDb(), 'orders/ov1'), order));
+    await assertFails(setDoc(doc(customerDb(), 'orders/ov2'), { ...order, total: 100_000 }));
+  });
+
+  it('still accepts a pre-variant line without variantId', async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(customerDb(), 'orders/olegacy'),
+        orderData({
+          items: [{ productId: 'p1', size: 'S', color: 'Red', quantity: 1, price: 100_000 }],
+        }),
+      ),
+    );
+  });
+});
+
 describe('orders — read', () => {
   beforeEach(async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {

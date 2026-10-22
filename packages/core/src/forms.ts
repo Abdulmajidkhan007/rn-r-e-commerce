@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LocalizedTextSchema } from './localized';
+import { ProductVariantSchema } from './variant';
 
 /**
  * Admin form schemas. Validation messages are i18n keys (under
@@ -14,7 +15,15 @@ export const productFormSchema = z.object({
   categoryId: z.string().min(1, { message: 'admin.validation.categoryRequired' }),
   sizes: z.array(z.string()),
   colors: z.array(z.string()),
+  /** Derived from `variants` on save (their sum); kept for legacy edits. */
   stock: z.number().int().nonnegative({ message: 'admin.validation.stockMin' }),
+  variants: z.array(
+    ProductVariantSchema.extend({
+      stock: z.number().int().nonnegative({ message: 'admin.validation.stockMin' }),
+      price: z.number().int().positive({ message: 'admin.validation.priceMin' }).optional(),
+    }),
+  ),
+  variantsExcluded: z.array(z.string()),
   images: z.array(z.string()),
   isActive: z.boolean(),
 });

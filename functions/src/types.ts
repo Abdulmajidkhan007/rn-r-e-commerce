@@ -6,6 +6,18 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: number;
+  size?: string;
+  color?: string;
+  /** Absent on orders placed before product variants. */
+  variantId?: string;
+}
+
+/** Mirror of @kidswear/core ProductVariant (only what stock maths needs). */
+export interface ProductVariant {
+  id: string;
+  size: string;
+  color: string;
+  stock: number;
 }
 
 export interface Order {

@@ -175,7 +175,11 @@
     "featured": "Рекомендуем",
     "newArrivals": "Новинки",
     "loadMore": "Показать ещё",
-    "loading": "Загрузка…"
+    "loading": "Загрузка…",
+    "variantUnavailable": "Этот вариант закончился",
+    "variantInStock": "В наличии: {{count}} шт.",
+    "priceFrom": "от {{price}}",
+    "chooseVariant": "Выберите размер и цвет"
   },
   "cart": {
     "cart": "Корзина",
@@ -285,7 +289,20 @@
       "categoryRequired": "Выберите категорию",
       "stockMin": "Склад не может быть отрицательным",
       "slugRequired": "Введите slug"
-    }
+    },
+    "variants": "Варианты (размер × цвет)",
+    "variantsHint": "После ввода размеров и цветов укажите остаток, цену (необязательно) и код для каждой комбинации. Пустая цена — цена товара.",
+    "variantsTotalStock": "Всего на складе: {{count}}",
+    "variantSize": "Размер",
+    "variantColor": "Цвет",
+    "variantStock": "Остаток",
+    "variantPrice": "Цена",
+    "variantSku": "Код (SKU)",
+    "variantRemove": "Удалить вариант",
+    "variantsRestore": "Вернуть удалённые ({{count}})",
+    "variantsEmpty": "Все варианты удалены — товар нельзя купить",
+    "variantsLegacy": "Товар создан без вариантов (общий остаток: {{count}}). Распределите остаток по вариантам — после сохранения общий остаток равен их сумме.",
+    "variantAny": "—"
   },
   "dashboardStats": {
     "totalProducts": "Всего товаров",

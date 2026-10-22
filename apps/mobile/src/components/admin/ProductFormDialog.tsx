@@ -12,7 +12,15 @@ import {
   Text,
   TextInput,
 } from 'react-native-paper';
-import { productFormSchema, type ProductFormValues } from '@kidswear/core';
+import {
+  buildVariantMatrix,
+  initialFormVariants,
+  isLegacyProduct,
+  productFormSchema,
+  pruneExcluded,
+  totalVariantStock,
+  type ProductFormValues,
+} from '@kidswear/core';
 import type { Category, Product } from '@kidswear/core';
 import { useCreateProduct, useUpdateProduct } from '@kidswear/data';
 import { newProductId, saveProductImage } from '@kidswear/firebase';
@@ -21,6 +29,8 @@ import { FormTextInput } from '@/components/FormTextInput';
 import { ImageUploadField } from '@/components/ImageUploadField';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { compressProductImage } from '@/lib/image';
+import { CsvTextInput } from './CsvTextInput';
+import { VariantsEditor } from './VariantsEditor';
 
 export interface ProductFormDialogProps {
   visible: boolean;
@@ -44,17 +54,12 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
     sizes: product?.sizes ?? [],
     colors: product?.colors ?? [],
     stock: product?.stock ?? 0,
+    variants: product ? initialFormVariants(product) : buildVariantMatrix([], []),
+    variantsExcluded: product?.variantsExcluded ?? [],
     images: product?.images ?? [],
     isActive: product?.isActive ?? true,
   };
 }
-
-const toCsv = (v: string[]): string => v.join(', ');
-const fromCsv = (v: string): string[] =>
-  v
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
 
 export function ProductFormDialog({
   visible,
@@ -77,6 +82,8 @@ export function ProductFormDialog({
     control,
     handleSubmit,
     reset,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -90,13 +97,40 @@ export function ProductFormDialog({
   const selectedCategoryId = useWatch({ control, name: 'categoryId' });
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
+  const sizes = useWatch({ control, name: 'sizes' });
+  const colors = useWatch({ control, name: 'colors' });
+  const variantsExcluded = useWatch({ control, name: 'variantsExcluded' });
+
+  // Rebuild the size × colour matrix whenever an axis changes; rows that
+  // survive keep the numbers already typed into them.
+  useEffect(() => {
+    const excluded = pruneExcluded(sizes, colors, getValues('variantsExcluded'));
+    setValue('variantsExcluded', excluded);
+    setValue('variants', buildVariantMatrix(sizes, colors, getValues('variants'), excluded));
+  }, [sizes, colors, getValues, setValue]);
+
+  const removeVariant = (id: string): void => {
+    setValue('variantsExcluded', [...getValues('variantsExcluded'), id]);
+    setValue(
+      'variants',
+      getValues('variants').filter((v) => v.id !== id),
+    );
+  };
+
+  const restoreVariants = (): void => {
+    setValue('variantsExcluded', []);
+    setValue('variants', buildVariantMatrix(sizes, colors, getValues('variants'), []));
+  };
+
   const submit = handleSubmit(async (values) => {
+    // Product-level stock is the variants' sum (the mutation enforces it too).
+    const payload = { ...values, stock: totalVariantStock(values.variants) };
     if (isEdit) {
-      await updateProduct.mutateAsync({ id: productId, patch: values });
+      await updateProduct.mutateAsync({ id: productId, patch: payload });
     } else {
       await createProduct.mutateAsync({
         id: productId,
-        input: { ...values, rating: 0, reviewCount: 0 },
+        input: { ...payload, rating: 0, reviewCount: 0 },
       });
     }
     onDismiss();
@@ -155,24 +189,6 @@ export function ProductFormDialog({
               )}
             />
 
-            <Controller
-              control={control}
-              name="stock"
-              render={({ field }) => (
-                <TextInput
-                  mode="outlined"
-                  label={t('admin.stock')}
-                  keyboardType="number-pad"
-                  value={String(field.value)}
-                  onChangeText={(text) => field.onChange(Number(text) || 0)}
-                  error={!!errors.stock}
-                />
-              )}
-            />
-            <HelperText type="error" visible={!!errors.stock}>
-              {errors.stock ? tk(errors.stock.message ?? '') : ' '}
-            </HelperText>
-
             <Menu
               visible={menuOpen}
               onDismiss={() => setMenuOpen(false)}
@@ -209,11 +225,10 @@ export function ProductFormDialog({
               control={control}
               name="sizes"
               render={({ field }) => (
-                <TextInput
-                  mode="outlined"
+                <CsvTextInput
                   label={t('admin.sizes')}
-                  value={toCsv(field.value)}
-                  onChangeText={(text) => field.onChange(fromCsv(text))}
+                  value={field.value}
+                  onChange={field.onChange}
                 />
               )}
             />
@@ -224,11 +239,36 @@ export function ProductFormDialog({
               control={control}
               name="colors"
               render={({ field }) => (
-                <TextInput
-                  mode="outlined"
+                <CsvTextInput
                   label={t('admin.colors')}
-                  value={toCsv(field.value)}
-                  onChangeText={(text) => field.onChange(fromCsv(text))}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+            <HelperText type="info" visible>
+              {t('admin.commaHint')}
+            </HelperText>
+
+            {product && isLegacyProduct(product) ? (
+              <HelperText type="info" visible>
+                {t('admin.variantsLegacy', { count: product.stock })}
+              </HelperText>
+            ) : null}
+            <Controller
+              control={control}
+              name="variants"
+              render={({ field }) => (
+                <VariantsEditor
+                  variants={field.value}
+                  onChange={field.onChange}
+                  onRemove={removeVariant}
+                  excludedCount={variantsExcluded.length}
+                  onRestore={restoreVariants}
+                  rowError={(i) => {
+                    const message = errors.variants?.[i]?.stock?.message;
+                    return message ? tk(message) : undefined;
+                  }}
                 />
               )}
             />

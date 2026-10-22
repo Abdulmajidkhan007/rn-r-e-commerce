@@ -9,6 +9,8 @@ export interface PriceTagProps {
   /** Optional original price to show struck-through. */
   compareAtPrice?: number;
   size?: 'sm' | 'md' | 'lg';
+  /** Wraps the formatted price, e.g. into "from {{price}}". */
+  format?: (formatted: string) => string;
 }
 
 const VARIANT = {
@@ -22,6 +24,7 @@ export function PriceTag({
   price,
   compareAtPrice,
   size = 'md',
+  format = (formatted) => formatted,
 }: PriceTagProps): React.ReactElement {
   const language = useAppSelector((s) => s.ui.language);
   return (
@@ -32,7 +35,7 @@ export function PriceTag({
         color="text.primary"
         sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}
       >
-        {formatPrice(price, language)}
+        {format(formatPrice(price, language))}
       </Typography>
       {compareAtPrice !== undefined && compareAtPrice > price && (
         <Typography

@@ -21,7 +21,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProduct, useProducts } from '@kidswear/data';
 import { useAppDispatch, addItem } from '@kidswear/store';
-import { stockStatus } from '@kidswear/utils';
+import { describeVariantPicker } from '@kidswear/core';
+import { tokens } from '@kidswear/theme';
 import { useTranslation } from '@kidswear/i18n';
 import { PriceTag, QuantityStepper } from '@/components';
 import { StockBadge } from '@/components/catalog/StockBadge';
@@ -90,6 +91,7 @@ export function ProductDetailScreen(): React.ReactElement {
   const localized = useLocalized();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
   const id = params?.id ?? '';
@@ -145,21 +147,21 @@ export function ProductDetailScreen(): React.ReactElement {
     );
   }
 
-  const status = stockStatus(product.stock);
-  const needsSize = product.sizes.length > 0;
-  const needsColor = product.colors.length > 0;
-  const canAdd =
-    status !== 'out' && (!needsSize || size !== null) && (!needsColor || color !== null);
+  const picker = describeVariantPicker(product, size, color);
+  const { needsSize, needsColor, variant } = picker;
+  const picked = (!needsSize || size !== null) && (!needsColor || color !== null);
   const relatedProducts = related.filter((p) => p.id !== product.id);
 
   const handleAdd = (): void => {
+    if (!variant) return;
     dispatch(
       addItem({
         productId: product.id,
+        variantId: variant.id,
         name: localized(product.name),
         image: product.images[0] ?? '',
-        price: product.price,
-        quantity: qty,
+        price: picker.price,
+        quantity: Math.min(qty, picker.available),
         size: size ?? '',
         color: color ?? '',
       }),
@@ -181,7 +183,12 @@ export function ProductDetailScreen(): React.ReactElement {
             <FavoriteButton productId={product.id} size={22} />
           </View>
 
-          <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
+          <PriceTag
+            price={picker.price}
+            compareAtPrice={product.compareAtPrice}
+            size="lg"
+            format={picker.priceIsFrom ? (price) => t('catalog.priceFrom', { price }) : undefined}
+          />
           <Text variant="bodyMedium" style={{ opacity: 0.7, lineHeight: 24 }}>
             {localized(product.description)}
           </Text>
@@ -190,8 +197,15 @@ export function ProductDetailScreen(): React.ReactElement {
             <View style={{ gap: 6 }}>
               <Text variant="titleSmall">{t('catalog.selectSize')}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {product.sizes.map((s) => (
-                  <Chip key={s} selected={size === s} showSelectedCheck onPress={() => setSize(s)}>
+                {picker.sizes.map(({ value: s, disabled }) => (
+                  <Chip
+                    key={s}
+                    selected={size === s}
+                    disabled={disabled}
+                    showSelectedCheck
+                    onPress={() => setSize(size === s ? null : s)}
+                    textStyle={disabled ? { textDecorationLine: 'line-through' } : undefined}
+                  >
                     {s}
                   </Chip>
                 ))}
@@ -203,12 +217,14 @@ export function ProductDetailScreen(): React.ReactElement {
             <View style={{ gap: 6 }}>
               <Text variant="titleSmall">{t('catalog.selectColor')}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {product.colors.map((c) => (
+                {picker.colors.map(({ value: c, disabled }) => (
                   <Chip
                     key={c}
                     selected={color === c}
+                    disabled={disabled}
                     showSelectedCheck
-                    onPress={() => setColor(c)}
+                    onPress={() => setColor(color === c ? null : c)}
+                    textStyle={disabled ? { textDecorationLine: 'line-through' } : undefined}
                   >
                     {c}
                   </Chip>
@@ -223,12 +239,31 @@ export function ProductDetailScreen(): React.ReactElement {
               value={qty}
               onChange={setQty}
               min={1}
-              max={Math.max(1, product.stock)}
+              max={Math.max(1, variant ? picker.available : product.stock)}
             />
           </View>
 
-          <Button mode="contained" disabled={!canAdd} onPress={handleAdd} style={{ width: '100%' }}>
-            {t('catalog.addToCart')}
+          {picked && variant ? (
+            <Text
+              variant="bodyMedium"
+              style={{
+                color: picker.canAdd ? theme.colors.onSurfaceVariant : theme.colors.error,
+                marginTop: tokens.spacing['2xs'],
+              }}
+            >
+              {picker.canAdd
+                ? t('catalog.variantInStock', { count: picker.available })
+                : t('catalog.variantUnavailable')}
+            </Text>
+          ) : null}
+
+          <Button
+            mode="contained"
+            disabled={!picker.canAdd}
+            onPress={handleAdd}
+            style={{ width: '100%' }}
+          >
+            {picked ? t('catalog.addToCart') : t('catalog.chooseVariant')}
           </Button>
 
           {relatedProducts.length > 0 ? (

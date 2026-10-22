@@ -9,7 +9,11 @@ const initialState: CartState = {
   items: [],
 };
 
-/** A cart line is uniquely identified by product + size + color. */
+/**
+ * A cart line is uniquely identified by product + size + color. A variant is
+ * exactly one size × color pair, so this is also the variant identity — and it
+ * keeps lines persisted before `variantId` existed addressable unchanged.
+ */
 function sameLine(a: CartItem, b: Pick<CartItem, 'productId' | 'size' | 'color'>): boolean {
   return a.productId === b.productId && a.size === b.size && a.color === b.color;
 }
@@ -32,6 +36,11 @@ const cartSlice = createSlice({
       const existing = state.items.find((item) => sameLine(item, incoming));
       if (existing) {
         existing.quantity += incoming.quantity;
+        // A pre-variant line picks up the variant (and its price) on re-add.
+        if (incoming.variantId !== undefined) {
+          existing.variantId = incoming.variantId;
+          existing.price = incoming.price;
+        }
       } else {
         state.items.push(incoming);
       }

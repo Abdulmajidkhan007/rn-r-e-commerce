@@ -11,7 +11,7 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import { useProduct } from '@kidswear/data';
 import { useAppDispatch, addItem } from '@kidswear/store';
-import { stockStatus } from '@kidswear/utils';
+import { describeVariantPicker } from '@kidswear/core';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { PriceTag, QuantityStepper, Skeleton } from '@/components';
@@ -83,20 +83,20 @@ export default function ProductPage(): React.ReactElement {
     );
   }
 
-  const status = stockStatus(product.stock);
-  const needsSize = product.sizes.length > 0;
-  const needsColor = product.colors.length > 0;
-  const canAdd =
-    status !== 'out' && (!needsSize || size !== null) && (!needsColor || color !== null);
+  const picker = describeVariantPicker(product, size, color);
+  const { needsSize, needsColor, variant } = picker;
+  const picked = (!needsSize || size !== null) && (!needsColor || color !== null);
 
   const handleAdd = (): void => {
+    if (!variant) return;
     dispatch(
       addItem({
         productId: product.id,
+        variantId: variant.id,
         name: localized(product.name),
         image: product.images[0] ?? '',
-        price: product.price,
-        quantity: qty,
+        price: picker.price,
+        quantity: Math.min(qty, picker.available),
         size: size ?? '',
         color: color ?? '',
       }),
@@ -127,7 +127,12 @@ export default function ProductPage(): React.ReactElement {
             <FavoriteButton productId={product.id} size="medium" />
           </Stack>
 
-          <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
+          <PriceTag
+            price={picker.price}
+            compareAtPrice={product.compareAtPrice}
+            size="lg"
+            format={picker.priceIsFrom ? (price) => t('catalog.priceFrom', { price }) : undefined}
+          />
 
           <Typography
             variant="body1"
@@ -144,17 +149,20 @@ export default function ProductPage(): React.ReactElement {
                 value={size}
                 exclusive
                 onChange={(_, next: string | null) => setSize(next)}
+                aria-label={t('catalog.selectSize')}
                 sx={{ flexWrap: 'wrap', gap: 1 }}
               >
-                {product.sizes.map((s) => (
+                {picker.sizes.map(({ value: s, disabled }) => (
                   <ToggleButton
                     key={s}
                     value={s}
+                    disabled={disabled}
                     sx={{
                       borderRadius: `${tokens.radii.full}px`,
                       border: '1px solid',
                       borderColor: 'divider',
                       px: 2,
+                      '&.Mui-disabled': { textDecoration: 'line-through' },
                       '&.Mui-selected': {
                         bgcolor: 'primary.main',
                         color: 'primary.contrastText',
@@ -173,13 +181,16 @@ export default function ProductPage(): React.ReactElement {
             <Stack spacing={1}>
               <Typography variant="subtitle2">{t('catalog.selectColor')}</Typography>
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                {product.colors.map((c) => (
+                {picker.colors.map(({ value: c, disabled }) => (
                   <Chip
                     key={c}
                     label={c}
+                    disabled={disabled}
+                    aria-pressed={color === c}
                     variant={color === c ? 'filled' : 'outlined'}
                     color={color === c ? 'primary' : 'default'}
-                    onClick={() => setColor(c)}
+                    onClick={() => setColor(color === c ? null : c)}
+                    sx={{ '&.Mui-disabled': { textDecoration: 'line-through' } }}
                   />
                 ))}
               </Stack>
@@ -192,12 +203,20 @@ export default function ProductPage(): React.ReactElement {
               value={qty}
               onChange={setQty}
               min={1}
-              max={Math.max(1, product.stock)}
+              max={Math.max(1, variant ? picker.available : product.stock)}
             />
           </Stack>
 
-          <Button variant="contained" size="large" disabled={!canAdd} onClick={handleAdd}>
-            {t('catalog.addToCart')}
+          {picked && variant && (
+            <Typography variant="body2" color={picker.canAdd ? 'text.secondary' : 'error'}>
+              {picker.canAdd
+                ? t('catalog.variantInStock', { count: picker.available })
+                : t('catalog.variantUnavailable')}
+            </Typography>
+          )}
+
+          <Button variant="contained" size="large" disabled={!picker.canAdd} onClick={handleAdd}>
+            {picked ? t('catalog.addToCart') : t('catalog.chooseVariant')}
           </Button>
         </Stack>
       </Box>

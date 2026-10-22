@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Dialog from '@mui/material/Dialog';
@@ -12,7 +12,16 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
-import { productFormSchema, type ProductFormValues } from '@kidswear/core';
+import Alert from '@mui/material/Alert';
+import {
+  buildVariantMatrix,
+  initialFormVariants,
+  isLegacyProduct,
+  productFormSchema,
+  pruneExcluded,
+  totalVariantStock,
+  type ProductFormValues,
+} from '@kidswear/core';
 import type { Category, Product } from '@kidswear/core';
 import { useCreateProduct, useUpdateProduct } from '@kidswear/data';
 import { newProductId, saveProductImage } from '@kidswear/firebase';
@@ -20,6 +29,8 @@ import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
 import { ImageUploadField } from '@/components/ImageUploadField';
 import { compressProductImage } from '@/lib/image';
+import { CsvTextField } from './CsvTextField';
+import { VariantsTable } from './VariantsTable';
 
 export interface ProductFormDialogProps {
   open: boolean;
@@ -35,16 +46,6 @@ const LOCALES = [
   { key: 'ru', label: 'admin.localeRu' },
 ] as const;
 
-function toCsv(values: string[]): string {
-  return values.join(', ');
-}
-function fromCsv(value: string): string[] {
-  return value
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 function defaultsFor(product: Product | undefined): ProductFormValues {
   return {
     name: { uz: product?.name.uz ?? '', en: product?.name.en ?? '', ru: product?.name.ru ?? '' },
@@ -59,6 +60,8 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
     sizes: product?.sizes ?? [],
     colors: product?.colors ?? [],
     stock: product?.stock ?? 0,
+    variants: product ? initialFormVariants(product) : buildVariantMatrix([], []),
+    variantsExcluded: product?.variantsExcluded ?? [],
     images: product?.images ?? [],
     isActive: product?.isActive ?? true,
   };
@@ -86,19 +89,50 @@ export function ProductFormDialog({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: defaults,
   });
 
+  const sizes = watch('sizes');
+  const colors = watch('colors');
+  const variantsExcluded = watch('variantsExcluded');
+
+  // Rebuild the size × colour matrix whenever an axis changes; rows that
+  // survive keep the stock/price already typed into them.
+  useEffect(() => {
+    const excluded = pruneExcluded(sizes, colors, getValues('variantsExcluded'));
+    setValue('variantsExcluded', excluded);
+    setValue('variants', buildVariantMatrix(sizes, colors, getValues('variants'), excluded));
+  }, [sizes, colors, getValues, setValue]);
+
+  const removeVariant = (id: string): void => {
+    const excluded = [...getValues('variantsExcluded'), id];
+    setValue('variantsExcluded', excluded);
+    setValue(
+      'variants',
+      getValues('variants').filter((v) => v.id !== id),
+    );
+  };
+
+  const restoreVariants = (): void => {
+    setValue('variantsExcluded', []);
+    setValue('variants', buildVariantMatrix(sizes, colors, getValues('variants'), []));
+  };
+
   const onSubmit = handleSubmit(async (values) => {
+    // Product-level stock is the variants' sum (the mutation enforces it too).
+    const payload = { ...values, stock: totalVariantStock(values.variants) };
     if (isEdit) {
-      await updateProduct.mutateAsync({ id: productId, patch: values });
+      await updateProduct.mutateAsync({ id: productId, patch: payload });
     } else {
       await createProduct.mutateAsync({
         id: productId,
-        input: { ...values, rating: 0, reviewCount: 0 },
+        input: { ...payload, rating: 0, reviewCount: 0 },
       });
     }
     reset(defaultsFor(undefined));
@@ -155,13 +189,6 @@ export function ProductFormDialog({
               })}
               helperText=" "
             />
-            <TextField
-              label={t('admin.stock')}
-              type="number"
-              {...register('stock', { valueAsNumber: true })}
-              error={!!errors.stock}
-              helperText={errors.stock ? tk(errors.stock.message ?? '') : ' '}
-            />
           </Stack>
 
           <Controller
@@ -189,10 +216,10 @@ export function ProductFormDialog({
             control={control}
             name="sizes"
             render={({ field }) => (
-              <TextField
+              <CsvTextField
                 label={t('admin.sizes')}
-                value={toCsv(field.value)}
-                onChange={(e) => field.onChange(fromCsv(e.target.value))}
+                value={field.value}
+                onChange={field.onChange}
                 helperText={t('admin.commaHint')}
               />
             )}
@@ -201,11 +228,32 @@ export function ProductFormDialog({
             control={control}
             name="colors"
             render={({ field }) => (
-              <TextField
+              <CsvTextField
                 label={t('admin.colors')}
-                value={toCsv(field.value)}
-                onChange={(e) => field.onChange(fromCsv(e.target.value))}
+                value={field.value}
+                onChange={field.onChange}
                 helperText={t('admin.commaHint')}
+              />
+            )}
+          />
+
+          {product && isLegacyProduct(product) && (
+            <Alert severity="info">{t('admin.variantsLegacy', { count: product.stock })}</Alert>
+          )}
+          <Controller
+            control={control}
+            name="variants"
+            render={({ field }) => (
+              <VariantsTable
+                variants={field.value}
+                onChange={field.onChange}
+                onRemove={removeVariant}
+                excludedCount={variantsExcluded.length}
+                onRestore={restoreVariants}
+                rowError={(i) => {
+                  const message = errors.variants?.[i]?.stock?.message;
+                  return message ? tk(message) : undefined;
+                }}
               />
             )}
           />

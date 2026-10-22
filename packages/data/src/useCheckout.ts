@@ -3,6 +3,7 @@ import {
   deliveryFeeFor,
   evaluatePromo,
   normalizePromoCode,
+  stockCoversLines,
   type Address,
   type CartItem,
   type PaymentProvider,
@@ -106,13 +107,9 @@ export function useCheckout(options: UseCheckoutOptions | PaymentService = {}): 
       // shippingAddress is required by the type, but guard defensively.
       if (!shippingAddress.id) throw new Error(ERR.noAddress);
 
-      // Read-only stock re-check against current Firestore state.
+      // Read-only stock re-check against current Firestore state, per variant.
       const products = await Promise.all(items.map((i) => getProductById(i.productId)));
-      const outOfStock = items.some((item, idx) => {
-        const product = products[idx];
-        return !product || item.quantity > product.stock;
-      });
-      if (outOfStock) throw new Error(ERR.outOfStock);
+      if (!stockCoversLines(items, products)) throw new Error(ERR.outOfStock);
 
       // Promo and delivery are read fresh at the moment of ordering — the rules
       // re-compute both from the same documents, so stale UI values would only

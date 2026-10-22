@@ -65,6 +65,49 @@ const PRODUCTS = [
   ['Sandal', 'Sandals', 'Сандалии', 'cat-poyabzal', 145000, 180000, 18],
 ];
 
+const SIZES = ['92', '98', '104', '110'];
+const COLORS = ['qora', 'oq'];
+// Products listed here stay without `variants`, so the legacy path (one
+// shared stock) is exercised next to the per-variant one.
+const LEGACY_PRODUCTS = new Set(['prod-4', 'prod-11']);
+
+// Mirrors @kidswear/core variantIdFor.
+const variantIdFor = (size, color) => `${encodeURIComponent(size)}|${encodeURIComponent(color)}`;
+
+/**
+ * Deterministic per-variant stock: a mix of sold-out (0), low and plenty, so
+ * the product page shows disabled combinations. The largest size of a dress
+ * costs more, exercising a variant's own price. Product `stock` is the sum.
+ */
+function variantsFor(n, price, total) {
+  const variants = [];
+  let i = 0;
+  for (const size of SIZES) {
+    for (const color of COLORS) {
+      const stock = total === 0 ? 0 : (n + i++) % 4 === 0 ? 0 : ((n * 7 + i) % 6) + 1;
+      variants.push({
+        id: variantIdFor(size, color),
+        size,
+        color,
+        stock,
+        ...(size === '110' && price > 200_000 ? { price: price + 20_000 } : {}),
+        sku: `KW-${n}-${size}-${color}`.toUpperCase(),
+      });
+    }
+  }
+  return variants;
+}
+
+const variantValue = (v) =>
+  map({
+    id: str(v.id),
+    size: str(v.size),
+    color: str(v.color),
+    stock: int(v.stock),
+    ...(v.price ? { price: int(v.price) } : {}),
+    sku: str(v.sku),
+  });
+
 async function put(path, fields) {
   const res = await fetch(`${BASE}/${path}`, {
     method: 'PATCH',
@@ -93,6 +136,7 @@ async function main() {
   for (const [uz, en, ru, categoryId, price, compareAt, stock] of PRODUCTS) {
     const id = `prod-${++n}`;
     const name = { uz, en, ru };
+    const variants = LEGACY_PRODUCTS.has(id) ? null : variantsFor(n, price, stock);
     await put(`products/${id}`, {
       id: str(id),
       name: localized(uz, en, ru),
@@ -105,9 +149,10 @@ async function main() {
       ...(compareAt ? { compareAtPrice: int(compareAt) } : {}),
       categoryId: str(categoryId),
       images: arr([str(`https://picsum.photos/seed/${id}/600/750`)]),
-      sizes: arr([str('92'), str('98'), str('104'), str('110')]),
-      colors: arr([str('qora'), str('oq')]),
-      stock: int(stock),
+      sizes: arr(SIZES.map(str)),
+      colors: arr(COLORS.map(str)),
+      stock: int(variants ? variants.reduce((sum, v) => sum + v.stock, 0) : stock),
+      ...(variants ? { variants: arr(variants.map(variantValue)), variantsExcluded: arr([]) } : {}),
       rating: { doubleValue: 4 + (n % 10) / 10 },
       reviewCount: int(n * 3),
       isActive: bool(true),

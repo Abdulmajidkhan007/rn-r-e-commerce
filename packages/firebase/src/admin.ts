@@ -7,7 +7,12 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import type { Category, Product } from '@kidswear/core';
+import {
+  totalVariantStock,
+  type Category,
+  type Product,
+  type ProductVariant,
+} from '@kidswear/core';
 import { buildSearchTokens } from '@kidswear/utils';
 import { categoriesCol, categoryDoc, productDoc, productsCol } from './collections';
 import type { CategoryInput, ProductInput } from './types';
@@ -27,9 +32,26 @@ export function newCategoryId(): string {
   return doc(categoriesCol()).id;
 }
 
+/**
+ * A product with variants stores their sum as `stock`, so catalog badges and
+ * low-stock reports keep reading one field. Applied on every write that carries
+ * `variants` — a client cannot send a stock that disagrees with them.
+ */
+function withDerivedStock<T extends Partial<ProductInput>>(input: T): T {
+  if (!input.variants || input.variants.length === 0) return input;
+  // Firestore rejects nested `undefined` (the converter only strips top-level
+  // keys, and updateDoc bypasses it), so optional price/sku are dropped here.
+  const variants: ProductVariant[] = input.variants.map(({ price, sku, ...rest }) => ({
+    ...rest,
+    ...(price !== undefined ? { price } : {}),
+    ...(sku ? { sku } : {}),
+  }));
+  return { ...input, variants, stock: totalVariantStock(variants) };
+}
+
 export async function createProduct(id: string, input: ProductInput): Promise<void> {
   const value: WithFieldValue<Product> = {
-    ...input,
+    ...withDerivedStock(input),
     id,
     // Denormalized so catalog search is a single indexed lookup rather than a
     // full-collection scan — Firestore has no substring operator.
@@ -56,7 +78,7 @@ export async function updateProduct(id: string, patch: Partial<ProductInput>): P
   }
 
   await updateDoc(productDoc(id), {
-    ...patch,
+    ...withDerivedStock(patch),
     ...(tokens ? { searchTokens: tokens } : {}),
     updatedAt: serverTimestamp(),
   });

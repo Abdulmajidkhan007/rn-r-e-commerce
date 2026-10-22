@@ -175,7 +175,11 @@
     "featured": "Tanlangan",
     "newArrivals": "Yangi kelganlar",
     "loadMore": "Yana yuklash",
-    "loading": "Yuklanmoqda…"
+    "loading": "Yuklanmoqda…",
+    "variantUnavailable": "Bu tur tugagan",
+    "variantInStock": "Omborda: {{count}} dona",
+    "priceFrom": "{{price}} dan",
+    "chooseVariant": "Oʻlcham va rangni tanlang"
   },
   "cart": {
     "cart": "Savatcha",
@@ -285,7 +289,20 @@
       "categoryRequired": "Toifani tanlang",
       "stockMin": "Ombor manfiy boʻlmasin",
       "slugRequired": "Slug kiriting"
-    }
+    },
+    "variants": "Turlar (oʻlcham × rang)",
+    "variantsHint": "Oʻlcham va rang kiritilgach har bir kombinatsiya uchun zaxira, narx (ixtiyoriy) va kod kiriting. Narx boʻsh boʻlsa — mahsulot narxi.",
+    "variantsTotalStock": "Jami zaxira: {{count}}",
+    "variantSize": "Oʻlcham",
+    "variantColor": "Rang",
+    "variantStock": "Zaxira",
+    "variantPrice": "Narx",
+    "variantSku": "Kod (SKU)",
+    "variantRemove": "Turni olib tashlash",
+    "variantsRestore": "Olib tashlanganlarni qaytarish ({{count}})",
+    "variantsEmpty": "Barcha turlar olib tashlangan — mahsulot sotilmaydi",
+    "variantsLegacy": "Bu mahsulot turlarsiz yaratilgan (umumiy zaxira: {{count}}). Zaxirani turlar boʻyicha taqsimlang — saqlangach umumiy zaxira turlar yigʻindisiga teng boʻladi.",
+    "variantAny": "—"
   },
   "dashboardStats": {
     "totalProducts": "Jami mahsulotlar",
