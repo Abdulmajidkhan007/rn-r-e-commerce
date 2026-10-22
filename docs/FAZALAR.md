@@ -42,8 +42,8 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 | # | Faza | Blaze | Hajm | Bog'liq | Model | Holat |
 |---|---|---|---|---|---|---|
 | 1 | Mahsulot kartasi bugfix (APK 1.0.10 skrinshotlari) | yo'q | S | — | Sonnet | ✅ PR #7 merge, 2026-10-21; telefonda sinalmagan |
-| 2 | Mahsulot turlari (o'lcham×rang: zaxira, narx, kod) | yo'q | L | — | Opus | ⏳ |
-| 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | ⏳ |
+| 2 | Mahsulot turlari (o'lcham×rang: zaxira, narx, kod) | yo'q | L | — | Opus | ✅ PR #9 merge, 2026-10-22; mobil telefonda sinalmagan |
+| 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | 🔄 ishchi ochildi 2026-10-22 (egasi merge qiladi) |
 | 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ⏳ |
 | 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ⏳ |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ⏳ |
@@ -71,7 +71,8 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Maqsad:** APK 1.0.10 dagi karta nuqsonlari (rasm eni, yurakcha/nishon, placeholder, karta eni).
 - **Natija:** PR #7 merge qilindi, CI yashil. Veb Chromium'da tekshirildi; mobil telefonda hali sinalmagan — keyingi APK'da egasi tasdiqlashi kerak.
 
-### Faza 2 — Mahsulot turlari
+### Faza 2 — Mahsulot turlari ✅ (2026-10-22)
+- **Natija:** PR #9 merge, CI yashil, qoidalar 57 → 61 test. Vebda emulyator + Playwright bilan oqim sinaldi (admin 3×2 tur → mijoz tanlash → savat → buyurtma). Mobil faqat type-check/lint'dan o'tgan — telefonda sinalmagan. Spark'da zaxira hali kamaymaydi (Faza 3).
 - **Maqsad:** bolalar kiyimida asosiy narsa — o'lcham. Zaxira va narx har o'lcham×rang uchun alohida bo'lsin.
 - **Ishlar:** `@kidswear/core` da `variants` (dekart ko'paytma, har turga zaxira/narx/kod, o'chirilgan turlar); eski mahsulotlar uchun moslik (turlarsiz = bitta tur); admin forma (veb+mobil) turlar jadvali; mahsulot sahifasida mavjud bo'lmagan tur tanlanmaydi; savat va buyurtma qatorida `variantId`; qoidalar va testlar.
 - **Tayyor:** admin 3 o'lcham × 2 rang yaratadi, har biriga zaxira beradi; mijoz faqat bor turni savatga qo'shadi; eski mahsulotlar buzilmaydi; qoidalar testlari yashil.
@@ -148,4 +149,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-22*
+*Oxirgi yangilanish: 2026-10-22 (Faza 2 tugadi)*
