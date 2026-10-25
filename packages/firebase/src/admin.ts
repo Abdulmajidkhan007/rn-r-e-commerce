@@ -21,6 +21,7 @@ import {
 } from '@kidswear/core';
 import { buildSearchTokens } from '@kidswear/utils';
 import { categoriesCol, categoryDoc, productDoc, productsCol } from './collections';
+import { productCostDoc } from './costs';
 import { getProducts } from './products';
 import type { CategoryInput, ProductInput } from './types';
 
@@ -96,7 +97,10 @@ export async function updateProduct(id: string, patch: Partial<ProductInput>): P
 
 /** Permanent delete. The admin UI uses `trashProduct`; this is for emptying the trash. */
 export async function deleteProduct(id: string): Promise<void> {
-  await deleteDoc(productDoc(id));
+  const batch = writeBatch(productDoc(id).firestore);
+  batch.delete(productDoc(id));
+  batch.delete(productCostDoc(id));
+  await batch.commit();
 }
 
 /** Soft delete: the product moves to "O'chirilganlar" and goes off the storefront. */
@@ -159,9 +163,13 @@ export async function hideProductsWithoutImages(): Promise<number> {
 export async function purgeExpiredProducts(now = Date.now()): Promise<number> {
   const products = await getProducts();
   const expired = products.filter((p) => isPurgeable(p, now));
-  for (let i = 0; i < expired.length; i += BATCH_SIZE) {
+  // Two deletes per product (its cost document goes with it).
+  for (let i = 0; i < expired.length; i += BATCH_SIZE / 2) {
     const batch = writeBatch(productDoc(expired[0]?.id as string).firestore);
-    for (const p of expired.slice(i, i + BATCH_SIZE)) batch.delete(productDoc(p.id));
+    for (const p of expired.slice(i, i + BATCH_SIZE / 2)) {
+      batch.delete(productDoc(p.id));
+      batch.delete(productCostDoc(p.id));
+    }
     await batch.commit();
   }
   return expired.length;

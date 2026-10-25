@@ -450,6 +450,56 @@ Renames and corrections after the port settled. Behavior is unchanged except whe
   admin 13 — `npm install` in `functions/` failed outright. Bumped to
   `firebase-functions@^7.3.0`, which accepts admin 14. `expo-server-sdk` dropped.
 
+## Profit report & users on Spark (2026-10-25)
+
+- **Cost lives in `productCosts/{productId}`, never on `products`.** Products are publicly
+  readable (the catalog works signed out), and Firestore cannot hide a field of a readable
+  document, so any cost on a product would leak. The cost document holds `cost` (product
+  default) and `variants` (variant id → cost; same ids as `Product.variants`, `default` for a
+  legacy product). `unitCostFor` = variant value, else the default, else **`null`** — a missing
+  cost is never read as 0. Rules: admin read; admin write with the shape pinned (`cost` a
+  non-negative int, `variants` a map, `updatedBy == auth.uid`, `updatedAt == request.time`);
+  nobody else can `get`, `list` or collection-group query it. Purging a product deletes its
+  cost document in the same batch.
+- **CSV carries no cost at all.** Considered: an extra admin-only column. Rejected — a CSV file
+  leaves the admin panel (email, Telegram, a shared drive), and the same file is the import
+  format, so a cost column would invite costs into product rows. Costs are entered per product
+  in the web admin ("Tannarx" button on the products list). `CATALOG_CSV_COLUMNS` is unchanged.
+- **`orderCosts/{orderId}`: an immutable snapshot taken at confirmation.** `changeOrderStatus`
+  (the Faza 3 stock transaction) also reads the snapshot slot whenever the next status is a
+  confirmed one (`STOCK_HOLDING_STATUSES`); if it is empty it reads the products' cost documents
+  and writes `{lines[{productId, variantId, quantity, price, unitCost|null}], totalCost,
+  missingLines, by, createdAt}` together with the stock change. Create-once is the
+  idempotency: a double click, cancel → re-confirm, or processing → shipped finds it and writes
+  nothing; rules forbid update and delete, so a later cost edit never rewrites past profit.
+  Taking it on *every* entry to a confirmed status (not only when stock moves) covers Blaze,
+  where `onOrderCreate` takes the stock first. Legacy lines without `variantId` resolve against
+  the product read in the same transaction.
+- **Old orders: an explicit, marked backfill.** Orders confirmed before this phase have no
+  snapshot. The report offers "Eski buyurtmalarga hozirgi tannarxni yozish (N)": one transaction
+  per order writes a snapshot from *today's* costs with `backfilled: true` (the rules allow only
+  `true`). It is a deliberate admin action because it is an approximation.
+- **Profit maths (`summarizeProfit`, pure, `@kidswear/data`).** Counted: confirmed orders
+  (`processing`/`shipped`/`delivered`) by creation time in a Tashkent-day period (presets: this
+  month, 30 days, 12 months, all; or any from–to). Revenue = Σ `total`; goods revenue = `total −
+  deliveryFee` (after discount); profit = goods revenue − `totalCost`, only over orders whose
+  snapshot is complete (`missingLines == 0`). Orders without a complete snapshot stay in revenue
+  but are counted and shown as "tannarxsiz" instead of silently inflating profit. Delivery fees
+  are not profit on goods. Per-month table inside the period.
+- **Users list = client join (Spark).** `getAllUsers` reads every profile (each validated on its
+  own, so one malformed profile is skipped, not fatal) and `summarizeCustomers` joins them with
+  the admin's live order list: order count (cancelled excluded), total spent (Σ `total` of paid
+  orders — the same statuses as the sales report), last order. Orders whose profile is missing
+  still get a row (named from the shipping address). Search (name/email, phone only for a
+  phone-like term), sort and paging (25/50/100) are in memory. Fine for a small shop; at scale
+  it needs server counters (Functions).
+- **Mobile:** the reports screen shows the profit card (read-only, presets). Entering costs, the
+  backfill and the users list are web-only.
+- **Known limits:** profit uses the order-level discount implicitly (goods revenue is after
+  discount), so there is no per-product profit table — splitting a discount across lines would
+  be a guess. `orderCosts` read is admin-wide (one `getDocs` of the whole collection), like the
+  orders list.
+
 ## Tests & CI
 
 - **One root Vitest config with three projects, not a config per package.** Ten near-identical

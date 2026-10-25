@@ -17,6 +17,7 @@ import {
   applyVariantDeltas,
   orderLinesStockChange,
   stockActionFor,
+  STOCK_HOLDING_STATUSES,
   type OrderItem,
   type OrderStatus,
   type Product,
@@ -27,6 +28,7 @@ import {
 import { getDb } from './app';
 import { COLLECTIONS, orderDoc, productDoc } from './collections';
 import { createConverter } from './converters';
+import { prepareOrderCostSnapshot } from './costs';
 
 export type InventoryErrorCode =
   | 'orderNotFound'
@@ -83,6 +85,12 @@ function writeProductStock(
   tx.update(ref, { ...change.patch, updatedAt: serverTimestamp() });
 }
 
+interface LoadedProduct {
+  productId: string;
+  ref: DocumentReference<Product>;
+  product: Product | null;
+}
+
 export interface StatusChangeResult {
   action: StockAction;
 }
@@ -106,7 +114,10 @@ export async function changeOrderStatus(
     if (!order) throw new InventoryError('orderNotFound');
 
     const action = stockActionFor(order.status, next, order.stockApplied === true);
-    if (action === 'none') {
+    // A confirmed order gets its cost snapshot once (orderCosts, create-once),
+    // also when its stock was already taken elsewhere (Blaze onOrderCreate).
+    const confirming = STOCK_HOLDING_STATUSES.includes(next);
+    if (action === 'none' && !confirming) {
       tx.update(orderRef, { status: next, updatedAt: serverTimestamp() });
       return { action };
     }
@@ -117,34 +128,47 @@ export async function changeOrderStatus(
       linesByProduct.set(item.productId, [...(linesByProduct.get(item.productId) ?? []), item]);
     }
 
-    // All reads before any write (Firestore transaction rule).
-    const products = await Promise.all(
-      [...linesByProduct.keys()].map(async (productId) => {
-        const ref = productDoc(productId);
-        const snap = await tx.get(ref);
-        return { productId, ref, product: snap.exists() ? snap.data() : null };
-      }),
-    );
+    // All reads before any write (Firestore transaction rule). Products are
+    // read at most once, by whichever step needs them first.
+    let loaded: Promise<LoadedProduct[]> | null = null;
+    const loadProducts = (): Promise<LoadedProduct[]> =>
+      (loaded ??= Promise.all(
+        [...linesByProduct.keys()].map(async (productId) => {
+          const ref = productDoc(productId);
+          const snap = await tx.get(ref);
+          return { productId, ref, product: snap.exists() ? snap.data() : null };
+        }),
+      ));
 
-    const direction = action === 'apply' ? 'sale' : 'return';
     const writes: {
       productId: string;
       ref: DocumentReference<Product>;
       change: Extract<StockChange, { ok: true }>;
     }[] = [];
-    for (const { productId, ref, product } of products) {
-      if (!product) {
-        // A deleted product cannot take its units back; a sale needs it.
-        if (direction === 'return') continue;
-        throw new InventoryError('productNotFound', productId);
+    const direction = action === 'apply' ? 'sale' : 'return';
+    if (action !== 'none') {
+      for (const { productId, ref, product } of await loadProducts()) {
+        if (!product) {
+          // A deleted product cannot take its units back; a sale needs it.
+          if (direction === 'return') continue;
+          throw new InventoryError('productNotFound', productId);
+        }
+        const lines = linesByProduct.get(productId) ?? [];
+        writes.push({
+          productId,
+          ref,
+          change: unwrap(orderLinesStockChange(product, lines, direction), productId),
+        });
       }
-      const lines = linesByProduct.get(productId) ?? [];
-      writes.push({
-        productId,
-        ref,
-        change: unwrap(orderLinesStockChange(product, lines, direction), productId),
-      });
     }
+    const writeCost = confirming
+      ? await prepareOrderCostSnapshot(
+          tx,
+          order,
+          async () => new Map((await loadProducts()).map((p) => [p.productId, p.product])),
+          by,
+        )
+      : null;
 
     for (const { productId, ref, change } of writes) {
       writeProductStock(tx, ref, change);
@@ -152,9 +176,10 @@ export async function changeOrderStatus(
         writeMove(tx, { productId, variantId, delta, reason: direction, orderId, by });
       }
     }
+    writeCost?.();
     tx.update(orderRef, {
       status: next,
-      stockApplied: action === 'apply',
+      ...(action === 'none' ? {} : { stockApplied: action === 'apply' }),
       updatedAt: serverTimestamp(),
     });
     return { action };

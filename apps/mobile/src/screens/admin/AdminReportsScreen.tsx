@@ -9,7 +9,16 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { summarizeSales, useAllOrders } from '@kidswear/data';
+import type { Order } from '@kidswear/core';
+import {
+  periodFromDays,
+  profitPresetRange,
+  summarizeProfit,
+  summarizeSales,
+  useAllOrders,
+  useOrderCosts,
+  type ProfitPreset,
+} from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { useAppSelector } from '@kidswear/store';
 import { formatPrice } from '@kidswear/utils';
@@ -25,6 +34,72 @@ function Stat({ title, value }: { title: string; value: string }): React.ReactEl
         <Text variant="titleMedium" style={{ fontWeight: '700' }}>
           {value}
         </Text>
+      </Card.Content>
+    </Card>
+  );
+}
+
+/**
+ * Read-only profit for a preset period (costs are entered on the web admin).
+ * Same `orderCosts` snapshots and maths as the web report.
+ */
+function ProfitCard({
+  orders,
+  now,
+}: {
+  orders: readonly Order[];
+  now: number;
+}): React.ReactElement {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const language = useAppSelector((s) => s.ui.language);
+  const costs = useOrderCosts();
+  const [preset, setPreset] = useState<ProfitPreset>('thisMonth');
+  const report = useMemo(() => {
+    const period = periodFromDays(profitPresetRange(preset, now));
+    return costs.data && period ? summarizeProfit(orders, costs.data, period) : null;
+  }, [orders, costs.data, preset, now]);
+  const money = (n: number): string => formatPrice(n, language);
+
+  return (
+    <Card mode="outlined">
+      <Card.Content style={{ gap: 8 }}>
+        <Text variant="titleMedium">{t('profit.title')}</Text>
+        <SegmentedButtons
+          value={preset}
+          onValueChange={(v) => setPreset(v as ProfitPreset)}
+          density="small"
+          buttons={[
+            { value: 'thisMonth', label: t('profit.thisMonth') },
+            { value: 'last12m', label: t('profit.last12m') },
+            { value: 'all', label: t('profit.all') },
+          ]}
+        />
+        {costs.isLoading ? (
+          <ActivityIndicator />
+        ) : !report ? (
+          <Text style={{ color: theme.colors.error }}>{t('profit.loadFailed')}</Text>
+        ) : (
+          <>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              <Stat title={t('profit.revenue')} value={money(report.revenue)} />
+              <Stat title={t('profit.cost')} value={money(report.cost)} />
+              <Stat title={t('profit.profit')} value={money(report.profit)} />
+              <Stat
+                title={t('profit.margin')}
+                value={report.margin === null ? '—' : `${(report.margin * 100).toFixed(1)}%`}
+              />
+            </View>
+            {report.uncostedOrders > 0 && (
+              <Text variant="bodySmall" style={{ color: theme.colors.error }}>
+                {t('profit.uncosted', { count: report.uncostedOrders })}
+              </Text>
+            )}
+            <Text variant="labelSmall" style={{ opacity: 0.6 }}>
+              {t('profit.note')}
+            </Text>
+          </>
+        )}
       </Card.Content>
     </Card>
   );
@@ -66,6 +141,8 @@ export function AdminReportsScreen(): React.ReactElement {
       <Text variant="bodySmall" style={{ opacity: 0.7 }}>
         {t('adminContent.discountsGiven', { amount: formatPrice(report.discounts, language) })}
       </Text>
+
+      <ProfitCard orders={orders} now={now} />
 
       <Card mode="outlined">
         <Card.Content style={{ gap: 8 }}>

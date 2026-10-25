@@ -46,6 +46,8 @@ Belgilar: ✅ bor va ishlaydi · 🟡 bor, lekin telefonda/jonli oqimda hali sin
 | Toifalar CRUD | ✅ | ✅ | |
 | Buyurtmalar, holatni o'zgartirish | ✅ | ✅ | |
 | Hisobot (tushum, o'rtacha chek, 30 kun/12 oy, top mahsulot) | ✅ | ✅ | Klientda hisoblanadi |
+| Foyda hisoboti (yopiq tannarx `productCosts`, tasdiqdagi snapshot `orderCosts`) | ✅ | 🟡 faqat ko'rish | Faza 7; tannarx kiritish vebda |
+| Foydalanuvchilar (buyurtmalar soni, jami xarid, oxirgi buyurtma) | ✅ `/admin/users` | ❌ | Faza 7; klientda hisoblanadi |
 | Xabarlar (aloqa formasi) | ✅ | ✅ | |
 | Blog yozish | ✅ | ✅ | |
 | Promo-kodlar | ✅ | ✅ | |

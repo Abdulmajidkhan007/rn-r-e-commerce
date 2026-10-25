@@ -309,6 +309,43 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Purchase costs (Faza 7): admin-only, no read for anyone else — products
+    // are public, so cost lives here instead. `cost` is the product default,
+    // `variants` maps variant id → cost (UZS ints; the admin is trusted on the
+    // values, the rules pin the shape). Deleted with the product on purge.
+    match /productCosts/{productId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['cost', 'variants', 'updatedBy', 'updatedAt'])
+        && (!('cost' in request.resource.data)
+              || (request.resource.data.cost is int && request.resource.data.cost >= 0))
+        && request.resource.data.variants is map
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin();
+    }
+
+    // Order cost snapshots: written once, in the admin's confirmation
+    // transaction (changeOrderStatus) or by a backfill, for an existing order.
+    // Never changed or deleted, so past profit cannot be rewritten by a later
+    // cost edit. Admin-only read.
+    match /orderCosts/{orderId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(
+             ['lines', 'totalCost', 'missingLines', 'backfilled', 'by', 'createdAt'])
+        && request.resource.data.lines is list
+        && request.resource.data.totalCost is int
+        && request.resource.data.totalCost >= 0
+        && request.resource.data.missingLines is int
+        && request.resource.data.missingLines >= 0
+        && (!('backfilled' in request.resource.data) || request.resource.data.backfilled == true)
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/orders/$(orderId));
+      allow update, delete: if false;
+    }
+
     // Users: owners and admins may read. Owners may create/update their own
     // profile; non-admins may not change their role, and must start as
     // 'customer' on create. Profiles are never deleted.

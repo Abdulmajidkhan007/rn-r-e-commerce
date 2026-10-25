@@ -23,6 +23,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import PriceCheckIcon from '@mui/icons-material/PriceCheck';
+import Tooltip from '@mui/material/Tooltip';
 import {
   hasNoImages,
   isPurgeable,
@@ -47,6 +49,7 @@ import { formatPrice } from '@kidswear/utils';
 import { useAppSelector } from '@kidswear/store';
 import { ProductFormDialog } from '@/components/admin/ProductFormDialog';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { ProductCostDialog } from '@/components/admin/ProductCostDialog';
 import { CatalogCsvDialog } from '@/components/admin/CatalogCsvDialog';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { TableSkeleton } from '@/components/admin/TableSkeleton';
@@ -78,6 +81,7 @@ export default function AdminProductsPage(): React.ReactElement {
     'bulkDelete' | 'hideNoImages' | 'purgeExpired' | { purge: Product } | null
   >(null);
   const [csvOpen, setCsvOpen] = useState(false);
+  const [costing, setCosting] = useState<Product | null>(null);
   const [notice, setNotice] = useState('');
   // Fixed per render pass of the trash: avoids calling the clock while rendering rows.
   const [now] = useState(() => Date.now());
@@ -334,7 +338,16 @@ export default function AdminProductsPage(): React.ReactElement {
                           }
                         />
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                        <Tooltip title={t('profit.costButton')}>
+                          <IconButton
+                            size="small"
+                            aria-label={`${t('profit.costButton')} ${p.name.uz}`}
+                            onClick={() => setCosting(p)}
+                          >
+                            <PriceCheckIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <IconButton size="small" onClick={() => openEdit(p)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -405,6 +418,15 @@ export default function AdminProductsPage(): React.ReactElement {
             });
           } else if (action === 'purgeExpired') purgeExpired.mutate();
           else if (action) purgeProduct.mutate(action.purge.id);
+        }}
+      />
+
+      <ProductCostDialog
+        product={costing}
+        onClose={() => setCosting(null)}
+        onSaved={() => {
+          setCosting(null);
+          setNotice(t('profit.saved'));
         }}
       />
 

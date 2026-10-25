@@ -29,6 +29,8 @@ export const COLLECTIONS = {
   stockMoves: 'stockMoves',
   receipts: 'receipts',
   reviews: 'reviews',
+  productCosts: 'productCosts',
+  orderCosts: 'orderCosts',
 } as const;
 
 const productConverter = createConverter(ProductSchema);

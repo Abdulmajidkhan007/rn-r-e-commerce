@@ -83,7 +83,16 @@ export {
   removePushToken,
   setUserLanguage,
   subscribeUserProfile,
+  getAllUsers,
 } from './users';
+
+export {
+  getProductCosts,
+  getProductCost,
+  setProductCost,
+  getOrderCosts,
+  backfillOrderCost,
+} from './costs';
 
 export {
   CONTENT_COLLECTIONS,

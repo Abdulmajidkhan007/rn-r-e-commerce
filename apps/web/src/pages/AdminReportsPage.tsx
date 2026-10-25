@@ -16,6 +16,7 @@ import { useTranslation } from '@kidswear/i18n';
 import { useAppSelector } from '@kidswear/store';
 import { formatPrice, type AppLocale } from '@kidswear/utils';
 import { Card } from '@/components';
+import { ProfitSection } from '@/components/admin/ProfitSection';
 import { StatCard } from '@/components/admin/StatCard';
 import { TableSkeleton } from '@/components/admin/TableSkeleton';
 import { useNow } from '@/lib/useNow';
@@ -111,6 +112,8 @@ export default function AdminReportsPage(): React.ReactElement {
       <Typography variant="body2" color="text.secondary">
         {t('adminContent.discountsGiven', { amount: formatPrice(report.discounts, language) })}
       </Typography>
+
+      <ProfitSection orders={orders} now={now} />
 
       <Card>
         <Stack spacing={1}>
