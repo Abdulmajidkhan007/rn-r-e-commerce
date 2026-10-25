@@ -37,6 +37,13 @@ export type { UserOrdersState, OrderState, UseCancelOrderResult } from './useOrd
 
 export {
   useAdminProducts,
+  useTrashedProducts,
+  useRestoreProduct,
+  usePurgeProduct,
+  usePurgeExpiredProducts,
+  useBulkUpdateProducts,
+  useHideProductsWithoutImages,
+  useImportProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,

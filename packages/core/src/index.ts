@@ -9,6 +9,8 @@ export * from './category';
 export * from './variant';
 export * from './product';
 export * from './productImage';
+export * from './catalog';
+export * from './catalogCsv';
 export * from './cart';
 export * from './address';
 export * from './payment';

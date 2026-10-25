@@ -783,3 +783,32 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
   stored; it is customer-supplied text like the review itself (length-checked only).
 - Admin list loads the newest `ADMIN_REVIEWS_LIMIT = 200` (optionally by status); paging can come
   when volume needs it.
+
+## Catalog admin on Spark (2026-10-25)
+
+- **`isActive == true` stays the one storefront filter.** Firestore cannot query "field absent", so
+  `isDraft`/`deletedAt` are optional fields (old products have neither) and the admin writes keep a
+  draft or trashed product `isActive: false` (`enforceHiddenInvariant`, applied by `createProduct`,
+  `updateProduct`, the bulk actions and `trashProduct`). An older form that sends `isActive: true`
+  for a draft (the mobile one) is neutralised by one extra read in `updateProduct`. Storefront reads
+  also re-check `isStorefrontVisible`, and `useProduct` returns `null` for a draft/trashed product.
+- **Soft delete = `deletedAt` (epoch ms) + `isActive: false`.** "Delete" in the admin trashes;
+  restore clears `deletedAt` and the product comes back **inactive** (the admin switches it on).
+  Nothing purges automatically (no Functions on Spark): "Muddati oʻtganlarni tozalash" hard-deletes
+  trashed products older than `TRASH_RETENTION_DAYS = 30`. Photos (`productImages`) of purged
+  products are left behind — orphan cleanup stays with Phase 14.
+- **Rules unchanged.** `products` is already admin-write, which covers the new fields and batches;
+  one rules test pins that. Known limit: `products` stays publicly *readable*, so a draft or
+  trashed product can still be fetched by anyone who knows its id through the raw Firestore API
+  (the apps never list or open it). Tightening it to `isActive == true || isAdmin()` would also
+  hide inactive products from direct links, which is a behaviour change left for the owner.
+- **CSV = one row per variant** (`CATALOG_CSV_COLUMNS` in `@kidswear/core`). Rows group by
+  `productId` (blank → by `name_uz`); product-level columns must agree across a product's rows.
+  A lone row with empty size/colour and no variant price/sku keeps the legacy shape (no `variants`).
+  Photos, ratings and status are not in the file. **Any error → nothing is imported** (errors list
+  line numbers). Import only creates: ids that already exist are skipped, never overwritten.
+  Imported products are `isActive: false`, no photos.
+- **Excel**: the export carries a UTF-8 BOM; `.xlsx` is not supported, only CSV.
+- **Mobile**: admin screens keep working (delete now trashes) but have no draft switch, trash list,
+  bulk actions or CSV yet — web only.
+

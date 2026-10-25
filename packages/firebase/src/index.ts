@@ -63,10 +63,17 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
+  trashProduct,
+  restoreProduct,
+  bulkUpdateProducts,
+  hideProductsWithoutImages,
+  purgeExpiredProducts,
+  importProducts,
   createCategory,
   updateCategory,
   deleteCategory,
 } from './admin';
+export type { BulkProductAction, ImportProductsResult } from './admin';
 
 export {
   getUserProfile,

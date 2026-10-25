@@ -19,6 +19,7 @@ import {
   Timestamp,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 import { ProductImageSchema } from '../../packages/core/src/productImage';
@@ -111,6 +112,30 @@ describe('products & categories', () => {
       await setDoc(doc(ctx.firestore(), 'products/p1'), { stock: 10 });
     });
     await assertFails(updateDoc(doc(customerDb(), 'products/p1'), { stock: 9 }));
+  });
+
+  it('keep catalog admin actions (draft, soft delete, restore, bulk write) admin-only', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'products/p1'), { isActive: true, categoryId: 'c1' });
+    });
+    for (const patch of [{ isDraft: false }, { deletedAt: 1 }, { isActive: true }]) {
+      await assertFails(updateDoc(doc(customerDb(), 'products/p1'), patch));
+      await assertFails(updateDoc(doc(anonDb(), 'products/p1'), patch));
+    }
+    await assertSucceeds(
+      updateDoc(doc(adminDb(), 'products/p1'), { deletedAt: 1, isActive: false }),
+    );
+    await assertSucceeds(updateDoc(doc(adminDb(), 'products/p1'), { isDraft: true }));
+    await assertSucceeds(
+      (async () => {
+        const db = adminDb();
+        const batch = writeBatch(db);
+        batch.update(doc(db, 'products/p1'), { categoryId: 'c2' });
+        await batch.commit();
+      })(),
+    );
+    // A customer cannot hard-delete a trashed product either.
+    await assertFails(deleteDoc(doc(customerDb(), 'products/p1')));
   });
 });
 
