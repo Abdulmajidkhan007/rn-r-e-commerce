@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, useQueries, useQuery, type UseQueryResult } from '@tanstack/react-query';
-import type { Category, Product } from '@kidswear/core';
+import { isStorefrontVisible, type Category, type Product } from '@kidswear/core';
 import {
   getCategories,
   getProductById,
@@ -62,7 +62,7 @@ export function useProducts(params: ProductsParams = {}): UseProductsResult {
   });
 
   const products = useMemo(
-    () => query.data?.pages.flatMap((page) => page.products) ?? [],
+    () => query.data?.pages.flatMap((page) => page.products.filter(isStorefrontVisible)) ?? [],
     [query.data],
   );
 
@@ -86,7 +86,11 @@ export function useProducts(params: ProductsParams = {}): UseProductsResult {
 export function useProduct(id: string): UseQueryResult<Product | null> {
   return useQuery({
     queryKey: queryKeys.product(id),
-    queryFn: () => getProductById(id),
+    queryFn: async () => {
+      const product = await getProductById(id);
+      // Drafts and trashed products are not reachable by a direct link either.
+      return product && !product.isDraft && product.deletedAt === undefined ? product : null;
+    },
     enabled: !!id,
   });
 }
@@ -107,7 +111,7 @@ export function useProductsByIds(ids: readonly string[]): {
     })),
   });
   return {
-    products: results.flatMap((r) => (r.data && r.data.isActive ? [r.data] : [])),
+    products: results.flatMap((r) => (r.data && isStorefrontVisible(r.data) ? [r.data] : [])),
     isLoading: results.some((r) => r.isLoading),
   };
 }

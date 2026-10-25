@@ -6,20 +6,34 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import type { Order, OrderStatus, Product, StockMove } from '@kidswear/core';
+import {
+  isTrashed,
+  type Order,
+  type OrderStatus,
+  type Product,
+  type StockMove,
+} from '@kidswear/core';
 import {
   adjustStock,
   changeOrderStatus,
   createCategory,
   createProduct,
   deleteCategory,
+  bulkUpdateProducts,
   deleteProduct,
+  hideProductsWithoutImages,
+  importProducts,
+  purgeExpiredProducts,
+  restoreProduct,
+  trashProduct,
   getProducts,
   getStockMoves,
   subscribeAllOrders,
   updateCategory,
   updateProduct,
   type CategoryInput,
+  type BulkProductAction,
+  type ImportProductsResult,
   type ProductInput,
   type StatusChangeResult,
   type StockAdjustment,
@@ -41,6 +55,17 @@ export function useAdminProducts(): UseQueryResult<Product[]> {
   return useQuery({
     queryKey: ADMIN_PRODUCTS_KEY,
     queryFn: () => getProducts(),
+    // Trashed products live on their own list ("O'chirilganlar").
+    select: (products) => products.filter((p) => !isTrashed(p)),
+  });
+}
+
+/** The trash: soft-deleted products. Shares the admin fetch (same key). */
+export function useTrashedProducts(): UseQueryResult<Product[]> {
+  return useQuery({
+    queryKey: ADMIN_PRODUCTS_KEY,
+    queryFn: () => getProducts(),
+    select: (products) => products.filter(isTrashed),
   });
 }
 
@@ -70,10 +95,68 @@ export function useUpdateProduct(): UseMutationResult<void, Error, UpdateProduct
   });
 }
 
+/** "Delete" in the admin = move to the trash (soft delete). */
 export function useDeleteProduct(): UseMutationResult<void, Error, string> {
   const qc = useQueryClient();
   return useMutation({
+    mutationFn: (id: string) => trashProduct(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+export function useRestoreProduct(): UseMutationResult<void, Error, string> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => restoreProduct(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+/** Permanent delete from the trash. */
+export function usePurgeProduct(): UseMutationResult<void, Error, string> {
+  const qc = useQueryClient();
+  return useMutation({
     mutationFn: (id: string) => deleteProduct(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+export function usePurgeExpiredProducts(): UseMutationResult<number, Error, void> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => purgeExpiredProducts(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+export interface BulkProductVars {
+  ids: readonly string[];
+  action: BulkProductAction;
+}
+export function useBulkUpdateProducts(): UseMutationResult<number, Error, BulkProductVars> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, action }: BulkProductVars) => bulkUpdateProducts(ids, action),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+export function useHideProductsWithoutImages(): UseMutationResult<number, Error, void> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => hideProductsWithoutImages(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+export function useImportProducts(): UseMutationResult<
+  ImportProductsResult,
+  Error,
+  Parameters<typeof importProducts>[0]
+> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (items) => importProducts(items),
     onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
   });
 }

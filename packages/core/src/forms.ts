@@ -26,6 +26,8 @@ export const productFormSchema = z.object({
   variantsExcluded: z.array(z.string()),
   images: z.array(z.string()),
   isActive: z.boolean(),
+  /** Draft products stay hidden from the storefront. Optional: older forms omit it. */
+  isDraft: z.boolean().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

@@ -39,6 +39,18 @@ export const ProductSchema = z.object({
   reviewCount: z.number().int().nonnegative(),
   isActive: z.boolean(),
   /**
+   * Draft: still being prepared, never shown in the storefront. Absent on
+   * older products (= not a draft). The admin writes keep `isActive` false
+   * while a product is a draft, so the storefront's `isActive == true` query
+   * stays the single visibility filter.
+   */
+  isDraft: z.boolean().optional(),
+  /**
+   * Epoch ms of the soft delete ("O'chirilganlar"). Absent = not deleted.
+   * Trashed products are also `isActive: false`; restoring clears this field.
+   */
+  deletedAt: TimestampSchema.optional(),
+  /**
    * Denormalized word prefixes across all localized names, maintained by the
    * admin mutations (`buildSearchTokens`). Optional because products written
    * before server-side search have none — run scripts/backfill-search-tokens.ts.

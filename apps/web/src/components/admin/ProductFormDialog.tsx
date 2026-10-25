@@ -64,6 +64,7 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
     variantsExcluded: product?.variantsExcluded ?? [],
     images: product?.images ?? [],
     isActive: product?.isActive ?? true,
+    isDraft: product?.isDraft ?? false,
   };
 }
 
@@ -279,6 +280,17 @@ export function ProductFormDialog({
               <FormControlLabel
                 control={<Switch checked={field.value} onChange={field.onChange} />}
                 label={t('admin.active')}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="isDraft"
+            render={({ field }) => (
+              <FormControlLabel
+                control={<Switch checked={field.value ?? false} onChange={field.onChange} />}
+                label={`${t('admin.catalog.draft')} — ${t('admin.catalog.draftHint')}`}
               />
             )}
           />

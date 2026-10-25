@@ -39,7 +39,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 
 ## Hozirgi holat (2026-10-22)
 
-**To'xtatildi:** Faza 1–5 tugadi. **Faza 6 dan davom — haftalik limit yangilangach** (egasi qarori, limit 59%).
+Faza 1–5 tugadi; Faza 6 kodi tayyor (PR nazoratchi tekshiruvida, 2026-10-25). Keyingi: Faza 7 (egasi merge qilgach / nazoratchi buyrug'i bilan).
 
 ## Fazalar ro'yxati
 
@@ -50,7 +50,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 | 3 | Ombor: zaxira kamayishi, jurnal, mijoz bekor qilishi | yo'q | M | 2 | Opus | ✅ PR #11 egasi merge qildi, 2026-10-22; mobil telefonda sinalmagan |
 | 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ✅ PR #13 egasi merge qildi, 2026-10-22; telefonda va haqiqiy o'tkazma bilan sinalmagan |
 | 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ✅ PR #15 merge, 2026-10-22; mobil telefonda sinalmagan |
-| 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ⏳ |
+| 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ✅ kod tayyor, PR ochildi (nazoratchi tekshiradi), 2026-10-25; vebda qo'lda/emulyatorda va telefonda sinalmagan |
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ⏳ |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ⏳ |
 | 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ⏳ |
@@ -103,7 +103,11 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Tayyor:** xarid qilmagan sharh yoza olmaydi (test); reyting yangilanadi; ikkala platformada.
 - **Model:** Opus — qoidalarda boshqa hujjatga tayangan tekshiruv.
 
-### Faza 6 — Katalog boshqaruvi
+### Faza 6 — Katalog boshqaruvi ✅ kod (2026-10-25)
+- **Natija (rost holat):** branch `feat/catalog-admin`, PR nazoratchi tekshiruvida. `type-check`, `lint`, `npm test` (265 test, shundan Faza 6 — 11 yangi unit), `test:rules` (97 → 98) yashil. «50 qatorli CSV import → eksport bir xil» testi bor va o'tadi (CRLF, vergul/qo'shtirnoq/ko'p qatorli matn, turlar bilan). Qoidalar o'zgarmadi (`products` allaqachon admin-write); bitta qoida testi qo'shildi.
+- **Qilindi:** `isDraft` va `deletedAt` (ixtiyoriy maydonlar); chernovik/o'chirilgan mahsulot har doim `isActive:false` (yagona vitrina filtri o'zgarmadi) + vitrina o'qishlarida qayta tekshiruv; o'chirish = «O'chirilganlar» (tiklash — nofaol holda qaytadi; 30 kundan eskilarini admin tugma bilan tozalaydi); veb admin: tanlash, ommaviy yashirish/toifaga ko'chirish/o'chirish, «rasmsizlarni yashirish», CSV eksport (BOM bilan) va import (oldindan ko'rish, xatolarda hech narsa import qilinmaydi, mavjud id o'tkazib yuboriladi, `isActive:false`). Tafsilot: DECISIONS.md «Catalog admin on Spark».
+- **Sinalmagan:** veb admin UI brauzerda/emulyatorda qo'lda yurgizilmadi (faqat type-check/lint); Firestore ma'lumot qatlami (`trashProduct`, `bulkUpdateProducts`, `importProducts`) jonli yoki emulyator bazada ishga tushirilmadi — faqat sof funksiyalar va qoidalar sinaldi; telefonda hech narsa sinalmagan; kompozit indekslar kerak emas (yangi so'rov yo'q).
+- **Qolgan/cheklov:** mobil adminda chernovik, o'chirilganlar, ommaviy amal va CSV yo'q (o'chirish endi «O'chirilganlar»ga yuboradi, lekin mobilda tiklab bo'lmaydi — vebdan); `products` o'qish ochiq, chernovikni id bilan xom Firestore API orqali o'qish mumkin; tozalangan mahsulot rasmlari (`productImages`) qoladi (Faza 14); `.xlsx` yo'q, faqat CSV.
 - **Maqsad:** ko'p mahsulot bilan ishlashni tezlashtirish.
 - **Ishlar:** chernovik (`isDraft`, vitrinada ko'rinmaydi); o'chirish = "O'chirilganlar"ga (tiklash mumkin, 30 kun keyin admin qo'lda yoki deploy paytida tozalanadi); ommaviy yashirish/ko'chirish/o'chirish; rasmsizlarni yashirish; CSV/Excel eksport va import (har tur alohida qator, import `isActive:false`).
 - **Tayyor:** 50 qatorli CSV import va qayta eksport bir xil; o'chirilgan mahsulot tiklanadi.
@@ -156,4 +160,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-22 (Faza 5 tugadi; Faza 6 dan davom — haftalik limit yangilangach)*
+*Oxirgi yangilanish: 2026-10-25 (Faza 6 kodi tayyor, PR tekshiruvda)*
