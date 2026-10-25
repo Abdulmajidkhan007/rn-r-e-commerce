@@ -39,7 +39,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 
 ## Hozirgi holat (2026-10-22)
 
-Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #PRNUM ochiq, egasi merge qilishini kutmoqda (2026-10-25). Keyingi: Faza 8 — Faza 7 merge bo'lgach.
+Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19 ochiq, egasi merge qilishini kutmoqda (2026-10-25). Keyingi: Faza 8 — Faza 7 merge bo'lgach.
 
 ## Fazalar ro'yxati
 
@@ -51,7 +51,7 @@ Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #PR
 | 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ✅ PR #13 egasi merge qildi, 2026-10-22; telefonda va haqiqiy o'tkazma bilan sinalmagan |
 | 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ✅ PR #15 merge, 2026-10-22; mobil telefonda sinalmagan |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ✅ PR #17 merge (nazoratchi), 2026-10-25; CI yashil; admin UI brauzerda/emulyatorda va telefonda sinalmagan |
-| 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | 🟡 PR #PRNUM ochiq, 2026-10-25 — egasi merge qiladi; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
+| 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | 🟡 PR #19 ochiq, 2026-10-25 — egasi merge qiladi; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ⏳ |
 | 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ⏳ |
 | 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | ⏳ |
@@ -114,7 +114,7 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Model:** Sonnet — admin UI va mexanik o'zgartirish; qoidalar o'zgarishi kichik.
 
 ### Faza 7 — Foyda hisoboti va foydalanuvchilar 🟡 kod (2026-10-25)
-- **Natija (rost holat):** PR #PRNUM, merge qilinmagan (egasi qiladi). `type-check`, `lint` (0 xato; 1 eski ogohlantirish `ProductFormDialog`), `npm test` (265 → 286; yangi unit: tannarx, foyda, foydalanuvchilar), `test:rules` (98 → 109) yashil. Qoidalar testlari ataylab buzib tekshirildi: `productCosts` o'qishini ochganda 3 test qizardi.
+- **Natija (rost holat):** PR #19, merge qilinmagan (egasi qiladi). `type-check`, `lint` (0 xato; 1 eski ogohlantirish `ProductFormDialog`), `npm test` (265 → 286; yangi unit: tannarx, foyda, foydalanuvchilar), `test:rules` (98 → 109) yashil. Qoidalar testlari ataylab buzib tekshirildi: `productCosts` o'qishini ochganda 3 test qizardi.
 - **Qilindi:** tannarx `productCosts/{productId}` (umumiy `cost` + har tur uchun `variants`), faqat admin o'qiydi/yozadi — mijoz va anonim `get`, `list`, `collectionGroup` bilan ham o'qiy olmaydi, yoza olmaydi (qoidalar testi). `products` ga tannarx qo'yilmadi. **CSV ga tannarx qo'shilmadi** (fayl paneldan tashqariga chiqadi va import formati ham shu — sabab DECISIONS.md «Profit report & users on Spark»). Admin buyurtmani tasdiqlaganda (Faza 3 tranzaksiyasi ichida) `orderCosts/{orderId}` bir marta yoziladi — o'sha paytdagi tannarx snapshot'i; qayta tasdiq/bekor/qayta tasdiqda o'zgarmaydi (qoidada update/delete yo'q). Tannarxi yo'q qator `null` — 0 deb hisoblanmaydi; bunday buyurtma tushumda bor, foydada yo'q va alohida ko'rsatiladi. Eski (Faza 7 dan oldin tasdiqlangan) buyurtmalarga admin tugma bilan HOZIRGI tannarxni `backfilled: true` belgisi bilan yozadi. Hisobot: davr (shu oy / 30 kun / 12 oy / hammasi / ixtiyoriy sana), tushum, tannarx, foyda (yetkazishsiz, chegirmadan keyin), marja, oylar jadvali. «Foydalanuvchilar» (`/admin/users`): ro'yxat, buyurtmalar soni, jami xarid, oxirgi buyurtma, qidiruv, saralash, sahifalash (klientda). Mobil: hisobot ekranida foyda kartasi (faqat ko'rish).
 - **Sinaldi:** Firestore + Auth emulyatori, seed, Vite (emulyator rejimi) + Playwright, admin sifatida: tannarx kiritish → `productCosts` yozildi, `products` da tannarx yo'q; buyurtma «Tayyorlanmoqda» → `orderCosts` 280 000 va zaxira 18→15 bir tranzaksiyada; tannarxni o'zgartirib bekor → qayta tasdiq → jo'natildi: snapshot o'zgarmadi, zaxira bir marta olindi; hisobot foyda 287 000 / tannarx 280 000 / «1 ta tannarxsiz»; backfill → `backfilled: true`, `missingLines: 2`; foydalanuvchilar qatori (2 buyurtma, 1 092 000); sahifada JS xatosi yo'q — 13/13. Alohida: haqiqiy mijoz hisobi bilan klient SDK orqali 7 urinish (get/list/collectionGroup/yozish) — hammasi `permission-denied`.
 - **Sinalmagan:** jonli bazada; telefonda (mobil foyda kartasi faqat type-check/lint); Blaze `onOrderCreate` bilan birga (snapshot keyin admin holatni tasdiqlaganda yoziladi — kodda bor, sinalmagan); ko'p foydalanuvchi/buyurtma bilan tezlik.
@@ -163,4 +163,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-25 (Faza 7 — PR #PRNUM ochildi)*
+*Oxirgi yangilanish: 2026-10-25 (Faza 7 — PR #19 ochildi)*
