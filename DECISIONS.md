@@ -809,6 +809,8 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
   line numbers). Import only creates: ids that already exist are skipped, never overwritten.
   Imported products are `isActive: false`, no photos.
 - **Excel**: the export carries a UTF-8 BOM; `.xlsx` is not supported, only CSV.
-- **Mobile**: admin screens keep working (delete now trashes) but have no draft switch, trash list,
-  bulk actions or CSV yet — web only.
+- **Mobile** (2026-10-29): `AdminProductsScreen` reuses the same `@kidswear/data` hooks as the web
+  page — draft switch in the form, trash tab (restore / delete forever / purge expired), long-press
+  multi-select with bulk hide / move / delete, and "hide without photos". Every destructive action
+  goes through `ConfirmDialog`. No CSV on mobile. No new i18n keys (all `admin.catalog.*` existed).
 

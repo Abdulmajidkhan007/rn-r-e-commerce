@@ -58,6 +58,7 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
     variantsExcluded: product?.variantsExcluded ?? [],
     images: product?.images ?? [],
     isActive: product?.isActive ?? true,
+    isDraft: product?.isDraft ?? false,
   };
 }
 
@@ -306,6 +307,29 @@ export function ProductFormDialog({
                 )}
               />
             </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 8,
+              }}
+            >
+              <Text variant="bodyMedium" style={{ flex: 1 }}>
+                {t('admin.catalog.draft')}
+              </Text>
+              <Controller
+                control={control}
+                name="isDraft"
+                render={({ field }) => (
+                  <Switch value={field.value ?? false} onValueChange={field.onChange} />
+                )}
+              />
+            </View>
+            <HelperText type="info" visible>
+              {t('admin.catalog.draftHint')}
+            </HelperText>
           </ScrollView>
         </Dialog.ScrollArea>
         <Dialog.Actions>
