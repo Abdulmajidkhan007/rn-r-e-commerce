@@ -68,6 +68,20 @@ export { stockErrorMessage } from './inventory';
 export type { StockErrorMessage } from './inventory';
 
 export { summarizeDashboard, LOW_STOCK_THRESHOLD } from './dashboard';
+
+export { summarizeProfit, ordersMissingCost, profitPresetRange, periodFromDays } from './profit';
+export type { ProfitPeriod, ProfitBucket, ProfitReport, ProfitPreset, DayRange } from './profit';
+export { summarizeCustomers, filterCustomers, pageOf } from './customers';
+export type { CustomerRow, CustomerSort } from './customers';
+export {
+  costKeys,
+  useProductCosts,
+  useSaveProductCost,
+  useOrderCosts,
+  useBackfillOrderCosts,
+  useAllUsers,
+} from './useCosts';
+export type { SaveProductCostVars, BackfillOrderCostsVars } from './useCosts';
 export type { DashboardStats } from './dashboard';
 
 export {
@@ -116,7 +130,7 @@ export {
 } from './useReviews';
 export type { UseProductReviewsResult, OrderReviewsState, EditReviewVars } from './useReviews';
 
-export { summarizeSales } from './reports';
+export { summarizeSales, dayKey, monthKey, tashkentDayStart, SOLD_STATUSES } from './reports';
 export type { SalesReport, SalesBucket, TopProduct } from './reports';
 
 export { QueryClientProvider } from '@tanstack/react-query';

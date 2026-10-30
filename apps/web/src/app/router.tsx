@@ -96,6 +96,7 @@ const routes: RouteObject[] = [
       { path: 'orders', lazy: lazyPage(() => import('@/pages/AdminOrdersPage')) },
       { path: 'inventory', lazy: lazyPage(() => import('@/pages/AdminInventoryPage')) },
       { path: 'reports', lazy: lazyPage(() => import('@/pages/AdminReportsPage')) },
+      { path: 'users', lazy: lazyPage(() => import('@/pages/AdminUsersPage')) },
       { path: 'messages', lazy: lazyPage(() => import('@/pages/AdminMessagesPage')) },
       { path: 'blog', lazy: lazyPage(() => import('@/pages/AdminBlogPage')) },
       { path: 'promos', lazy: lazyPage(() => import('@/pages/AdminPromosPage')) },

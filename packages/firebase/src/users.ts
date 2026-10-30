@@ -1,5 +1,7 @@
 import {
   type DocumentData,
+  collection,
+  getDocs,
   type Unsubscribe,
   arrayRemove,
   arrayUnion,
@@ -11,7 +13,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import type { UserLanguage, UserProfile } from '@kidswear/core';
+import { UserProfileSchema, type UserLanguage, type UserProfile } from '@kidswear/core';
 import { getDb } from './app';
 import { COLLECTIONS, userDoc } from './collections';
 import type { UserProfileInput } from './types';
@@ -20,6 +22,29 @@ import type { UserProfileInput } from './types';
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const snap = await getDoc(userDoc(uid));
   return snap.exists() ? snap.data() : null;
+}
+
+/**
+ * Admin: every user profile. Read raw and validated one by one, so a single
+ * malformed profile is skipped instead of failing the whole list.
+ */
+export async function getAllUsers(): Promise<UserProfile[]> {
+  const snap = await getDocs(collection(getDb(), COLLECTIONS.users));
+  const out: UserProfile[] = [];
+  for (const d of snap.docs) {
+    const raw = d.data({ serverTimestamps: 'estimate' });
+    const createdAt: unknown = raw.createdAt;
+    const parsed = UserProfileSchema.safeParse({
+      ...raw,
+      uid: d.id,
+      createdAt:
+        createdAt && typeof createdAt === 'object' && 'toMillis' in createdAt
+          ? (createdAt as { toMillis: () => number }).toMillis()
+          : createdAt,
+    });
+    if (parsed.success) out.push(parsed.data);
+  }
+  return out;
 }
 
 function stripUndefined(data: DocumentData): DocumentData {

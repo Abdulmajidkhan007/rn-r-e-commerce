@@ -1,7 +1,12 @@
 import type { Order, OrderStatus } from '@kidswear/core';
 
 /** Statuses that count as a sale: money has been received. */
-const SOLD: readonly OrderStatus[] = ['deposit_paid', 'processing', 'shipped', 'delivered'];
+export const SOLD_STATUSES: readonly OrderStatus[] = [
+  'deposit_paid',
+  'processing',
+  'shipped',
+  'delivered',
+];
 
 export interface SalesBucket {
   /** 'YYYY-MM-DD' (daily) or 'YYYY-MM' (monthly), Tashkent time. */
@@ -35,11 +40,20 @@ export interface SalesReport {
 const TZ_OFFSET_MS = 5 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function dayKey(ms: number): string {
+/** 'YYYY-MM-DD' of `ms` in Tashkent. */
+export function dayKey(ms: number): string {
   return new Date(ms + TZ_OFFSET_MS).toISOString().slice(0, 10);
 }
-function monthKey(ms: number): string {
+/** 'YYYY-MM' of `ms` in Tashkent. */
+export function monthKey(ms: number): string {
   return new Date(ms + TZ_OFFSET_MS).toISOString().slice(0, 7);
+}
+
+/** Epoch ms of 00:00 Tashkent on a 'YYYY-MM-DD' day; NaN when malformed. */
+export function tashkentDayStart(key: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!m) return Number.NaN;
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) - TZ_OFFSET_MS;
 }
 
 /**
@@ -73,7 +87,7 @@ export function summarizeSales(orders: readonly Order[], now: number, days = 30)
       cancelled++;
       continue;
     }
-    if (!SOLD.includes(order.status)) continue;
+    if (!SOLD_STATUSES.includes(order.status)) continue;
     revenue += order.total;
     count++;
     discounts += order.discount ?? 0;

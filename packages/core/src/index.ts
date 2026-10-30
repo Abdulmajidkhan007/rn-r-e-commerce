@@ -24,3 +24,4 @@ export * from './promo';
 export * from './delivery';
 export * from './transfer';
 export * from './review';
+export * from './cost';

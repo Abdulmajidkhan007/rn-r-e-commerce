@@ -43,6 +43,7 @@ const PRODUCTS_KEY = ['products'] as const;
 const ADMIN_PRODUCTS_KEY = ['products', 'admin'] as const;
 const CATEGORIES_KEY = ['categories'] as const;
 const STOCK_MOVES_KEY = ['stockMoves'] as const;
+const ORDER_COSTS_KEY = ['orderCosts'] as const;
 
 // --- Admin product read (ALL products, including inactive) ---
 
@@ -247,7 +248,11 @@ export function useUpdateOrderStatus(): UseMutationResult<
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status, by }: UpdateOrderStatusVars) => changeOrderStatus(id, status, by),
-    onSuccess: (result) => (result.action === 'none' ? undefined : invalidateStock(qc)),
+    onSuccess: async (result) => {
+      // Confirming may have written the order's cost snapshot.
+      await qc.invalidateQueries({ queryKey: ORDER_COSTS_KEY });
+      if (result.action !== 'none') await invalidateStock(qc);
+    },
   });
 }
 

@@ -8,6 +8,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   collection,
+  collectionGroup,
   deleteDoc,
   doc,
   getDoc,
@@ -1169,5 +1170,137 @@ describe('reviews', () => {
     await assertFails(updateDoc(doc(db, 'reviews/d1_p2'), { text: 'edited' }));
     await assertFails(updateDoc(doc(db, 'reviews/d1_p2'), { status: 'deleted' }));
     await assertSucceeds(deleteDoc(doc(db, 'reviews/d1_p2')));
+  });
+});
+
+describe('purchase costs — productCosts & orderCosts (Faza 7)', () => {
+  const productCost = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    cost: 60_000,
+    variants: { 'M|red': 55_000 },
+    updatedBy: ADMIN,
+    updatedAt: serverTimestamp(),
+    ...over,
+  });
+  const orderCost = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    lines: [
+      {
+        productId: 'p1',
+        variantId: 'default',
+        quantity: 1,
+        price: 100_000,
+        unitCost: 60_000,
+      },
+    ],
+    totalCost: 60_000,
+    missingLines: 0,
+    by: ADMIN,
+    createdAt: serverTimestamp(),
+    ...over,
+  });
+
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'products/p1'), { stock: 5, price: 100_000 });
+      await setDoc(doc(db, 'orders/o1'), orderData());
+      await setDoc(doc(db, 'orders/o2'), orderData());
+      await setDoc(doc(db, 'productCosts/p1'), { ...productCost(), updatedAt: 1 });
+      await setDoc(doc(db, 'orderCosts/o1'), { ...orderCost(), createdAt: 1 });
+    });
+  });
+
+  const outsiders = [
+    ['anonymous', anonDb],
+    ['the customer who owns the order', customerDb],
+    ['another user', otherDb],
+  ] as const;
+
+  for (const [who, db] of outsiders) {
+    it(`${who} cannot read them by get, list, query or collection group`, async () => {
+      for (const name of ['productCosts', 'orderCosts']) {
+        const id = name === 'productCosts' ? 'p1' : 'o1';
+        await assertFails(getDoc(doc(db(), `${name}/${id}`)));
+        await assertFails(getDocs(collection(db(), name)));
+        await assertFails(getDocs(query(collection(db(), name), where('by', '==', ADMIN))));
+        await assertFails(getDocs(collectionGroup(db(), name)));
+      }
+      // Missing documents are not probeable either.
+      await assertFails(getDoc(doc(db(), 'productCosts/none')));
+      await assertFails(getDoc(doc(db(), 'orderCosts/o2')));
+    });
+
+    it(`${who} cannot create, change or delete them`, async () => {
+      const uid = db === anonDb ? ADMIN : db === otherDb ? OTHER : CUSTOMER;
+      await assertFails(setDoc(doc(db(), 'productCosts/p2'), productCost({ updatedBy: uid })));
+      await assertFails(updateDoc(doc(db(), 'productCosts/p1'), { cost: 1 }));
+      await assertFails(deleteDoc(doc(db(), 'productCosts/p1')));
+      await assertFails(setDoc(doc(db(), 'orderCosts/o2'), orderCost({ by: uid })));
+      await assertFails(updateDoc(doc(db(), 'orderCosts/o1'), { totalCost: 0 }));
+      await assertFails(deleteDoc(doc(db(), 'orderCosts/o1')));
+    });
+  }
+
+  it('the public product document stays readable and is not where cost lives', async () => {
+    await assertSucceeds(getDoc(doc(anonDb(), 'products/p1')));
+    await assertFails(getDoc(doc(anonDb(), 'productCosts/p1')));
+  });
+
+  it('an admin reads both collections and writes product costs', async () => {
+    const db = adminDb();
+    await assertSucceeds(getDoc(doc(db, 'productCosts/p1')));
+    await assertSucceeds(getDocs(collection(db, 'productCosts')));
+    await assertSucceeds(getDoc(doc(db, 'orderCosts/o1')));
+    await assertSucceeds(getDocs(collection(db, 'orderCosts')));
+    await assertSucceeds(setDoc(doc(db, 'productCosts/p2'), productCost()));
+    const { cost: _none, ...variantsOnly } = productCost();
+    await assertSucceeds(setDoc(doc(db, 'productCosts/p3'), variantsOnly));
+    await assertSucceeds(setDoc(doc(db, 'productCosts/p1'), productCost({ cost: 0 })));
+    await assertSucceeds(deleteDoc(doc(db, 'productCosts/p1')));
+  });
+
+  it('rejects malformed product costs, even from an admin', async () => {
+    const db = adminDb();
+    await assertFails(setDoc(doc(db, 'productCosts/a'), productCost({ cost: -1 })));
+    await assertFails(setDoc(doc(db, 'productCosts/b'), productCost({ cost: 1.5 })));
+    await assertFails(setDoc(doc(db, 'productCosts/c'), productCost({ variants: [] })));
+    await assertFails(setDoc(doc(db, 'productCosts/d'), productCost({ updatedBy: CUSTOMER })));
+    await assertFails(setDoc(doc(db, 'productCosts/e'), productCost({ updatedAt: 1 })));
+    await assertFails(setDoc(doc(db, 'productCosts/f'), productCost({ price: 1 })));
+  });
+
+  it('passes the confirm transaction: stock, flag and cost snapshot together, once', async () => {
+    const db = adminDb();
+    const confirm = (): Promise<void> =>
+      runTransaction(db, async (tx) => {
+        const order = await tx.get(doc(db, 'orders/o2'));
+        await tx.get(doc(db, 'products/p1'));
+        const snapshot = await tx.get(doc(db, 'orderCosts/o2'));
+        await tx.get(doc(db, 'productCosts/p1'));
+        if (order.get('stockApplied') !== true) {
+          tx.update(doc(db, 'products/p1'), { stock: 4 });
+        }
+        if (!snapshot.exists()) tx.set(doc(db, 'orderCosts/o2'), orderCost());
+        tx.update(doc(db, 'orders/o2'), { status: 'processing', stockApplied: true });
+      });
+    await assertSucceeds(confirm());
+    // Re-running finds the snapshot and writes none — the flow is idempotent.
+    await assertSucceeds(confirm());
+    // The snapshot is immutable: no overwrite, edit or delete.
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ totalCost: 1 })));
+    await assertFails(updateDoc(doc(db, 'orderCosts/o2'), { totalCost: 1 }));
+    await assertFails(deleteDoc(doc(db, 'orderCosts/o2')));
+  });
+
+  it('rejects malformed or orphan snapshots, even from an admin', async () => {
+    const db = adminDb();
+    await assertFails(setDoc(doc(db, 'orderCosts/missing'), orderCost()));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ totalCost: -1 })));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ missingLines: 0.5 })));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ lines: 'x' })));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ by: CUSTOMER })));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ createdAt: 1 })));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ backfilled: false })));
+    await assertFails(setDoc(doc(db, 'orderCosts/o2'), orderCost({ profit: 1 })));
+    await assertSucceeds(setDoc(doc(db, 'orderCosts/o2'), orderCost({ backfilled: true })));
   });
 });

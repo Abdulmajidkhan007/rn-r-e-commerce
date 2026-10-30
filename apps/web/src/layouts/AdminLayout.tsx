@@ -27,6 +27,7 @@ import WarehouseIcon from '@mui/icons-material/Warehouse';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import PeopleIcon from '@mui/icons-material/People';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useTranslation } from '@kidswear/i18n';
@@ -42,6 +43,7 @@ const ITEMS = [
   { to: '/admin/orders', labelKey: 'admin.orders', icon: <ReceiptLongIcon /> },
   { to: '/admin/inventory', labelKey: 'inventory.title', icon: <WarehouseIcon /> },
   { to: '/admin/reports', labelKey: 'adminContent.reports', icon: <BarChartIcon /> },
+  { to: '/admin/users', labelKey: 'customers.title', icon: <PeopleIcon /> },
   { to: '/admin/messages', labelKey: 'adminContent.messages', icon: <MailIcon /> },
   { to: '/admin/blog', labelKey: 'adminContent.blog', icon: <ArticleIcon /> },
   { to: '/admin/promos', labelKey: 'adminContent.promos', icon: <LocalOfferIcon /> },
