@@ -29,6 +29,8 @@ export type RootStackParamList = {
   AdminOrders: undefined;
   Favorites: undefined;
   Blog: undefined;
+  Faq: undefined;
+  Delivery: undefined;
   BlogPost: { slug: string };
   Contact: undefined;
   AdminReports: undefined;

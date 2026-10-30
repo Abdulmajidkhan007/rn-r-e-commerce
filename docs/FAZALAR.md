@@ -39,7 +39,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 
 ## Hozirgi holat (2026-10-22)
 
-Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19 ochiq, egasi merge qilishini kutmoqda (2026-10-25). Keyingi: Faza 8 — Faza 7 merge bo'lgach.
+Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19 ochiq, egasi merge qilishini kutmoqda (2026-10-25). Faza 8 — kod tayyor, PR ochiq, nazoratchi tekshiradi (2026-10-30).
 
 ## Fazalar ro'yxati
 
@@ -52,7 +52,7 @@ Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19
 | 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ✅ PR #15 merge, 2026-10-22; mobil telefonda sinalmagan |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ✅ PR #17 merge (nazoratchi), 2026-10-25; CI yashil; admin UI brauzerda/emulyatorda va telefonda sinalmagan |
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | 🟡 PR #19 ochiq, 2026-10-25 — egasi merge qiladi; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
-| 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ⏳ |
+| 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | 🟡 PR ochiq, 2026-10-30 — nazoratchi tekshiradi; vebda emulyatorda FAQ/Yetkazish sahifasi sinaldi; mobil telefonda sinalmagan |
 | 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ⏳ |
 | 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | ⏳ |
 | 11 | Ilova yangilanish banneri + do'kon TV ekrani `/tv` | yo'q | S | — | Sonnet | ⏳ |
@@ -127,6 +127,7 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Ishlar:** FAQ (admin tahrirlaydi, uz/en/ru); "Yetkazib berish" sahifasi `settings/delivery` dan yasaladi; yetkazish matni bitta funksiyada (veb, mobil, checkout, savat, footer bir xil); mobil ekranlar.
 - **Tayyor:** narx sozlamada o'zgarsa hamma joyda o'zgaradi; ikkala platformada.
 - **Model:** Sonnet — matn va UI.
+- **Natija (2026-10-30):** `deliveryText()` (`packages/core/src/delivery.ts`) — yetkazish matnining yagona manbai (uz/en/ru, narx formati tashqaridan beriladi); veb va mobil savat, checkout, `/delivery` sahifasi va veb footer shuni ishlatadi (`useDeliveryText`); eski `cart.freeDeliveryLeft/Reached/minOrderLeft` kalitlari o'chirildi. `faqs` kolleksiyasi (ommaga o'qish, faqat admin yozadi) + admin veb `/admin/faq` (uz/en/ru). Mobilda `Faq` va `Delivery` ekranlari (Profil ro'yxatida havola), checkout'da «Bilib qoʻying» kartasi. Testlar: `deliveryText` 8 ta, FAQ qoidalari 3 ta (unit 294, qoidalar 112 — yashil). Vebda Firestore+Auth emulyatori + Playwright: `/faq` (2 savol, ochilishi), `/delivery` (oraliq narx, bepul chegara, minimal buyurtma, hududlar), footer matni, admin yangi savol qo'shdi → `/faq` da 3 ta. **Sinalmagan:** mobil ekranlar (faqat type-check/lint), checkout hint kartasi brauzerda ko'rilmadi, jonli bazada sinalmagan.
 
 ### Faza 9 — Qidiruv va filtrlar
 - **Ishlar:** `buildSearchTokens` da kirill→lotin va o'zbek apostroflari; filtrlar: o'lcham, yosh, jins, narx oralig'i (indekslar); faqat mahsuloti bor toifalar chiplari; mahsulot sahifasida "O'xshashlar".

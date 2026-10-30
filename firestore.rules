@@ -391,6 +391,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // FAQ: public read; admin-only writes.
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Promo codes: a customer may look one up by exact code, never list them.
     match /promoCodes/{code} {
       allow get: if true;

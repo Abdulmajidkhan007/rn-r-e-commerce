@@ -253,6 +253,23 @@ async function main() {
   });
   console.log('  settings/delivery (minOrder 100 000, free from 500 000)');
 
+  // FAQ entries (Faza 8) for the /faq page.
+  const FAQS = [
+    ['Buyurtmani qanday beraman?', 'How do I place an order?', 'Mahsulotni savatga qoʻshing, manzilni tanlang va buyurtmani tasdiqlang.'],
+    ['Toʻlov qanday amalga oshadi?', 'How does payment work?', 'Buyurtmaning 50% i oldindan toʻlanadi, qolgani yetkazib berilganda.'],
+  ];
+  for (const [i, [uz, en, answer]] of FAQS.entries()) {
+    await put(`faqs/faq${i + 1}`, {
+      id: str(`faq${i + 1}`),
+      question: map({ uz: str(uz), en: str(en) }),
+      answer: map({ uz: str(answer), en: str(answer) }),
+      createdAt: ts(NOW),
+      updatedAt: ts(NOW),
+      order: int(i),
+    });
+  }
+  console.log(`  ${FAQS.length} faqs`);
+
   // Card transfer (Faza 4). A fake, all-zero card number: never put a real
   // card in the repo — the admin sets the real one in Admin → Payment settings.
   await put('settings/payment', {

@@ -765,6 +765,30 @@ describe('blog', () => {
   });
 });
 
+describe('faqs', () => {
+  it('are readable by anonymous visitors, single and list', async () => {
+    await seed('faqs/f1', { question: { uz: 'q' }, answer: { uz: 'a' }, order: 0 });
+    await assertSucceeds(getDoc(doc(anonDb(), 'faqs/f1')));
+    await assertSucceeds(getDocs(collection(anonDb(), 'faqs')));
+  });
+
+  it('cannot be written by customers or anonymous visitors', async () => {
+    await seed('faqs/f1', { question: { uz: 'q' }, answer: { uz: 'a' }, order: 0 });
+    const data = { question: { uz: 'q' }, answer: { uz: 'a' }, order: 1 };
+    await assertFails(setDoc(doc(customerDb(), 'faqs/x'), data));
+    await assertFails(setDoc(doc(anonDb(), 'faqs/x'), data));
+    await assertFails(updateDoc(doc(customerDb(), 'faqs/f1'), { order: 5 }));
+    await assertFails(deleteDoc(doc(customerDb(), 'faqs/f1')));
+  });
+
+  it('can be created, edited and deleted by an admin', async () => {
+    const data = { question: { uz: 'q' }, answer: { uz: 'a' }, order: 1 };
+    await assertSucceeds(setDoc(doc(adminDb(), 'faqs/x'), data));
+    await assertSucceeds(updateDoc(doc(adminDb(), 'faqs/x'), { order: 2 }));
+    await assertSucceeds(deleteDoc(doc(adminDb(), 'faqs/x')));
+  });
+});
+
 describe('favorites', () => {
   const fav = (productId: string) => ({ productId, createdAt: serverTimestamp() });
 

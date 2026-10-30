@@ -52,6 +52,8 @@ Belgilar: ✅ bor va ishlaydi · 🟡 bor, lekin telefonda/jonli oqimda hali sin
 | Blog yozish | ✅ | ✅ | |
 | Promo-kodlar | ✅ | ✅ | |
 | Yetkazish narxlari | ✅ | ✅ | |
+| Savol-javob (FAQ), admin tahrirlaydi uz/en/ru | ✅ | 🟡 faqat o'qish | Faza 8; mobil telefonda sinalmagan |
+| «Yetkazib berish» sahifasi (`settings/delivery` dan) | ✅ | 🟡 | Faza 8; matn bitta funksiyada `deliveryText` |
 | Egasini avtomatik admin qilish | ✅ | — | Har deploy'da `OWNER_EMAIL` |
 
 ## 3. Server (Cloud Functions) — hammasi 🔒 Blaze

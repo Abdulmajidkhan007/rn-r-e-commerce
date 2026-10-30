@@ -29,6 +29,8 @@ import {
   type ContactStatus,
   type DeliverySettings,
   DeliverySettingsSchema,
+  type Faq,
+  FaqSchema,
   type PaymentSettings,
   PaymentSettingsSchema,
   type PromoCode,
@@ -40,6 +42,7 @@ import { createConverter } from './converters';
 export const CONTENT_COLLECTIONS = {
   messages: 'messages',
   blog: 'blogPosts',
+  faqs: 'faqs',
   promoCodes: 'promoCodes',
   settings: 'settings',
   favorites: 'favorites',
@@ -48,10 +51,12 @@ export const CONTENT_COLLECTIONS = {
 const messageConverter = createConverter(ContactMessageSchema);
 const blogConverter = createConverter(BlogPostSchema);
 const promoConverter = createConverter(PromoCodeSchema);
+const faqConverter = createConverter(FaqSchema);
 
 const messagesCol = () =>
   collection(getDb(), CONTENT_COLLECTIONS.messages).withConverter(messageConverter);
 const blogCol = () => collection(getDb(), CONTENT_COLLECTIONS.blog).withConverter(blogConverter);
+const faqCol = () => collection(getDb(), CONTENT_COLLECTIONS.faqs).withConverter(faqConverter);
 const promoCol = () =>
   collection(getDb(), CONTENT_COLLECTIONS.promoCodes).withConverter(promoConverter);
 const deliveryDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'delivery');
@@ -150,6 +155,35 @@ export async function saveBlogPost(id: string | null, input: BlogPostInput): Pro
 
 export async function deleteBlogPost(id: string): Promise<void> {
   await deleteDoc(doc(blogCol(), id));
+}
+
+// --- FAQ --------------------------------------------------------------------
+
+export type FaqInput = Omit<Faq, 'id' | 'createdAt' | 'updatedAt'>;
+
+/** All entries in display order (public read; one sort, so no composite index). */
+export async function getFaqs(): Promise<Faq[]> {
+  const snap = await getDocs(query(faqCol(), orderBy('order', 'asc')));
+  return snap.docs.map((d) => d.data());
+}
+
+export async function saveFaq(id: string | null, input: FaqInput): Promise<string> {
+  if (id) {
+    await updateDoc(doc(faqCol(), id), { ...input, updatedAt: serverTimestamp() });
+    return id;
+  }
+  const ref = doc(faqCol());
+  await setDoc(ref, {
+    ...input,
+    id: ref.id,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  } as WithFieldValue<Faq>);
+  return ref.id;
+}
+
+export async function deleteFaq(id: string): Promise<void> {
+  await deleteDoc(doc(faqCol(), id));
 }
 
 // --- Promo codes ------------------------------------------------------------

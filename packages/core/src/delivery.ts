@@ -84,3 +84,104 @@ export function minOrderShortfall(
   const min = settings?.minOrder ?? 0;
   return Math.max(0, min - amountAfterDiscount);
 }
+
+type DeliveryLanguage = 'uz' | 'en' | 'ru';
+
+const DELIVERY_TEXT = {
+  free: { uz: 'Yetkazib berish bepul', en: 'Delivery is free', ru: 'Доставка бесплатная' },
+  flat: { uz: 'Yetkazib berish: {a}', en: 'Delivery: {a}', ru: 'Доставка: {a}' },
+  range: {
+    uz: 'Yetkazib berish: {a} dan {b} gacha',
+    en: 'Delivery: {a} to {b}',
+    ru: 'Доставка: от {a} до {b}',
+  },
+  freeFrom: {
+    uz: '{a} dan boshlab yetkazib berish bepul',
+    en: 'Free delivery on orders from {a}',
+    ru: 'Бесплатная доставка при заказе от {a}',
+  },
+  freeLeft: {
+    uz: 'Bepul yetkazishga {a} qoldi',
+    en: '{a} more for free delivery',
+    ru: 'До бесплатной доставки {a}',
+  },
+  minOrder: {
+    uz: 'Eng kam buyurtma — {a}',
+    en: 'Minimum order is {a}',
+    ru: 'Минимальный заказ — {a}',
+  },
+  minLeft: {
+    uz: 'Eng kam buyurtma — {a}. Yana {b} qoʻshing',
+    en: 'Minimum order is {a}. Add {b} more',
+    ru: 'Минимальный заказ — {a}. Добавьте ещё {b}',
+  },
+} as const satisfies Record<string, LocalizedText & { en: string; ru: string }>;
+
+/** Localized delivery sentences; `null` for a line that does not apply. */
+export interface DeliveryText {
+  /** Fee line: free, a flat fee, or the cheapest–dearest range over all regions. */
+  summary: string;
+  /**
+   * Free-delivery line. Without an amount: the threshold. With an amount: how
+   * much is left, or "free" once reached. `null` when there is no threshold.
+   */
+  free: string | null;
+  /**
+   * Minimum-order line. Without an amount: the minimum. With an amount: only
+   * while it is not yet met (what is missing). `null` when not set / met.
+   */
+  min: string | null;
+}
+
+/**
+ * The single source of delivery wording — web, mobile, cart, checkout, the
+ * delivery page and the footer all render this instead of building their own
+ * strings. Pure: money formatting is injected (`@kidswear/utils` formatPrice).
+ * Without `amountAfterDiscount` it describes the shop's policy; with it, the
+ * state of the current basket against that policy.
+ */
+export function deliveryText(
+  settings: DeliverySettings | null | undefined,
+  language: DeliveryLanguage,
+  money: (som: number) => string,
+  amountAfterDiscount?: number,
+): DeliveryText {
+  const fill = (tpl: Record<DeliveryLanguage, string>, a: number, b = 0): string =>
+    tpl[language].replace('{a}', money(a)).replace('{b}', money(b));
+
+  if (!settings) return { summary: DELIVERY_TEXT.free[language], free: null, min: null };
+
+  const fees = [settings.defaultFee, ...Object.values(settings.regions)];
+  const lo = Math.min(...fees);
+  const hi = Math.max(...fees);
+  const summary =
+    hi === 0
+      ? DELIVERY_TEXT.free[language]
+      : lo === hi
+        ? fill(DELIVERY_TEXT.flat, lo)
+        : fill(DELIVERY_TEXT.range, lo, hi);
+
+  const hasAmount = amountAfterDiscount !== undefined;
+  const left = freeDeliveryRemaining(settings, amountAfterDiscount ?? 0);
+  const free =
+    left === null
+      ? null
+      : !hasAmount
+        ? fill(DELIVERY_TEXT.freeFrom, settings.freeFrom)
+        : left === 0
+          ? DELIVERY_TEXT.free[language]
+          : fill(DELIVERY_TEXT.freeLeft, left);
+
+  const minOrder = settings.minOrder ?? 0;
+  const short = minOrderShortfall(settings, amountAfterDiscount ?? Infinity);
+  const min =
+    minOrder <= 0
+      ? null
+      : !hasAmount
+        ? fill(DELIVERY_TEXT.minOrder, minOrder)
+        : short > 0
+          ? fill(DELIVERY_TEXT.minLeft, minOrder, short)
+          : null;
+
+  return { summary, free, min };
+}

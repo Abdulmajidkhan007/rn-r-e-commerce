@@ -28,6 +28,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import PeopleIcon from '@mui/icons-material/People';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useTranslation } from '@kidswear/i18n';
@@ -46,6 +47,7 @@ const ITEMS = [
   { to: '/admin/users', labelKey: 'customers.title', icon: <PeopleIcon /> },
   { to: '/admin/messages', labelKey: 'adminContent.messages', icon: <MailIcon /> },
   { to: '/admin/blog', labelKey: 'adminContent.blog', icon: <ArticleIcon /> },
+  { to: '/admin/faq', labelKey: 'adminContent.faq', icon: <HelpOutlineIcon /> },
   { to: '/admin/promos', labelKey: 'adminContent.promos', icon: <LocalOfferIcon /> },
   { to: '/admin/delivery', labelKey: 'adminContent.delivery', icon: <LocalShippingIcon /> },
   { to: '/admin/payment', labelKey: 'adminContent.payment', icon: <CreditCardIcon /> },

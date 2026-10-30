@@ -7,21 +7,26 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 import {
+  deliveryText,
   normalizePromoCode,
+  type DeliveryText,
   type BlogPost,
   type ContactMessage,
   type ContactStatus,
   type DeliverySettings,
+  type Faq,
   type PaymentSettings,
   type PromoCode,
 } from '@kidswear/core';
 import {
   deleteBlogPost,
   deleteContactMessage,
+  deleteFaq,
   deletePromoCode,
   getAllPosts,
   getContactMessages,
   getDeliverySettings,
+  getFaqs,
   getPaymentSettings,
   getPromoCode,
   getPromoCodes,
@@ -29,6 +34,7 @@ import {
   getPublishedPosts,
   saveBlogPost,
   saveDeliverySettings,
+  saveFaq,
   savePaymentSettings,
   savePromoCode,
   sendContactMessage,
@@ -37,13 +43,16 @@ import {
   subscribeFavorites,
   type BlogPostInput,
   type ContactMessageInput,
+  type FaqInput,
   type PromoCodeInput,
 } from '@kidswear/firebase';
+import { formatPrice } from '@kidswear/utils';
 
 export const contentKeys = {
   messages: ['messages'] as const,
   blog: ['blog'] as const,
   blogAdmin: ['blog', 'admin'] as const,
+  faqs: ['faqs'] as const,
   blogPost: (slug: string) => ['blog', 'post', slug] as const,
   promos: ['promos'] as const,
   delivery: ['settings', 'delivery'] as const,
@@ -118,6 +127,32 @@ export function useDeleteBlogPost(): UseMutationResult<void, Error, string> {
   });
 }
 
+// --- FAQ --------------------------------------------------------------------
+
+export function useFaqs(): UseQueryResult<Faq[]> {
+  return useQuery({ queryKey: contentKeys.faqs, queryFn: getFaqs });
+}
+
+export function useSaveFaq(): UseMutationResult<
+  string,
+  Error,
+  { id: string | null; input: FaqInput }
+> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }) => saveFaq(id, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: contentKeys.faqs }),
+  });
+}
+
+export function useDeleteFaq(): UseMutationResult<void, Error, string> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteFaq,
+    onSuccess: () => qc.invalidateQueries({ queryKey: contentKeys.faqs }),
+  });
+}
+
 // --- Promo codes ------------------------------------------------------------
 
 /** Checkout: look up a typed code (exact id). null = no such code. */
@@ -153,6 +188,19 @@ export function useDeletePromoCode(): UseMutationResult<void, Error, string> {
 
 export function useDeliverySettings(): UseQueryResult<DeliverySettings | null> {
   return useQuery({ queryKey: contentKeys.delivery, queryFn: getDeliverySettings });
+}
+
+/**
+ * Delivery wording for the active language — the one place every screen gets
+ * its delivery sentences from. Pass the basket amount (after discount) for the
+ * cart/checkout state; omit it for the plain policy (footer, delivery page).
+ */
+export function useDeliveryText(
+  language: 'uz' | 'en' | 'ru',
+  amountAfterDiscount?: number,
+): DeliveryText {
+  const { data } = useDeliverySettings();
+  return deliveryText(data, language, (som) => formatPrice(som, language), amountAfterDiscount);
 }
 
 export function useSaveDeliverySettings(): UseMutationResult<void, Error, DeliverySettings> {
