@@ -39,6 +39,8 @@ import { AdminInventoryScreen } from '@/screens/admin/AdminInventoryScreen';
 import { AdminReviewsScreen } from '@/screens/admin/AdminReviewsScreen';
 import { FavoritesScreen } from '@/screens/FavoritesScreen';
 import { BlogScreen } from '@/screens/BlogScreen';
+import { FaqScreen } from '@/screens/FaqScreen';
+import { DeliveryScreen } from '@/screens/DeliveryScreen';
 import { BlogPostScreen } from '@/screens/BlogPostScreen';
 import { ContactScreen } from '@/screens/ContactScreen';
 
@@ -187,6 +189,12 @@ export function RootNavigator(): ReactElement {
         options={{ title: t('favorites.title') }}
       />
       <Stack.Screen name="Blog" component={BlogScreen} options={{ title: t('blog.title') }} />
+      <Stack.Screen name="Faq" component={FaqScreen} options={{ title: t('nav.faq') }} />
+      <Stack.Screen
+        name="Delivery"
+        component={DeliveryScreen}
+        options={{ title: t('deliveryPage.title') }}
+      />
       <Stack.Screen name="BlogPost" component={BlogPostScreen} options={{ title: '' }} />
       <Stack.Screen
         name="Contact"

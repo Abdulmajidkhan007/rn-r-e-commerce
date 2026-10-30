@@ -7,7 +7,9 @@
     "blog": "Blog",
     "contact": "Aloqa",
     "profile": "Profil",
-    "admin": "Boshqaruv"
+    "admin": "Boshqaruv",
+    "faq": "Savol-javob",
+    "delivery": "Yetkazib berish"
   },
   "actions": {
     "addToCart": "Savatchaga qo'shish",
@@ -192,10 +194,7 @@
     "remaining": "Qolgan summa",
     "checkout": "Buyurtma berish",
     "remove": "Oʻchirish",
-    "quantity": "Miqdor",
-    "freeDeliveryLeft": "Bepul yetkazishga {{amount}} qoldi",
-    "freeDeliveryReached": "Yetkazib berish bepul",
-    "minOrderLeft": "Eng kam buyurtma — {{min}}. Yana {{amount}} qo'shing"
+    "quantity": "Miqdor"
   },
   "checkout": {
     "shippingAddress": "Yetkazib berish manzili",
@@ -421,7 +420,8 @@
     "tagline": "Bolalar uchun sifatli kiyimlar",
     "shop": "Doʻkon",
     "account": "Hisob",
-    "legal": "Huquqiy maʼlumot"
+    "legal": "Huquqiy maʼlumot",
+    "info": "Maʼlumot"
   },
   "legal": {
     "privacyTitle": "Maxfiylik siyosati",
@@ -560,7 +560,16 @@
     "minOrder": "Eng kam buyurtma summasi",
     "minOrderHint": "0 — cheklov yo'q (chegirmadan keyingi summa)",
     "payment": "To'lov sozlamalari",
-    "reviews": "Sharhlar"
+    "reviews": "Sharhlar",
+    "faq": "Savol-javob",
+    "newFaq": "Yangi savol",
+    "editFaq": "Savolni tahrirlash",
+    "deleteFaq": "Savolni oʻchirish",
+    "noFaqs": "Hali savol yoʻq",
+    "faqQuestion": "Savol",
+    "faqAnswer": "Javob",
+    "faqOrder": "Tartib raqami",
+    "faqInvalid": "Oʻzbekcha savol va javobni kiriting; tartib raqami 0 yoki musbat butun son boʻlsin."
   },
   "settings": {
     "title": "Sozlamalar",
@@ -793,5 +802,29 @@
     "note": "Buyurtmalar soni — bekor qilinganlarsiz. Jami xarid — toʻlangan buyurtmalar summasi (depozit toʻlangan va undan keyingi holatlar).",
     "rowsPerPage": "Sahifada",
     "loadFailed": "Foydalanuvchilar yuklanmadi."
+  },
+  "faq": {
+    "title": "Koʻp beriladigan savollar",
+    "subtitle": "Buyurtma, toʻlov va yetkazib berish haqida javoblar.",
+    "empty": "Savollar tez orada qoʻshiladi.",
+    "contactCta": "Javob topilmadimi?",
+    "contactLink": "Biz bilan bogʻlaning"
+  },
+  "deliveryPage": {
+    "title": "Yetkazib berish",
+    "subtitle": "Narxlar hududingizga qarab hisoblanadi.",
+    "byRegion": "Hududlar boʻyicha narx",
+    "otherRegions": "Boshqa hududlar",
+    "notSet": "Yetkazib berish shartlari tez orada eʼlon qilinadi.",
+    "howTitle": "Qanday ishlaydi",
+    "how1": "Manzilni tanlang — yetkazish narxi hududga qarab avtomatik hisoblanadi.",
+    "how2": "Buyurtmaning 50% i oldindan toʻlanadi, qolgani yetkazib berilganda.",
+    "how3": "Buyurtma holatini «Buyurtmalarim» sahifasida kuzatib boring."
+  },
+  "checkoutHints": {
+    "title": "Bilib qoʻying",
+    "deliveryFee": "Yetkazish narxi manzil hududiga qarab hisoblanadi.",
+    "deposit": "Buyurtmaning 50% i hozir toʻlanadi, qolgani yetkazishda.",
+    "more": "Batafsil: yetkazib berish shartlari"
   }
 }

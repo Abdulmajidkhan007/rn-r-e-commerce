@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -13,9 +13,9 @@ import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
 import {
   deliveryFeeFor,
+  deliveryText,
   evaluatePromo,
   isTransferAvailable,
-  minOrderShortfall,
   type PaymentProvider,
 } from '@kidswear/core';
 import {
@@ -94,7 +94,13 @@ export default function CheckoutPage(): React.ReactElement {
   const discount = promoResult?.ok ? promoResult.discount : 0;
   const deliveryFee = selected ? deliveryFeeFor(delivery, selected.region, subtotal - discount) : 0;
   const totals = computeOrderTotals(items, { discount, deliveryFee });
-  const belowMin = minOrderShortfall(delivery, subtotal - discount) > 0;
+  const deliveryInfo = deliveryText(
+    delivery,
+    language,
+    (som) => formatPrice(som, language),
+    subtotal - discount,
+  );
+  const belowMin = deliveryInfo.min !== null;
   const placeDisabled = !selected || items.length === 0 || belowMin;
 
   const handleAddAddress = async (values: AddressFormValues): Promise<boolean> => {
@@ -146,10 +152,7 @@ export default function CheckoutPage(): React.ReactElement {
       )}
       {belowMin && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          {t('cart.minOrderLeft', {
-            min: formatPrice(delivery?.minOrder ?? 0, language),
-            amount: formatPrice(minOrderShortfall(delivery, subtotal - discount), language),
-          })}
+          {deliveryInfo.min}
         </Alert>
       )}
 
@@ -192,6 +195,23 @@ export default function CheckoutPage(): React.ReactElement {
                   ))}
                 </RadioGroup>
               )}
+            </Stack>
+          </Card>
+
+          <Card>
+            <Stack spacing={0.5} data-testid="checkout-hints">
+              <Typography variant="subtitle2">{t('checkoutHints.title')}</Typography>
+              <Typography variant="body2">{deliveryInfo.summary}</Typography>
+              {deliveryInfo.free && <Typography variant="body2">{deliveryInfo.free}</Typography>}
+              <Typography variant="body2">{t('checkoutHints.deposit')}</Typography>
+              <Typography
+                component={RouterLink}
+                to="/delivery"
+                variant="body2"
+                sx={{ color: 'primary.main' }}
+              >
+                {t('checkoutHints.more')}
+              </Typography>
             </Stack>
           </Card>
 

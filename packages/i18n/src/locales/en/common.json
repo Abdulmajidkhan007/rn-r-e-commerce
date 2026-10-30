@@ -7,7 +7,9 @@
     "blog": "Blog",
     "contact": "Contact",
     "profile": "Profile",
-    "admin": "Admin"
+    "admin": "Admin",
+    "faq": "FAQ",
+    "delivery": "Delivery"
   },
   "actions": {
     "addToCart": "Add to cart",
@@ -192,10 +194,7 @@
     "remaining": "Remaining",
     "checkout": "Checkout",
     "remove": "Remove",
-    "quantity": "Quantity",
-    "freeDeliveryLeft": "{{amount}} more for free delivery",
-    "freeDeliveryReached": "Delivery is free",
-    "minOrderLeft": "Minimum order is {{min}}. Add {{amount}} more"
+    "quantity": "Quantity"
   },
   "checkout": {
     "shippingAddress": "Shipping address",
@@ -421,7 +420,8 @@
     "tagline": "Quality clothing for kids",
     "shop": "Shop",
     "account": "Account",
-    "legal": "Legal"
+    "legal": "Legal",
+    "info": "Information"
   },
   "legal": {
     "privacyTitle": "Privacy Policy",
@@ -560,7 +560,16 @@
     "minOrder": "Minimum order amount",
     "minOrderHint": "0 — no minimum (amount after discount)",
     "payment": "Payment settings",
-    "reviews": "Reviews"
+    "reviews": "Reviews",
+    "faq": "FAQ",
+    "newFaq": "New question",
+    "editFaq": "Edit question",
+    "deleteFaq": "Delete question",
+    "noFaqs": "No questions yet",
+    "faqQuestion": "Question",
+    "faqAnswer": "Answer",
+    "faqOrder": "Order number",
+    "faqInvalid": "Enter the Uzbek question and answer; the order number must be 0 or a positive integer."
   },
   "settings": {
     "title": "Settings",
@@ -793,5 +802,29 @@
     "note": "Order count excludes cancelled orders. Total spent sums paid orders (deposit paid and later statuses).",
     "rowsPerPage": "Per page",
     "loadFailed": "Could not load users."
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Answers about ordering, payment and delivery.",
+    "empty": "Questions will be added soon.",
+    "contactCta": "Didn't find an answer?",
+    "contactLink": "Contact us"
+  },
+  "deliveryPage": {
+    "title": "Delivery",
+    "subtitle": "Prices depend on your region.",
+    "byRegion": "Price by region",
+    "otherRegions": "Other regions",
+    "notSet": "Delivery terms will be published soon.",
+    "howTitle": "How it works",
+    "how1": "Pick an address — the delivery fee is calculated automatically from the region.",
+    "how2": "50% of the order is paid upfront, the rest on delivery.",
+    "how3": "Track your order on the My orders page."
+  },
+  "checkoutHints": {
+    "title": "Good to know",
+    "deliveryFee": "The delivery fee depends on your address region.",
+    "deposit": "50% of the order is paid now, the rest on delivery.",
+    "more": "More: delivery terms"
   }
 }

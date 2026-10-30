@@ -3,9 +3,9 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import { freeDeliveryRemaining, minOrderShortfall, type DeliverySettings } from '@kidswear/core';
+import { deliveryText, freeDeliveryRemaining, type DeliverySettings } from '@kidswear/core';
 import { formatPrice } from '@kidswear/utils';
-import { useTranslation, type SupportedLanguage } from '@kidswear/i18n';
+import type { SupportedLanguage } from '@kidswear/i18n';
 import { Card } from '@/components';
 
 export interface CartThresholdsProps {
@@ -24,22 +24,18 @@ export function CartThresholds({
   amount,
   language,
 }: CartThresholdsProps): React.ReactElement | null {
-  const { t } = useTranslation();
+  const text = deliveryText(settings, language, (som) => formatPrice(som, language), amount);
   const freeLeft = freeDeliveryRemaining(settings, amount);
-  const minLeft = minOrderShortfall(settings, amount);
-  if (freeLeft === null && minLeft === 0) return null;
+  if (freeLeft === null && text.min === null) return null;
 
   const freeFrom = settings?.freeFrom ?? 0;
   const progress = freeFrom > 0 ? Math.min(100, (amount / freeFrom) * 100) : 0;
 
   return (
     <Stack spacing={1.5} sx={{ mb: 2 }}>
-      {minLeft > 0 && (
+      {text.min !== null && (
         <Alert severity="warning" data-testid="min-order-notice">
-          {t('cart.minOrderLeft', {
-            min: formatPrice(settings?.minOrder ?? 0, language),
-            amount: formatPrice(minLeft, language),
-          })}
+          {text.min}
         </Alert>
       )}
       {freeLeft !== null && (
@@ -51,9 +47,7 @@ export function CartThresholds({
                 color={freeLeft === 0 ? 'success' : 'primary'}
               />
               <Typography variant="body2" sx={{ fontWeight: 600 }} data-testid="free-delivery-left">
-                {freeLeft === 0
-                  ? t('cart.freeDeliveryReached')
-                  : t('cart.freeDeliveryLeft', { amount: formatPrice(freeLeft, language) })}
+                {text.free}
               </Typography>
             </Stack>
             <LinearProgress

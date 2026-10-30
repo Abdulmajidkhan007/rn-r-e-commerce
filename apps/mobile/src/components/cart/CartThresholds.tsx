@@ -1,9 +1,9 @@
 import { View } from 'react-native';
 import { HelperText, ProgressBar, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { freeDeliveryRemaining, minOrderShortfall, type DeliverySettings } from '@kidswear/core';
+import { deliveryText, freeDeliveryRemaining, type DeliverySettings } from '@kidswear/core';
 import { formatPrice } from '@kidswear/utils';
-import { useTranslation, type SupportedLanguage } from '@kidswear/i18n';
+import type { SupportedLanguage } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { Card } from '@/components/Card';
 
@@ -23,11 +23,10 @@ export function CartThresholds({
   amount,
   language,
 }: CartThresholdsProps): React.ReactElement | null {
-  const { t } = useTranslation();
   const theme = useTheme();
+  const text = deliveryText(settings, language, (som) => formatPrice(som, language), amount);
   const freeLeft = freeDeliveryRemaining(settings, amount);
-  const minLeft = minOrderShortfall(settings, amount);
-  if (freeLeft === null && minLeft === 0) return null;
+  if (freeLeft === null && text.min === null) return null;
 
   const freeFrom = settings?.freeFrom ?? 0;
   const progress = freeFrom > 0 ? Math.min(1, amount / freeFrom) : 0;
@@ -35,12 +34,9 @@ export function CartThresholds({
 
   return (
     <View style={{ gap: tokens.spacing.sm }}>
-      {minLeft > 0 ? (
+      {text.min !== null ? (
         <HelperText type="error" visible>
-          {t('cart.minOrderLeft', {
-            min: formatPrice(settings?.minOrder ?? 0, language),
-            amount: formatPrice(minLeft, language),
-          })}
+          {text.min}
         </HelperText>
       ) : null}
       {freeLeft !== null ? (
@@ -53,9 +49,7 @@ export function CartThresholds({
                 color={reached ? theme.colors.tertiary : theme.colors.primary}
               />
               <Text variant="bodyMedium" style={{ fontWeight: '700', flex: 1 }}>
-                {reached
-                  ? t('cart.freeDeliveryReached')
-                  : t('cart.freeDeliveryLeft', { amount: formatPrice(freeLeft, language) })}
+                {text.free}
               </Text>
             </View>
             <ProgressBar

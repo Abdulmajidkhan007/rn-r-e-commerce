@@ -21,6 +21,8 @@ const NAV_ITEMS = [
   { to: '/', key: 'nav.home' },
   { to: '/catalog', key: 'nav.catalog' },
   { to: '/blog', key: 'nav.blog' },
+  { to: '/delivery', key: 'nav.delivery' },
+  { to: '/faq', key: 'nav.faq' },
   { to: '/contact', key: 'nav.contact' },
 ] as const;
 
@@ -29,10 +31,7 @@ export interface MobileNavDrawerProps {
   onClose: () => void;
 }
 
-export function MobileNavDrawer({
-  open,
-  onClose,
-}: MobileNavDrawerProps): React.ReactElement {
+export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps): React.ReactElement {
   const { t } = useTranslation();
   const { isAuthenticated, isAdmin } = useAuth();
   const { logout } = useAuthActions();
@@ -90,12 +89,7 @@ export function MobileNavDrawer({
               />
             </ListItemButton>
           ))}
-          <ListItemButton
-            component={RouterLink}
-            to="/privacy"
-            onClick={onClose}
-            sx={{ py: 1.5 }}
-          >
+          <ListItemButton component={RouterLink} to="/privacy" onClick={onClose} sx={{ py: 1.5 }}>
             <ListItemText
               primary={t('footer.privacy')}
               slotProps={{
@@ -109,12 +103,7 @@ export function MobileNavDrawer({
               }}
             />
           </ListItemButton>
-          <ListItemButton
-            component={RouterLink}
-            to="/terms"
-            onClick={onClose}
-            sx={{ py: 1.5 }}
-          >
+          <ListItemButton component={RouterLink} to="/terms" onClick={onClose} sx={{ py: 1.5 }}>
             <ListItemText
               primary={t('footer.terms')}
               slotProps={{

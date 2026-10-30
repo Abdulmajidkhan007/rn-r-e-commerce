@@ -105,6 +105,9 @@ export {
   getAllPosts,
   saveBlogPost,
   deleteBlogPost,
+  getFaqs,
+  saveFaq,
+  deleteFaq,
   getPromoCode,
   getPromoCodes,
   savePromoCode,
@@ -116,7 +119,7 @@ export {
   subscribeFavorites,
   setFavorite,
 } from './content';
-export type { ContactMessageInput, BlogPostInput, PromoCodeInput } from './content';
+export type { ContactMessageInput, BlogPostInput, PromoCodeInput, FaqInput } from './content';
 
 export {
   storagePaths,

@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector, clearCart } from '@kidswear/store';
 import { useAddressActions, useAuth, type AddressFormValues } from '@kidswear/auth';
 import {
   deliveryFeeFor,
+  deliveryText,
   evaluatePromo,
   isTransferAvailable,
   minOrderShortfall,
@@ -93,6 +94,12 @@ export function CheckoutScreen(): React.ReactElement {
   const discount = promoResult?.ok ? promoResult.discount : 0;
   const deliveryFee = selected ? deliveryFeeFor(delivery, selected.region, subtotal - discount) : 0;
   const totals = computeOrderTotals(items, { discount, deliveryFee });
+  const deliveryInfo = deliveryText(
+    delivery,
+    language,
+    (som) => formatPrice(som, language),
+    subtotal - discount,
+  );
   const minShortfall = minOrderShortfall(delivery, subtotal - discount);
 
   const handleAdd = (values: AddressFormValues): Promise<boolean> => addAddress(values);
@@ -139,10 +146,7 @@ export function CheckoutScreen(): React.ReactElement {
       ) : null}
       {minShortfall > 0 ? (
         <HelperText type="error" visible>
-          {t('cart.minOrderLeft', {
-            min: formatPrice(delivery?.minOrder ?? 0, language),
-            amount: formatPrice(minShortfall, language),
-          })}
+          {deliveryInfo.min}
         </HelperText>
       ) : null}
 
@@ -188,6 +192,22 @@ export function CheckoutScreen(): React.ReactElement {
               ))}
             </RadioButton.Group>
           )}
+        </Card.Content>
+      </Card>
+
+      <Card mode="outlined">
+        <Card.Content style={{ gap: 4 }}>
+          <Text variant="titleMedium">{t('checkoutHints.title')}</Text>
+          <Text variant="bodySmall">{deliveryInfo.summary}</Text>
+          {deliveryInfo.free ? <Text variant="bodySmall">{deliveryInfo.free}</Text> : null}
+          <Text variant="bodySmall">{t('checkoutHints.deposit')}</Text>
+          <Button
+            compact
+            style={{ alignSelf: 'flex-start' }}
+            onPress={() => navigation.navigate('Delivery')}
+          >
+            {t('checkoutHints.more')}
+          </Button>
         </Card.Content>
       </Card>
 

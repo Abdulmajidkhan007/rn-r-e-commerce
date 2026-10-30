@@ -20,6 +20,7 @@ export * from './user';
 export * from './forms';
 export * from './contact';
 export * from './blog';
+export * from './faq';
 export * from './promo';
 export * from './delivery';
 export * from './transfer';

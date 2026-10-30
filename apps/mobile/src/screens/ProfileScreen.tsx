@@ -96,6 +96,18 @@ export function ProfileScreen(): React.ReactElement {
           onPress={() => navigation.navigate('Blog')}
         />
         <List.Item
+          title={t('nav.faq')}
+          left={(props) => <List.Icon {...props} icon="help-circle-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Faq')}
+        />
+        <List.Item
+          title={t('nav.delivery')}
+          left={(props) => <List.Icon {...props} icon="truck-delivery-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Delivery')}
+        />
+        <List.Item
           title={t('contact.title')}
           left={(props) => <List.Icon {...props} icon="message-text-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}

@@ -15,21 +15,22 @@ import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import { useAppSelector } from '@kidswear/store';
 import { useAuth } from '@kidswear/auth';
+import { useDeliveryText } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
-import {
-  Badge,
-  LanguageSwitcher,
-  ThemeToggle,
-  AccountMenu,
-  MobileNavDrawer,
-} from '@/components';
+import { Badge, LanguageSwitcher, ThemeToggle, AccountMenu, MobileNavDrawer } from '@/components';
 
 const NAV = [
   { to: '/', key: 'nav.home' },
   { to: '/catalog', key: 'nav.catalog' },
   { to: '/blog', key: 'nav.blog' },
   { to: '/contact', key: 'nav.contact' },
+] as const;
+
+const FOOTER_LINKS = [
+  ...NAV,
+  { to: '/delivery', key: 'nav.delivery' },
+  { to: '/faq', key: 'nav.faq' },
 ] as const;
 
 /** Public-facing layout: header with nav, language, theme, cart; and a footer. */
@@ -43,6 +44,8 @@ export function PublicLayout(): React.ReactElement {
     s.cart.items.reduce((sum, item) => sum + item.quantity, 0),
   );
 
+  const language = useAppSelector((s) => s.ui.language);
+  const deliveryInfo = useDeliveryText(language);
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -104,10 +107,7 @@ export function PublicLayout(): React.ReactElement {
               {t('appName')}
             </Typography>
             {isDesktop && (
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', lineHeight: 1 }}
-              >
+              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>
                 {t('branding.tagline')}
               </Typography>
             )}
@@ -154,11 +154,7 @@ export function PublicLayout(): React.ReactElement {
               </Stack>
 
               {/* Desktop right cluster */}
-              <IconButton
-                aria-label={t('actions.search')}
-                color="inherit"
-                size="small"
-              >
+              <IconButton aria-label={t('actions.search')} color="inherit" size="small">
                 <SearchIcon />
               </IconButton>
               <LanguageSwitcher />
@@ -176,12 +172,7 @@ export function PublicLayout(): React.ReactElement {
               {isAuthenticated ? (
                 <AccountMenu />
               ) : (
-                <Button
-                  component={RouterLink}
-                  to="/login"
-                  variant="contained"
-                  size="small"
-                >
+                <Button component={RouterLink} to="/login" variant="contained" size="small">
                   {t('auth.login.title')}
                 </Button>
               )}
@@ -258,7 +249,7 @@ export function PublicLayout(): React.ReactElement {
                 {t('footer.shop')}
               </Typography>
               <Stack spacing={1}>
-                {NAV.map((item) => (
+                {FOOTER_LINKS.map((item) => (
                   <Typography
                     key={item.to}
                     component={RouterLink}
@@ -426,14 +417,18 @@ export function PublicLayout(): React.ReactElement {
             }}
           >
             <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}
-              >
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
                 {t('appName')}
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                 {t('footer.tagline')}
+              </Typography>
+              <Typography
+                variant="caption"
+                data-testid="footer-delivery"
+                sx={{ color: 'text.secondary', display: 'block' }}
+              >
+                {[deliveryInfo.summary, deliveryInfo.free].filter(Boolean).join(' · ')}
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
