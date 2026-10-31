@@ -39,7 +39,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 
 ## Hozirgi holat (2026-10-22)
 
-Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19 ochiq, egasi merge qilishini kutmoqda (2026-10-25). Faza 8 — merge (PR #21). Faza 9 — kod tayyor, PR ochiq, nazoratchi tekshiradi (2026-10-31).
+Faza 1–9 tugadi: 7 — PR #19 (egasi merge qildi, 2026-10-30), 8 — PR #21, 9 — PR #22 (2026-10-31). Keyingi: Faza 10 — SEO va a11y.
 
 ## Fazalar ro'yxati
 
@@ -51,9 +51,9 @@ Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19
 | 4 | Kartaga o'tkazma + chek yuklash + admin tasdiq | yo'q | M | 3 | Opus | ✅ PR #13 egasi merge qildi, 2026-10-22; telefonda va haqiqiy o'tkazma bilan sinalmagan |
 | 5 | Sharhlar va reyting, "Mijozlar fikri" | yo'q | M | 3 | Opus | ✅ PR #15 merge, 2026-10-22; mobil telefonda sinalmagan |
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ✅ PR #17 merge (nazoratchi), 2026-10-25; CI yashil; admin UI brauzerda/emulyatorda va telefonda sinalmagan |
-| 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | 🟡 PR #19 ochiq, 2026-10-25 — egasi merge qiladi; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
-| 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | 🟡 PR ochiq, 2026-10-30 — nazoratchi tekshiradi; vebda emulyatorda FAQ/Yetkazish sahifasi sinaldi; mobil telefonda sinalmagan |
-| 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | 🟡 PR ochiq, 2026-10-31 — nazoratchi tekshiradi; vebda emulyatorda 10/10 oqim; mobil telefonda va indekslar jonli bazada sinalmagan |
+| 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ✅ PR #19 egasi merge qildi, 2026-10-30; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
+| 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ✅ PR #21 merge (nazoratchi), 2026-10-30; vebda emulyatorda FAQ/Yetkazish sahifasi sinaldi; mobil telefonda sinalmagan |
+| 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ✅ PR #22 merge (nazoratchi), 2026-10-31; CI yashil; vebda emulyatorda 10/10 oqim; mobil telefonda va indekslar jonli bazada sinalmagan |
 | 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | ⏳ |
 | 11 | Ilova yangilanish banneri + do'kon TV ekrani `/tv` | yo'q | S | — | Sonnet | ⏳ |
 | 12 | Xavfsizlik: CSP sarlavhalari + shifrlangan zaxira nusxa | yo'q | M | — | Opus | ⏳ |
