@@ -39,7 +39,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 
 ## Hozirgi holat (2026-10-22)
 
-Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19 ochiq, egasi merge qilishini kutmoqda (2026-10-25). Faza 8 — kod tayyor, PR ochiq, nazoratchi tekshiradi (2026-10-30).
+Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19 ochiq, egasi merge qilishini kutmoqda (2026-10-25). Faza 8 — merge (PR #21). Faza 9 — kod tayyor, PR ochiq, nazoratchi tekshiradi (2026-10-31).
 
 ## Fazalar ro'yxati
 
@@ -53,7 +53,7 @@ Faza 1–6 tugadi (Faza 6 — PR #17, 2026-10-25). Faza 7 — kod tayyor, PR #19
 | 6 | Katalog boshqaruvi: chernovik, o'chirilganlar, ommaviy amal, CSV | yo'q | M | 2 | Sonnet | ✅ PR #17 merge (nazoratchi), 2026-10-25; CI yashil; admin UI brauzerda/emulyatorda va telefonda sinalmagan |
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | 🟡 PR #19 ochiq, 2026-10-25 — egasi merge qiladi; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | 🟡 PR ochiq, 2026-10-30 — nazoratchi tekshiradi; vebda emulyatorda FAQ/Yetkazish sahifasi sinaldi; mobil telefonda sinalmagan |
-| 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ⏳ |
+| 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | 🟡 PR ochiq, 2026-10-31 — nazoratchi tekshiradi; vebda emulyatorda 10/10 oqim; mobil telefonda va indekslar jonli bazada sinalmagan |
 | 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | ⏳ |
 | 11 | Ilova yangilanish banneri + do'kon TV ekrani `/tv` | yo'q | S | — | Sonnet | ⏳ |
 | 12 | Xavfsizlik: CSP sarlavhalari + shifrlangan zaxira nusxa | yo'q | M | — | Opus | ⏳ |
@@ -133,6 +133,11 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Ishlar:** `buildSearchTokens` da kirill→lotin va o'zbek apostroflari; filtrlar: o'lcham, yosh, jins, narx oralig'i (indekslar); faqat mahsuloti bor toifalar chiplari; mahsulot sahifasida "O'xshashlar".
 - **Tayyor:** "куртка" lotin nomli mahsulotni topadi; filtrlar birga ishlaydi; indekslar `firestore.indexes.json` da.
 - **Model:** Sonnet — mavjud qidiruv ustidagi mexanik kengaytma.
+- **Natija (2026-10-31, rost holat):** `type-check`, `lint` (0 xato; 1 eski ogohlantirish), `npm test` (312 test, 34 fayl; Faza 8 da 294), `test:rules` yashil (qoidalar o'zgarmadi).
+- **Qilindi:** `buildSearchTokens`/`searchQueryToken` da kirill→lotin transliteratsiya (ў қ ғ ҳ ham) va apostroflar (ʻ ʼ ʹ ‘ ’ ′ ´ ` ') olib tashlanadi, shuning uchun «o'g'il», «ʻogʻil», «ogil» bir xil token; «куртка» → `kurtka`. Eski mahsulotlar: admin «Qidiruv tokenlarini qayta hisoblash» tugmasi (`/admin/products`) yoki `scripts/backfill-search-tokens.ts`. Filtrlar — o'lcham, jins, yosh oralig'i, narx oralig'i — `useProducts({ filters })` orqali veb va mobilda bitta hook; `Product` ga ixtiyoriy `gender` (`boys|girls|unisex`), `ageFromMonths`, `ageToMonths` (admin formada veb+mobil). Faqat mahsuloti bor toifalar chiplari (`useCategoriesWithProducts`, count aggregation). «O'xshashlar» (`pickSimilar`, `useSimilarProducts`) veb+mobil. Matnlar uz/en/ru. 24 yangi kompozit indeks `firestore.indexes.json` da. Tafsilot: DECISIONS.md «Search & filters (Phase 9)».
+- **Sinaldi:** Firestore+Auth emulyatori, seed, Vite + Playwright (veb): bo'sh toifa yashirin, «куртка» 3 ta lotin nomli kurtkani topdi, `ko'ylak` topdi, jins/narx/(yosh+jins+o'lcham) filtrlari toraytiradi, mahsulot sahifasida «O'xshashlar» — 10/10, JS xatosi yo'q.
+- **Sinalmagan:** mobil ekranlar (faqat type-check/lint); jonli baza; yangi indekslar deploy qilinmagan (`firebase deploy --only firestore:indexes`) — emulyator indeksni tekshirmaydi, shuning uchun yangi so'rov birikmalari jonli bazada indeks qurilguncha xato beradi; mavjud mahsulotlarda `gender`/yosh yo'q — admin to'ldirmaguncha ular jins/yosh filtrida ko'rinmaydi; «tokenlarni qayta hisoblash» jonli bazada ishga tushirilmagan (eski mahsulotlar qayta hisoblanmaguncha kirillcha qidiruvda topilmaydi, eski kirill tokenlari ham endi mos kelmaydi).
+- **Cheklov:** narx va yosh filtri xotirada (Firestore'da bitta so'rovda ikki oraliq/qo'shimcha array-contains bo'lmaydi) — sahifa to'lmasa hook keyingi sahifalarni (8 tagacha) o'zi yuklaydi; qidiruv bilan birga o'lcham ham xotirada; o'lchamlar ro'yxati 200 tagacha faol mahsulotdan yig'iladi; «O'xshashlar» faqat shu toifadan (60 tagacha nomzod) tanlanadi.
 
 ### Faza 10 — SEO va a11y
 - **Ishlar:** deploy'da (Actions, Admin SDK) mahsulot va blog bilan `sitemap.xml`; JSON-LD (Product, Article, FAQPage); sahifa sarlavhalari/OG; a11y: aria-label, fokus, modalda Escape, WCAG AA kontrast testi (dark/light tokenlari uchun).
@@ -164,4 +169,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-25 (Faza 7 — PR #19 ochildi)*
+*Oxirgi yangilanish: 2026-10-31 (Faza 9 — PR ochildi)*

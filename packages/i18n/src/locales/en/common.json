@@ -181,7 +181,23 @@
     "variantUnavailable": "This option is sold out",
     "variantInStock": "In stock: {{count}}",
     "priceFrom": "from {{price}}",
-    "chooseVariant": "Choose a size and colour"
+    "chooseVariant": "Choose a size and colour",
+    "filters": "Filters",
+    "clearFilters": "Clear",
+    "size": "Size",
+    "anySize": "All",
+    "gender": "For",
+    "anyGender": "All",
+    "boys": "Boys",
+    "girls": "Girls",
+    "unisex": "Unisex",
+    "age": "Age",
+    "ageYears": "{{band}} years",
+    "price": "Price",
+    "priceMin": "From",
+    "priceMax": "To",
+    "similar": "Similar items",
+    "noMatches": "No products match the filters"
   },
   "cart": {
     "cart": "Cart",
@@ -355,7 +371,14 @@
         "inconsistent": "rows of one product disagree: {{detail}}",
         "duplicateVariant": "duplicate variant: {{detail}}"
       }
-    }
+    },
+    "gender": "For",
+    "genderNone": "Not specified",
+    "ageFromMonths": "Age: from (months)",
+    "ageToMonths": "Age: to (months)",
+    "recomputeTokens": "Recompute search tokens",
+    "recomputeTokensHint": "Click once so older products are found by Cyrillic/Latin search.",
+    "recomputeTokensDone": "{{count}} products updated"
   },
   "dashboardStats": {
     "totalProducts": "Total products",

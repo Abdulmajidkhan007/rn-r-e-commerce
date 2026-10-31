@@ -19,7 +19,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useProduct, useProducts } from '@kidswear/data';
+import { useProduct, useSimilarProducts } from '@kidswear/data';
 import { useAppDispatch, addItem } from '@kidswear/store';
 import { describeVariantPicker } from '@kidswear/core';
 import { tokens } from '@kidswear/theme';
@@ -98,7 +98,7 @@ export function ProductDetailScreen(): React.ReactElement {
   const { params } = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
   const id = params?.id ?? '';
   const { data: product, isLoading, isError, refetch } = useProduct(id);
-  const { products: related } = useProducts({ categoryId: product?.categoryId });
+  const { products: relatedProducts } = useSimilarProducts(product);
 
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
@@ -152,7 +152,6 @@ export function ProductDetailScreen(): React.ReactElement {
   const picker = describeVariantPicker(product, size, color);
   const { needsSize, needsColor, variant } = picker;
   const picked = (!needsSize || size !== null) && (!needsColor || color !== null);
-  const relatedProducts = related.filter((p) => p.id !== product.id);
 
   const handleAdd = (): void => {
     if (!variant) return;
@@ -281,7 +280,7 @@ export function ProductDetailScreen(): React.ReactElement {
 
           {relatedProducts.length > 0 ? (
             <View style={{ gap: 12, marginTop: 12 }}>
-              <Text variant="titleMedium">{t('catalog.featured')}</Text>
+              <Text variant="titleMedium">{t('catalog.similar')}</Text>
               <FlatList
                 data={relatedProducts}
                 keyExtractor={(item) => item.id}

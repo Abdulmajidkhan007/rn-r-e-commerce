@@ -864,3 +864,25 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
   multi-select with bulk hide / move / delete, and "hide without photos". Every destructive action
   goes through `ConfirmDialog`. No CSV on mobile. No new i18n keys (all `admin.catalog.*` existed).
 
+## Search & filters (Phase 9, 2026-10-31)
+
+- **Transliteration is part of normalization.** `normalizeSearchText` lowercases, maps Cyrillic to
+  Uzbek Latin (ў қ ғ ҳ → o q g h; ъ ь dropped) and strips every apostrophe variant. It runs on both
+  stored tokens and the query, so "куртка" finds "Kurtka" and vice versa. Stored tokens no longer
+  contain Cyrillic, so **existing products must be recomputed once** — admin button "Recompute
+  search tokens" (Spark has no Functions) or `scripts/backfill-search-tokens.ts`.
+- **Filters are one shared hook.** `useProducts({ filters })` in `@kidswear/data`; web and mobile
+  only render controls. Firestore takes category, gender (`in [g, 'unisex']`), ONE `array-contains`
+  (search token, else size) and sort. Price range and age band are applied in memory by pure
+  functions in `@kidswear/core/catalogFilter.ts` (two ranges / a second array-contains do not fit one
+  query); when that leaves a page short the hook fetches more pages (max 8).
+- **Product audience fields are optional.** `gender` and `ageFromMonths/ageToMonths` (months,
+  unambiguous) are not backfilled; unknown is not "unisex", so such products drop out of gender/age
+  filters until the admin fills them. Clearing a field in the admin form deletes it (`deleteField`).
+- **24 new composite indexes** (category? × gender? × search/size array × 3 sorts), generated, in
+  `firestore.indexes.json`; must be deployed. The emulator does not enforce indexes.
+- **Category chips** hide categories without active products via count aggregations (1 read per
+  1000 index entries), not by downloading products.
+- **"Similar"** = `pickSimilar` scoring over the product's own category (same gender, close age,
+  close price; newest breaks ties). Replaces the plain same-category row on web and mobile.
+

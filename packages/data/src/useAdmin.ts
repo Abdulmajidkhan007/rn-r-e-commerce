@@ -23,6 +23,7 @@ import {
   deleteProduct,
   hideProductsWithoutImages,
   importProducts,
+  recomputeSearchTokens,
   purgeExpiredProducts,
   restoreProduct,
   trashProduct,
@@ -146,6 +147,14 @@ export function useHideProductsWithoutImages(): UseMutationResult<number, Error,
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => hideProductsWithoutImages(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+  });
+}
+
+export function useRecomputeSearchTokens(): UseMutationResult<number, Error, void> {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => recomputeSearchTokens(),
     onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
   });
 }

@@ -65,6 +65,9 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
     images: product?.images ?? [],
     isActive: product?.isActive ?? true,
     isDraft: product?.isDraft ?? false,
+    ...(product?.gender !== undefined ? { gender: product.gender } : {}),
+    ...(product?.ageFromMonths !== undefined ? { ageFromMonths: product.ageFromMonths } : {}),
+    ...(product?.ageToMonths !== undefined ? { ageToMonths: product.ageToMonths } : {}),
   };
 }
 
@@ -237,6 +240,48 @@ export function ProductFormDialog({
               />
             )}
           />
+
+          <Stack direction="row" spacing={2}>
+            <Controller
+              control={control}
+              name="gender"
+              render={({ field }) => (
+                <TextField
+                  select
+                  fullWidth
+                  label={t('admin.gender')}
+                  value={field.value ?? ''}
+                  onChange={(e) =>
+                    field.onChange(e.target.value === '' ? undefined : e.target.value)
+                  }
+                >
+                  <MenuItem value="">{t('admin.genderNone')}</MenuItem>
+                  <MenuItem value="boys">{t('catalog.boys')}</MenuItem>
+                  <MenuItem value="girls">{t('catalog.girls')}</MenuItem>
+                  <MenuItem value="unisex">{t('catalog.unisex')}</MenuItem>
+                </TextField>
+              )}
+            />
+            {(['ageFromMonths', 'ageToMonths'] as const).map((name) => (
+              <Controller
+                key={name}
+                control={control}
+                name={name}
+                render={({ field }) => (
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label={t(`admin.${name}`)}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
+                    }
+                    slotProps={{ htmlInput: { min: 0 } }}
+                  />
+                )}
+              />
+            ))}
+          </Stack>
 
           {product && isLegacyProduct(product) && (
             <Alert severity="info">{t('admin.variantsLegacy', { count: product.stock })}</Alert>

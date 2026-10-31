@@ -1,3 +1,5 @@
+import type { CatalogFilters } from '@kidswear/core';
+
 export type ProductSort = 'newest' | 'priceAsc' | 'priceDesc';
 
 export interface ProductsParams {
@@ -5,6 +7,8 @@ export interface ProductsParams {
   /** Free-text search; normalized to a single token and matched server-side. */
   search?: string;
   sort?: ProductSort;
+  /** Size, gender, age band and price range (see `@kidswear/core` catalogFilter). */
+  filters?: CatalogFilters;
 }
 
 /** Products fetched per page by the infinite catalog query. */
@@ -26,6 +30,11 @@ export const queryKeys = {
         categoryId: params.categoryId ?? null,
         search: params.search?.trim().toLowerCase() || null,
         sort: params.sort ?? 'newest',
+        size: params.filters?.size ?? null,
+        gender: params.filters?.gender ?? null,
+        ageBand: params.filters?.ageBand ?? null,
+        priceMin: params.filters?.priceMin ?? null,
+        priceMax: params.filters?.priceMax ?? null,
       },
     ] as const,
   product: (id: string) => ['product', id] as const,

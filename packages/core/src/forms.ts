@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LocalizedTextSchema } from './localized';
+import { GenderSchema } from './product';
 import { ProductVariantSchema } from './variant';
 
 /**
@@ -26,6 +27,10 @@ export const productFormSchema = z.object({
   variantsExcluded: z.array(z.string()),
   images: z.array(z.string()),
   isActive: z.boolean(),
+  /** Optional audience; absent = not specified (excluded by the gender filter). */
+  gender: GenderSchema.optional(),
+  ageFromMonths: z.number().int().nonnegative().optional(),
+  ageToMonths: z.number().int().nonnegative().optional(),
   /** Draft products stay hidden from the storefront. Optional: older forms omit it. */
   isDraft: z.boolean().optional(),
 });

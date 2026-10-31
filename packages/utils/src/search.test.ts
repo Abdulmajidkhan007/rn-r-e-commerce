@@ -23,8 +23,23 @@ describe('normalizeSearchText', () => {
     expect(normalizeSearchText('  Bolalar   kiyimi / 2026!  ')).toBe('bolalar kiyimi 2026');
   });
 
-  it('keeps Cyrillic letters and digits', () => {
-    expect(normalizeSearchText('Шапка 42')).toBe('шапка 42');
+  it('transliterates Cyrillic to Latin and keeps digits', () => {
+    expect(normalizeSearchText('Шапка 42')).toBe('shapka 42');
+    expect(normalizeSearchText('Ёлка, щётка, юбка, яблоко')).toBe('yolka shyotka yubka yabloko');
+  });
+
+  it('maps Uzbek Cyrillic letters to the plain Latin form shoppers type', () => {
+    expect(normalizeSearchText('Кўйлак')).toBe('koylak');
+    expect(normalizeSearchText('Тўғри')).toBe('togri');
+    expect(normalizeSearchText('Қизлар ҳаво')).toBe('qizlar havo');
+  });
+
+  it("treats o' / g' apostrophe variants as the same token", () => {
+    const variants = ['ʻ', 'ʼ', '‘', '’', '′', '´', '`', "'"];
+    for (const a of variants) {
+      expect(normalizeSearchText(`to${a}g${a}ri`)).toBe('togri');
+      expect(normalizeSearchText(`O${a}g${a}il bola`)).toBe('ogil bola');
+    }
   });
 
   it('returns empty for punctuation-only input', () => {
@@ -51,7 +66,7 @@ describe('buildSearchTokens', () => {
     const tokens = buildSearchTokens(name);
     expect(tokens).toContain('koylak');
     expect(tokens).toContain('dress');
-    expect(tokens).toContain('платье');
+    expect(tokens).toContain('plate');
   });
 
   it('stores word prefixes so partial typing matches', () => {
@@ -96,6 +111,27 @@ describe('buildSearchTokens', () => {
 
   it('keeps a one-letter word searchable', () => {
     expect(buildSearchTokens({ uz: 'M size' })).toContain('m');
+  });
+});
+
+describe('Cyrillic search', () => {
+  it('«куртка» finds a product with a Latin name', () => {
+    const tokens = buildSearchTokens({ uz: 'Qishki kurtka', en: 'Winter jacket' });
+    expect(tokens).toContain(searchQueryToken('куртка'));
+    expect(tokens).toContain(searchQueryToken('Куртка'));
+    expect(tokens).toContain(searchQueryToken('кур'));
+  });
+
+  it('a Latin query finds a Cyrillic-named product', () => {
+    const tokens = buildSearchTokens({ uz: '', ru: 'Зимняя куртка' });
+    expect(tokens).toContain(searchQueryToken('kurtka'));
+  });
+
+  it('apostrophe variants give the same tokens', () => {
+    const base = buildSearchTokens({ uz: "Ko'ylak" }).sort();
+    for (const a of ['ʻ', '’', '‘', '`', 'ʼ']) {
+      expect(buildSearchTokens({ uz: `Ko${a}ylak` }).sort()).toEqual(base);
+    }
   });
 });
 

@@ -38,6 +38,7 @@ import {
   useCategories,
   useDeleteProduct,
   useHideProductsWithoutImages,
+  useRecomputeSearchTokens,
   usePurgeExpiredProducts,
   usePurgeProduct,
   useRestoreProduct,
@@ -65,6 +66,7 @@ export default function AdminProductsPage(): React.ReactElement {
   const { data: trashed = [] } = useTrashedProducts();
   const bulk = useBulkUpdateProducts();
   const hideNoImages = useHideProductsWithoutImages();
+  const recomputeTokens = useRecomputeSearchTokens();
   const restoreProduct = useRestoreProduct();
   const purgeProduct = usePurgeProduct();
   const purgeExpired = usePurgeExpiredProducts();
@@ -217,6 +219,19 @@ export default function AdminProductsPage(): React.ReactElement {
               onClick={() => setConfirm('hideNoImages')}
             >
               {t('admin.catalog.hideNoImages')} ({noImageCount})
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              title={t('admin.recomputeTokensHint')}
+              disabled={recomputeTokens.isPending}
+              onClick={() =>
+                recomputeTokens.mutate(undefined, {
+                  onSuccess: (count) => setNotice(t('admin.recomputeTokensDone', { count })),
+                })
+              }
+            >
+              {t('admin.recomputeTokens')}
             </Button>
             <Button variant="outlined" size="small" onClick={exportCsv}>
               {t('admin.catalog.exportCsv')}

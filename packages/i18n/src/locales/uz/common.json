@@ -181,7 +181,23 @@
     "variantUnavailable": "Bu tur tugagan",
     "variantInStock": "Omborda: {{count}} dona",
     "priceFrom": "{{price}} dan",
-    "chooseVariant": "Oʻlcham va rangni tanlang"
+    "chooseVariant": "Oʻlcham va rangni tanlang",
+    "filters": "Filtrlar",
+    "clearFilters": "Tozalash",
+    "size": "Oʻlcham",
+    "anySize": "Hammasi",
+    "gender": "Kim uchun",
+    "anyGender": "Hammasi",
+    "boys": "Oʻgʻil bolalar",
+    "girls": "Qizlar",
+    "unisex": "Hamma uchun",
+    "age": "Yosh",
+    "ageYears": "{{band}} yosh",
+    "price": "Narx",
+    "priceMin": "Dan",
+    "priceMax": "Gacha",
+    "similar": "Oʻxshashlar",
+    "noMatches": "Filtrlarga mos mahsulot topilmadi"
   },
   "cart": {
     "cart": "Savatcha",
@@ -355,7 +371,14 @@
         "inconsistent": "mahsulot qatorlari mos emas: {{detail}}",
         "duplicateVariant": "takroriy tur: {{detail}}"
       }
-    }
+    },
+    "gender": "Kim uchun",
+    "genderNone": "Koʻrsatilmagan",
+    "ageFromMonths": "Yosh: dan (oy)",
+    "ageToMonths": "Yosh: gacha (oy)",
+    "recomputeTokens": "Qidiruv tokenlarini qayta hisoblash",
+    "recomputeTokensHint": "Eski mahsulotlar kirill/lotin qidiruvida topilishi uchun bir marta bosing.",
+    "recomputeTokensDone": "{{count}} ta mahsulot yangilandi"
   },
   "dashboardStats": {
     "totalProducts": "Jami mahsulotlar",

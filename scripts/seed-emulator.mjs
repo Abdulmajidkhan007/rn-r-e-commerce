@@ -17,27 +17,7 @@ const HOST = process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8080';
 const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099';
 const BASE = `http://${HOST}/v1/projects/${PROJECT}/databases/(default)/documents`;
 
-// Mirrors @kidswear/utils.buildSearchTokens. Duplicated rather than imported so
-// this stays a dependency-free script.
-function buildTokens(...texts) {
-  const tokens = new Set();
-  for (const text of texts) {
-    for (const value of Object.values(text ?? {})) {
-      if (typeof value !== 'string' || !value) continue;
-      const normalized = value
-        .toLowerCase()
-        .replace(/[ʻ‘’'`]/g, '')
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
-        .trim();
-      for (const word of normalized.split(' ').filter(Boolean)) {
-        const limit = Math.min(word.length, 12);
-        for (let n = 2; n <= limit; n++) tokens.add(word.slice(0, n));
-        if (word.length < 2) tokens.add(word);
-      }
-    }
-  }
-  return [...tokens];
-}
+import { buildSearchTokens } from '../packages/utils/src/search.ts';
 
 const str = (stringValue) => ({ stringValue });
 const int = (n) => ({ integerValue: String(n) });
@@ -48,12 +28,20 @@ const ts = (ms) => ({ timestampValue: new Date(ms).toISOString() });
 const localized = (uz, en, ru) => map({ uz: str(uz), en: str(en), ru: str(ru) });
 
 const NOW = Date.now();
+const AGES = [
+  [0, 11],
+  [12, 35],
+  [36, 71],
+  [72, 107],
+];
 
 const CATEGORIES = [
   { id: 'cat-koylak', name: ['Koʻylaklar', 'Dresses', 'Платья'], slug: 'koylaklar', order: 1 },
   { id: 'cat-shim', name: ['Shimlar', 'Trousers', 'Брюки'], slug: 'shimlar', order: 2 },
   { id: 'cat-kurtka', name: ['Kurtkalar', 'Jackets', 'Куртки'], slug: 'kurtkalar', order: 3 },
   { id: 'cat-poyabzal', name: ['Poyabzallar', 'Shoes', 'Обувь'], slug: 'poyabzallar', order: 4 },
+  // Intentionally empty: the storefront hides categories without products.
+  { id: 'cat-aksessuar', name: ['Aksessuarlar', 'Accessories', 'Аксессуары'], slug: 'aksessuarlar', order: 5 },
 ];
 
 const PRODUCTS = [
@@ -236,7 +224,12 @@ async function main() {
       rating: { doubleValue: RATINGS.get(id)?.rating ?? 0 },
       reviewCount: int(RATINGS.get(id)?.reviewCount ?? 0),
       isActive: bool(true),
-      searchTokens: arr(buildTokens(name).map(str)),
+      // Audience demo data for the Phase 9 filters: genders and age ranges cycle.
+      ...(n % 4 !== 0 ? { gender: str(['boys', 'girls', 'unisex'][n % 3]) } : {}),
+      ...(n % 4 !== 0
+        ? { ageFromMonths: int(AGES[n % AGES.length][0]), ageToMonths: int(AGES[n % AGES.length][1]) }
+        : {}),
+      searchTokens: arr(buildSearchTokens(name).map(str)),
       createdAt: int(NOW - n * 86_400_000),
       updatedAt: int(NOW - n * 86_400_000),
     });
