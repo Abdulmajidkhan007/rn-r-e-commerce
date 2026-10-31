@@ -10,6 +10,10 @@ import { ProductVariantSchema } from './variant';
  */
 export const TimestampSchema = z.number().int().nonnegative();
 
+export const GENDERS = ['boys', 'girls', 'unisex'] as const;
+export const GenderSchema = z.enum(GENDERS);
+export type Gender = z.infer<typeof GenderSchema>;
+
 export const ProductSchema = z.object({
   id: z.string(),
   name: LocalizedTextSchema,
@@ -56,6 +60,14 @@ export const ProductSchema = z.object({
    * before server-side search have none — run scripts/backfill-search-tokens.ts.
    */
   searchTokens: z.array(z.string()).optional(),
+  /**
+   * Who the product is for. Optional: older products have none and are left
+   * out when a gender filter is active (unknown is not "unisex").
+   */
+  gender: GenderSchema.optional(),
+  /** Age range the product fits, in months, inclusive. Optional like `gender`. */
+  ageFromMonths: z.number().int().nonnegative().optional(),
+  ageToMonths: z.number().int().nonnegative().optional(),
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
 });

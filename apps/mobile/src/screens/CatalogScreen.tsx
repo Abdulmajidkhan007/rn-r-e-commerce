@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, View } from 'react-native';
 import { ActivityIndicator, Button, Chip, Menu, Searchbar, Text } from 'react-native-paper';
-import type { Product } from '@kidswear/core';
-import { useCategories, useProducts, type ProductSort } from '@kidswear/data';
+import type { CatalogFilters, Product } from '@kidswear/core';
+import { useCategoriesWithProducts, useProducts, type ProductSort } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
+import { FiltersPanel } from '@/components/catalog/FiltersPanel';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useLocalized } from '@/lib/useLocalized';
 import { useProductGrid } from '@/lib/useProductGrid';
@@ -21,15 +22,20 @@ export function CatalogScreen(): React.ReactElement {
   const { t } = useTranslation();
   const localized = useLocalized();
   const { columns, cardWidth } = useProductGrid();
-  const categoriesQuery = useCategories();
+  const categoriesQuery = useCategoriesWithProducts();
 
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<ProductSort>('newest');
   const [searchInput, setSearchInput] = useState('');
+  const [filters, setFilters] = useState<CatalogFilters>({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const search = useDebounced(searchInput);
 
-  const params = useMemo(() => ({ categoryId, search, sort }), [categoryId, search, sort]);
+  const params = useMemo(
+    () => ({ categoryId, search, sort, filters }),
+    [categoryId, search, sort, filters],
+  );
   const {
     products,
     isLoading,
@@ -69,6 +75,14 @@ export function CatalogScreen(): React.ReactElement {
             {localized(category.name)}
           </Chip>
         ))}
+        <Button
+          compact
+          icon="filter-variant"
+          mode={filtersOpen ? 'contained-tonal' : 'outlined'}
+          onPress={() => setFiltersOpen((o) => !o)}
+        >
+          {t('catalog.filters')}
+        </Button>
         <Menu
           visible={menuOpen}
           onDismiss={() => setMenuOpen(false)}
@@ -90,6 +104,10 @@ export function CatalogScreen(): React.ReactElement {
           ))}
         </Menu>
       </ScrollView>
+
+      {filtersOpen ? (
+        <FiltersPanel categoryId={categoryId} filters={filters} onChange={setFilters} />
+      ) : null}
     </View>
   );
 
@@ -133,7 +151,11 @@ export function CatalogScreen(): React.ReactElement {
           ) : isLoading ? (
             <Text style={{ opacity: 0.7 }}>{t('common.loading')}</Text>
           ) : (
-            <Text style={{ opacity: 0.7 }}>{t('catalog.noProducts')}</Text>
+            <Text style={{ opacity: 0.7 }}>
+              {Object.values(filters).some((v) => v !== undefined)
+                ? t('catalog.noMatches')
+                : t('catalog.noProducts')}
+            </Text>
           )}
         </View>
       }

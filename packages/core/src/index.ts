@@ -11,6 +11,7 @@ export * from './product';
 export * from './productImage';
 export * from './catalog';
 export * from './catalogCsv';
+export * from './catalogFilter';
 export * from './cart';
 export * from './address';
 export * from './payment';

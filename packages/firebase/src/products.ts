@@ -3,6 +3,7 @@ import {
   type Query,
   type QueryConstraint,
   type Unsubscribe,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit as limitTo,
@@ -12,7 +13,7 @@ import {
   startAfter,
   where,
 } from 'firebase/firestore';
-import type { Product } from '@kidswear/core';
+import type { Gender, Product } from '@kidswear/core';
 import { productDoc, productsCol } from './collections';
 
 export type ProductSortField = 'newest' | 'priceAsc' | 'priceDesc';
@@ -27,6 +28,14 @@ export interface ProductFilters {
    * stored.
    */
   searchToken?: string;
+  /**
+   * Exact size label, matched with `array-contains` on `sizes`. Firestore allows
+   * one array-contains per query, so when `searchToken` is set the size is
+   * ignored here and the caller filters it in memory.
+   */
+  size?: string;
+  /** Genders to include (`in`), e.g. `['boys', 'unisex']`. */
+  genders?: Gender[];
   sort?: ProductSortField;
   /** Page size. Omit for the whole (filtered) collection. */
   limit?: number;
@@ -48,8 +57,13 @@ function buildProductsQuery(filters: ProductFilters = {}): Query<Product> {
   if (filters.isActive !== undefined) {
     constraints.push(where('isActive', '==', filters.isActive));
   }
+  if (filters.genders && filters.genders.length > 0) {
+    constraints.push(where('gender', 'in', filters.genders));
+  }
   if (filters.searchToken) {
     constraints.push(where('searchTokens', 'array-contains', filters.searchToken));
+  } else if (filters.size) {
+    constraints.push(where('sizes', 'array-contains', filters.size));
   }
 
   const [field, direction] = SORT_FIELD[filters.sort ?? 'newest'];
@@ -112,4 +126,12 @@ export function subscribeProduct(id: string, cb: (product: Product | null) => vo
   return onSnapshot(productDoc(id), (snap) => {
     cb(snap.exists() ? snap.data() : null);
   });
+}
+
+/** Number of active products in a category, via a count aggregation (no documents read). */
+export async function countActiveProducts(categoryId: string): Promise<number> {
+  const snap = await getCountFromServer(
+    query(productsCol(), where('categoryId', '==', categoryId), where('isActive', '==', true)),
+  );
+  return snap.data().count;
 }

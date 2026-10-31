@@ -1,29 +1,28 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useProducts } from '@kidswear/data';
+import type { Product } from '@kidswear/core';
+import { useSimilarProducts } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { ProductCardSkeleton } from '@/components/catalog/ProductCardSkeleton';
 
 export interface RelatedProductsProps {
-  categoryId: string;
-  exclude: string;
+  product: Product;
 }
 
-/** Horizontal, snap-scrolling row of other products in the same category. */
-export function RelatedProducts({ categoryId, exclude }: RelatedProductsProps): React.ReactElement | null {
+/** "O'xshashlar": horizontal, snap-scrolling row of the products most like this one. */
+export function RelatedProducts({ product }: RelatedProductsProps): React.ReactElement | null {
   const { t } = useTranslation();
-  const { products, isLoading } = useProducts({ categoryId });
-  const related = products.filter((p) => p.id !== exclude);
+  const { products: related, isLoading } = useSimilarProducts(product);
 
   if (!isLoading && related.length === 0) return null;
 
   return (
     <Box component="section" sx={{ pt: `${tokens.spacing['3xl']}px` }}>
       <Typography variant="h2" sx={{ mb: `${tokens.spacing.lg}px` }}>
-        {t('catalog.featured')}
+        {t('catalog.similar')}
       </Typography>
       <Stack
         direction="row"

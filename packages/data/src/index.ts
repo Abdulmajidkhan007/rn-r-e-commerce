@@ -7,7 +7,15 @@
 export { makeQueryClient } from './client';
 export { queryKeys } from './queryKeys';
 export type { ProductsParams, ProductSort } from './queryKeys';
-export { useCategories, useProducts, useProduct, useProductsByIds } from './hooks';
+export {
+  useCategories,
+  useCategoriesWithProducts,
+  useProducts,
+  useProduct,
+  useProductsByIds,
+  useSimilarProducts,
+  useSizeOptions,
+} from './hooks';
 export type { UseProductsResult } from './hooks';
 export { useImageSrc } from './useImageSrc';
 export type { ImageSrcState } from './useImageSrc';
@@ -43,6 +51,7 @@ export {
   usePurgeExpiredProducts,
   useBulkUpdateProducts,
   useHideProductsWithoutImages,
+  useRecomputeSearchTokens,
   useImportProducts,
   useCreateProduct,
   useUpdateProduct,

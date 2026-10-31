@@ -181,7 +181,23 @@
     "variantUnavailable": "Этот вариант закончился",
     "variantInStock": "В наличии: {{count}} шт.",
     "priceFrom": "от {{price}}",
-    "chooseVariant": "Выберите размер и цвет"
+    "chooseVariant": "Выберите размер и цвет",
+    "filters": "Фильтры",
+    "clearFilters": "Сбросить",
+    "size": "Размер",
+    "anySize": "Все",
+    "gender": "Для кого",
+    "anyGender": "Все",
+    "boys": "Мальчики",
+    "girls": "Девочки",
+    "unisex": "Унисекс",
+    "age": "Возраст",
+    "ageYears": "{{band}} лет",
+    "price": "Цена",
+    "priceMin": "От",
+    "priceMax": "До",
+    "similar": "Похожие товары",
+    "noMatches": "Нет товаров по выбранным фильтрам"
   },
   "cart": {
     "cart": "Корзина",
@@ -355,7 +371,14 @@
         "inconsistent": "строки одного товара не совпадают: {{detail}}",
         "duplicateVariant": "повтор варианта: {{detail}}"
       }
-    }
+    },
+    "gender": "Для кого",
+    "genderNone": "Не указано",
+    "ageFromMonths": "Возраст: от (мес.)",
+    "ageToMonths": "Возраст: до (мес.)",
+    "recomputeTokens": "Пересчитать поисковые токены",
+    "recomputeTokensHint": "Нажмите один раз, чтобы старые товары находились по кириллице/латинице.",
+    "recomputeTokensDone": "Обновлено товаров: {{count}}"
   },
   "dashboardStats": {
     "totalProducts": "Всего товаров",

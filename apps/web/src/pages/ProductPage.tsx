@@ -243,7 +243,7 @@ export default function ProductPage(): React.ReactElement {
 
       <ProductReviews product={product} />
 
-      <RelatedProducts categoryId={product.categoryId} exclude={product.id} />
+      <RelatedProducts product={product} />
 
       <Snackbar
         open={added}

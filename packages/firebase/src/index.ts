@@ -27,6 +27,7 @@ export {
 export type { ProductInput, CategoryInput, OrderInput, UserProfileInput } from './types';
 
 export {
+  countActiveProducts,
   getProducts,
   getProductPage,
   subscribeProducts,
@@ -67,6 +68,7 @@ export {
   restoreProduct,
   bulkUpdateProducts,
   hideProductsWithoutImages,
+  recomputeSearchTokens,
   purgeExpiredProducts,
   importProducts,
   createCategory,

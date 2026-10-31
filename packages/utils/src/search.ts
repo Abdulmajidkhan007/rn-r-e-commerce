@@ -9,6 +9,9 @@ import type { LocalizedLike } from './localized';
  * regardless of catalog size, instead of downloading the collection and
  * filtering in memory.
  *
+ * Cyrillic is transliterated to Uzbek Latin on both sides (stored tokens and the
+ * query), so "куртка" finds a product named "Kurtka" and vice versa.
+ *
  * The trade-off is deliberate: this matches word *prefixes* ("koy" finds
  * "koʻylak"), not arbitrary infixes ("ylak" does not). Real infix search needs a
  * dedicated engine (Algolia/Typesense); prefixes are what a shopper actually
@@ -22,14 +25,66 @@ export const MAX_PREFIX_LENGTH = 12;
 export const MIN_PREFIX_LENGTH = 2;
 
 /**
- * Lowercases and strips the punctuation that varies between how a name is
- * written and how it is typed — Uzbek apostrophes especially, which appear as
- * several different Unicode characters.
+ * Cyrillic → Uzbek Latin. Uzbek-specific letters (ў қ ғ ҳ) map to the plain
+ * Latin letter once apostrophes are stripped (ў → o', ғ → g' → "o", "g"), the
+ * same form a shopper types. Hard/soft signs are dropped.
+ */
+const CYRILLIC_TO_LATIN: Readonly<Record<string, string>> = {
+  а: 'a',
+  б: 'b',
+  в: 'v',
+  г: 'g',
+  д: 'd',
+  е: 'e',
+  ё: 'yo',
+  ж: 'j',
+  з: 'z',
+  и: 'i',
+  й: 'y',
+  к: 'k',
+  л: 'l',
+  м: 'm',
+  н: 'n',
+  о: 'o',
+  п: 'p',
+  р: 'r',
+  с: 's',
+  т: 't',
+  у: 'u',
+  ф: 'f',
+  х: 'x',
+  ц: 'ts',
+  ч: 'ch',
+  ш: 'sh',
+  щ: 'sh',
+  ъ: '',
+  ы: 'i',
+  ь: '',
+  э: 'e',
+  ю: 'yu',
+  я: 'ya',
+  ў: 'o',
+  қ: 'q',
+  ғ: 'g',
+  ҳ: 'h',
+};
+
+/** Transliterates (already lowercased) Cyrillic text to Uzbek Latin; other characters pass through. */
+export function cyrillicToLatin(input: string): string {
+  let out = '';
+  for (const ch of input) out += CYRILLIC_TO_LATIN[ch] ?? ch;
+  return out;
+}
+
+/**
+ * Lowercases, transliterates Cyrillic to Latin and strips the punctuation that
+ * varies between how a name is written and how it is typed — Uzbek apostrophes
+ * especially, which appear as several different Unicode characters (ʻ ʼ ‘ ’ ´ ′ ` ').
+ * Stripping (rather than keeping ') makes "ko'ylak", "koʻylak" and "koylak" one search.
  */
 export function normalizeSearchText(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[ʻ‘’'`]/g, '')
+  return cyrillicToLatin(input.toLowerCase().normalize('NFC'))
+    .replace(/[ʻʼʹ‘’′´`']/g, '')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }

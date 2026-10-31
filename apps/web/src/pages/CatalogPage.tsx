@@ -15,7 +15,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { alpha, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useCategories, useProducts, type ProductSort } from '@kidswear/data';
+import type { CatalogFilters as Filters } from '@kidswear/core';
+import { useCategoriesWithProducts, useProducts, type ProductSort } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
 import { ProductCard } from '@/components/catalog/ProductCard';
@@ -44,19 +45,23 @@ export default function CatalogPage(): React.ReactElement {
   const localized = useLocalized();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const categoriesQuery = useCategories();
+  const categoriesQuery = useCategoriesWithProducts();
 
   // `?category=<id>` lets the home page link straight into a filtered catalog.
   const [searchParams] = useSearchParams();
   const [categoryId, setCategoryId] = useState<string | undefined>(
     () => searchParams.get('category') ?? undefined,
   );
+  const [filters, setFilters] = useState<Filters>({});
   const [sort, setSort] = useState<ProductSort>('newest');
   const [searchInput, setSearchInput] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const search = useDebounced(searchInput);
 
-  const params = useMemo(() => ({ categoryId, search, sort }), [categoryId, search, sort]);
+  const params = useMemo(
+    () => ({ categoryId, search, sort, filters }),
+    [categoryId, search, sort, filters],
+  );
   const { products, isLoading, isError, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useProducts(params);
 
@@ -101,7 +106,11 @@ export default function CatalogPage(): React.ReactElement {
     </Box>
   ) : products.length === 0 ? (
     <Box sx={{ py: 8, textAlign: 'center' }}>
-      <Typography color="text.secondary">{t('catalog.noProducts')}</Typography>
+      <Typography color="text.secondary">
+        {Object.values(filters).some((v) => v !== undefined)
+          ? t('catalog.noMatches')
+          : t('catalog.noProducts')}
+      </Typography>
     </Box>
   ) : (
     <>
@@ -136,13 +145,29 @@ export default function CatalogPage(): React.ReactElement {
       </Box>
 
       {isDesktop ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 4, alignItems: 'flex-start' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '260px 1fr',
+            gap: 4,
+            alignItems: 'flex-start',
+          }}
+        >
           <Box sx={{ position: 'sticky', top: 96 }}>
-            <CatalogFilters categoryId={categoryId} onCategoryChange={setCategoryId} />
+            <CatalogFilters
+              categoryId={categoryId}
+              onCategoryChange={setCategoryId}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
           </Box>
 
           <Box>
-            <Stack direction="row" spacing={2} sx={{ ...stickyBarSx, top: 80, alignItems: 'center' }}>
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{ ...stickyBarSx, top: 80, alignItems: 'center' }}
+            >
               <TextField
                 label={t('catalog.search')}
                 value={searchInput}
@@ -194,7 +219,7 @@ export default function CatalogPage(): React.ReactElement {
                 startIcon={<FilterListIcon />}
                 onClick={() => setFiltersOpen(true)}
               >
-                {t('catalog.category')}
+                {t('catalog.filters')}
               </Button>
             </Stack>
           </Stack>
@@ -210,10 +235,9 @@ export default function CatalogPage(): React.ReactElement {
               </Stack>
               <CatalogFilters
                 categoryId={categoryId}
-                onCategoryChange={(id) => {
-                  setCategoryId(id);
-                  setFiltersOpen(false);
-                }}
+                onCategoryChange={setCategoryId}
+                filters={filters}
+                onFiltersChange={setFilters}
               />
             </Box>
           </Drawer>

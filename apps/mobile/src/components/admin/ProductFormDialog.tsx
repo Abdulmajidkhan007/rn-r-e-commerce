@@ -4,6 +4,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Button,
+  Chip,
   Dialog,
   HelperText,
   Menu,
@@ -13,6 +14,7 @@ import {
   TextInput,
 } from 'react-native-paper';
 import {
+  GENDERS,
   buildVariantMatrix,
   initialFormVariants,
   isLegacyProduct,
@@ -59,6 +61,9 @@ function defaultsFor(product: Product | undefined): ProductFormValues {
     images: product?.images ?? [],
     isActive: product?.isActive ?? true,
     isDraft: product?.isDraft ?? false,
+    ...(product?.gender !== undefined ? { gender: product.gender } : {}),
+    ...(product?.ageFromMonths !== undefined ? { ageFromMonths: product.ageFromMonths } : {}),
+    ...(product?.ageToMonths !== undefined ? { ageToMonths: product.ageToMonths } : {}),
   };
 }
 
@@ -289,6 +294,56 @@ export function ProductFormDialog({
                 />
               )}
             />
+
+            <Text variant="labelLarge" style={{ marginTop: 8 }}>
+              {t('admin.gender')}
+            </Text>
+            <Controller
+              control={control}
+              name="gender"
+              render={({ field }) => (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  <Chip
+                    selected={field.value === undefined}
+                    onPress={() => field.onChange(undefined)}
+                  >
+                    {t('admin.genderNone')}
+                  </Chip>
+                  {GENDERS.map((g) => (
+                    <Chip key={g} selected={field.value === g} onPress={() => field.onChange(g)}>
+                      {t(`catalog.${g}`)}
+                    </Chip>
+                  ))}
+                </View>
+              )}
+            />
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+              {(['ageFromMonths', 'ageToMonths'] as const).map((name) => (
+                <Controller
+                  key={name}
+                  control={control}
+                  name={name}
+                  render={({ field }) => (
+                    <TextInput
+                      dense
+                      mode="outlined"
+                      style={{ flex: 1 }}
+                      label={t(`admin.${name}`)}
+                      keyboardType="numeric"
+                      value={field.value !== undefined ? String(field.value) : ''}
+                      onChangeText={(v) => {
+                        const n = Number(v);
+                        field.onChange(
+                          v.trim() === '' || !Number.isFinite(n) || n < 0
+                            ? undefined
+                            : Math.round(n),
+                        );
+                      }}
+                    />
+                  )}
+                />
+              ))}
+            </View>
 
             <View
               style={{

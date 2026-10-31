@@ -88,11 +88,46 @@ export async function updateProduct(id: string, patch: Partial<ProductInput>): P
     );
   }
 
+  // An optional field the form cleared arrives as `undefined`, which updateDoc
+  // rejects — delete it instead.
+  const cleared: Record<string, ReturnType<typeof deleteField>> = {};
+  for (const key of OPTIONAL_AUDIENCE_FIELDS) {
+    if (key in patch && patch[key] === undefined) cleared[key] = deleteField();
+  }
+
   await updateDoc(productDoc(id), {
     ...withDerivedStock(enforceHiddenInvariant(patch, current ?? null)),
+    ...cleared,
     ...(tokens ? { searchTokens: tokens } : {}),
     updatedAt: serverTimestamp(),
   });
+}
+
+const OPTIONAL_AUDIENCE_FIELDS = ['gender', 'ageFromMonths', 'ageToMonths'] as const;
+
+/**
+ * Rebuilds `searchTokens` for every product (Spark has no Functions to do it).
+ * Needed once after `buildSearchTokens` changes — e.g. the Cyrillic → Latin
+ * transliteration — so existing products are found by the new queries. Writes
+ * only products whose tokens differ; returns how many were updated.
+ */
+export async function recomputeSearchTokens(): Promise<number> {
+  const products = await getProducts();
+  const stale = products.filter((p) => {
+    const next = buildSearchTokens(p.name, p.description);
+    const have = new Set(p.searchTokens ?? []);
+    return next.length !== have.size || next.some((tok) => !have.has(tok));
+  });
+  for (let i = 0; i < stale.length; i += BATCH_SIZE) {
+    const first = stale[i];
+    if (!first) break;
+    const batch = writeBatch(productDoc(first.id).firestore);
+    for (const p of stale.slice(i, i + BATCH_SIZE)) {
+      batch.update(productDoc(p.id), { searchTokens: buildSearchTokens(p.name, p.description) });
+    }
+    await batch.commit();
+  }
+  return stale.length;
 }
 
 /** Permanent delete. The admin UI uses `trashProduct`; this is for emptying the trash. */
