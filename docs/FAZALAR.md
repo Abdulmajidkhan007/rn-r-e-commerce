@@ -54,7 +54,7 @@ Faza 1–9 tugadi: 7 — PR #19 (egasi merge qildi, 2026-10-30), 8 — PR #21, 9
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ✅ PR #19 egasi merge qildi, 2026-10-30; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ✅ PR #21 merge (nazoratchi), 2026-10-30; vebda emulyatorda FAQ/Yetkazish sahifasi sinaldi; mobil telefonda sinalmagan |
 | 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ✅ PR #22 merge (nazoratchi), 2026-10-31; CI yashil; vebda emulyatorda 10/10 oqim; mobil telefonda va indekslar jonli bazada sinalmagan |
-| 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | 🔍 PR ochildi, 2026-11-03; vebda emulyatorda axe 24/24 + klaviatura; deploy/sitemap jonli sinalmagan |
+| 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | 🔍 PR ochildi, 2026-11-03; vebda emulyatorda axe 18/18 + klaviatura (jami 26/26); deploy/sitemap jonli sinalmagan |
 | 11 | Ilova yangilanish banneri + do'kon TV ekrani `/tv` | yo'q | S | — | Sonnet | ⏳ |
 | 12 | Xavfsizlik: CSP sarlavhalari + shifrlangan zaxira nusxa | yo'q | M | — | Opus | ⏳ |
 | 13 | Play Store (eski 8b): release kalit, AAB CI, listing | yo'q* | M | 1 | Opus | ⏳ |
