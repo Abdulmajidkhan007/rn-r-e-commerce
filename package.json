@@ -2,7 +2,7 @@
   "name": "kidswear",
   "version": "0.0.0",
   "private": true,
-  "description": "KidsWear \u2014 universal kids' clothing e-commerce platform (React web + React Native mobile)",
+  "description": "KidsWear — universal kids' clothing e-commerce platform (React web + React Native mobile)",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -27,6 +27,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^4.1.10",
+    "axe-core": "^4.14.0",
     "firebase-admin": "^14.1.0",
     "firebase-tools": "^15.24.0",
     "jsdom": "^30.0.0",

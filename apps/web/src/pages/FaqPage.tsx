@@ -11,11 +11,11 @@ import { useFaqs } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { Skeleton } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function FaqPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('faq.title'));
+  useSeo({ title: t('faq.title'), description: t('seo.faq') });
   const localized = useLocalized();
   const { data: faqs = [], isLoading } = useFaqs();
 

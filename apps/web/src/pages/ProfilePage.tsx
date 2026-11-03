@@ -13,11 +13,11 @@ import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import NotificationsSection from '@/components/profile/NotificationsSection';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileSection } from '@/components/profile/ProfileSection';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function ProfilePage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('auth.profile.title'));
+  useSeo({ title: t('auth.profile.title'), noindex: true });
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { logout } = useAuthActions();
@@ -30,7 +30,11 @@ export default function ProfilePage(): React.ReactElement {
   };
 
   return (
-    <Container disableGutters maxWidth={false} sx={{ maxWidth: 960, mx: 'auto', px: { xs: 2, md: 4 } }}>
+    <Container
+      disableGutters
+      maxWidth={false}
+      sx={{ maxWidth: 960, mx: 'auto', px: { xs: 2, md: 4 } }}
+    >
       <Stack spacing={3} sx={{ py: { xs: 3, md: 5 } }}>
         <Typography variant="h1" sx={{ fontSize: { xs: '2rem', md: '2.75rem' } }}>
           {t('auth.profile.title')}

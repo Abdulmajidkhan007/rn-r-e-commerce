@@ -10,3 +10,4 @@ export * from './order';
 export * from './slug';
 export * from './search';
 export * from './image';
+export * from './seo';

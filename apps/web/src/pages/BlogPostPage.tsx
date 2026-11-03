@@ -12,7 +12,7 @@ import { useAppSelector } from '@kidswear/store';
 import { formatDate } from '@kidswear/utils';
 import { Skeleton } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function BlogPostPage(): React.ReactElement {
   const { slug } = useParams<{ slug: string }>();
@@ -20,7 +20,12 @@ export default function BlogPostPage(): React.ReactElement {
   const localized = useLocalized();
   const language = useAppSelector((s) => s.ui.language);
   const { data: post, isLoading } = useBlogPost(slug);
-  useDocumentTitle(post ? localized(post.title) : t('blog.title'));
+  useSeo({
+    title: post ? localized(post.title) : t('blog.title'),
+    description: post ? localized(post.excerpt) : t('seo.blog'),
+    image: post?.coverImage,
+    ogType: post ? 'article' : 'website',
+  });
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>

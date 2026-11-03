@@ -52,6 +52,7 @@ export function CartThresholds({
             </Stack>
             <LinearProgress
               variant="determinate"
+              aria-label={text.free ?? undefined}
               value={progress}
               color={freeLeft === 0 ? 'success' : 'primary'}
               sx={{ height: 6, borderRadius: 3 }}

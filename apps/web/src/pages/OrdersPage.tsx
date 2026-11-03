@@ -9,16 +9,20 @@ import { useUserOrders } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { Skeleton } from '@/components';
 import { OrderCard } from '@/components/orders/OrderCard';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function OrdersPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('orders.myOrders'));
+  useSeo({ title: t('orders.myOrders'), noindex: true });
   const { user } = useAuth();
   const { orders, loading } = useUserOrders(user?.uid);
 
   return (
-    <Container disableGutters maxWidth={false} sx={{ maxWidth: 1024, mx: 'auto', px: { xs: 2, md: 4 } }}>
+    <Container
+      disableGutters
+      maxWidth={false}
+      sx={{ maxWidth: 1024, mx: 'auto', px: { xs: 2, md: 4 } }}
+    >
       <Stack spacing={3} sx={{ py: { xs: 3, md: 5 } }}>
         <Typography variant="h1" sx={{ fontSize: { xs: '2rem', md: '2.75rem' } }}>
           {t('orders.myOrders')}
@@ -31,7 +35,10 @@ export default function OrdersPage(): React.ReactElement {
             <Skeleton variant="rectangular" height={96} sx={{ borderRadius: 2 }} />
           </Stack>
         ) : orders.length === 0 ? (
-          <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center', py: { xs: 6, md: 10 } }}>
+          <Stack
+            spacing={2}
+            sx={{ alignItems: 'center', textAlign: 'center', py: { xs: 6, md: 10 } }}
+          >
             <Box sx={{ color: 'primary.main', display: 'flex' }}>
               <svg width="96" height="96" viewBox="0 0 96 96" fill="none" aria-hidden="true">
                 <rect

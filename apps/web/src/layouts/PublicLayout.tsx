@@ -44,6 +44,8 @@ export function PublicLayout(): React.ReactElement {
     s.cart.items.reduce((sum, item) => sum + item.quantity, 0),
   );
 
+  // The accessible name must contain the visible badge number (WCAG 2.5.3).
+  const cartLabel = cartCount > 0 ? `${t('nav.cart')}, ${cartCount}` : t('nav.cart');
   const language = useAppSelector((s) => s.ui.language);
   const deliveryInfo = useDeliveryText(language);
   const [scrolled, setScrolled] = useState(false);
@@ -159,12 +161,7 @@ export function PublicLayout(): React.ReactElement {
               </IconButton>
               <LanguageSwitcher />
               <ThemeToggle />
-              <IconButton
-                component={RouterLink}
-                to="/cart"
-                aria-label={t('nav.cart')}
-                color="inherit"
-              >
+              <IconButton component={RouterLink} to="/cart" aria-label={cartLabel} color="inherit">
                 <Badge badgeContent={cartCount} color="primary">
                   <ShoppingCartIcon />
                 </Badge>
@@ -181,18 +178,13 @@ export function PublicLayout(): React.ReactElement {
             <>
               {/* Mobile right cluster */}
               <Box sx={{ flexGrow: 1 }} />
-              <IconButton
-                component={RouterLink}
-                to="/cart"
-                aria-label={t('nav.cart')}
-                color="inherit"
-              >
+              <IconButton component={RouterLink} to="/cart" aria-label={cartLabel} color="inherit">
                 <Badge badgeContent={cartCount} color="primary">
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>
               <IconButton
-                aria-label="open menu"
+                aria-label={t('a11y.openMenu')}
                 color="inherit"
                 onClick={() => {
                   setDrawerOpen(true);

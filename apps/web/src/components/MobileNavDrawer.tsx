@@ -72,7 +72,7 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps): React.
         </Box>
 
         {/* Nav links */}
-        <List sx={{ flexGrow: 1, py: 1 }}>
+        <List component="nav" sx={{ flexGrow: 1, py: 1 }}>
           {NAV_ITEMS.map((item) => (
             <ListItemButton
               key={item.to}

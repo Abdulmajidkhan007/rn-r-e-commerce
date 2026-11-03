@@ -849,5 +849,19 @@
     "deliveryFee": "Yetkazish narxi manzil hududiga qarab hisoblanadi.",
     "deposit": "Buyurtmaning 50% i hozir toʻlanadi, qolgani yetkazishda.",
     "more": "Batafsil: yetkazib berish shartlari"
+  },
+  "seo": {
+    "home": "KidsWear — bolalar uchun sifatli kiyimlar. Onlayn buyurtma, butun Oʻzbekiston boʻylab yetkazib berish.",
+    "catalog": "Bolalar kiyimlari katalogi: oʻlcham, yosh, jins va narx boʻyicha tanlang.",
+    "blog": "Bolalar kiyimi haqida maslahatlar va yangiliklar.",
+    "faq": "Buyurtma, toʻlov va yetkazib berish haqida koʻp beriladigan savollar.",
+    "delivery": "Yetkazib berish narxlari, muddatlari va bepul yetkazib berish shartlari.",
+    "contact": "KidsWear bilan bogʻlaning: telefon, manzil va xabar yuborish."
+  },
+  "a11y": {
+    "decrease": "Kamaytirish",
+    "increase": "Koʻpaytirish",
+    "openMenu": "Menyuni ochish",
+    "toggleTheme": "Mavzuni almashtirish"
   }
 }

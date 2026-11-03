@@ -109,19 +109,19 @@ export const palette = {
 /** Semantic, theme-resolved colors for light and dark schemes. */
 export const semanticColors = {
   light: {
-    primary: primary[500],
+    primary: '#cf3e27', // primary[500] fails AA with white text (3.1:1)
     onPrimary: '#ffffff',
-    secondary: secondary[500],
+    secondary: secondary[600],
     onSecondary: '#ffffff',
-    success: success[500],
-    error: error[500],
-    warning: warning[500],
+    success: success[600],
+    error: error[600],
+    warning: warning[700],
     background: '#fffaf8',
     surface: '#ffffff',
     surfaceVariant: neutral[100],
     border: neutral[200],
     text: neutral[900],
-    textMuted: neutral[600],
+    textMuted: '#5c636a',
   },
   dark: {
     primary: primary[400],

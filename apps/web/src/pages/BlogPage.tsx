@@ -13,11 +13,11 @@ import { useAppSelector } from '@kidswear/store';
 import { formatDate } from '@kidswear/utils';
 import { Skeleton } from '@/components';
 import { useLocalized } from '@/lib/useLocalized';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function BlogPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('blog.title'));
+  useSeo({ title: t('blog.title'), description: t('seo.blog') });
   const localized = useLocalized();
   const language = useAppSelector((s) => s.ui.language);
   const { data: posts = [], isLoading } = usePublishedPosts();

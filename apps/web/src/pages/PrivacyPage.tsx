@@ -1,19 +1,17 @@
-import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { getLegalDoc } from '@kidswear/legal';
+import { useSeo } from '@/lib/useSeo';
 
 export default function PrivacyPage(): React.ReactElement {
   const { t } = useTranslation();
   const language = useAppSelector((s) => s.ui.language);
   const markdown = getLegalDoc('privacy', language);
 
-  useEffect(() => {
-    document.title = t('legal.privacyTitle');
-  }, [t]);
+  useSeo({ title: t('legal.privacyTitle') });
 
   return (
     <Container maxWidth="md">

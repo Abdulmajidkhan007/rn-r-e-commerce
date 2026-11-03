@@ -849,5 +849,19 @@
     "deliveryFee": "The delivery fee depends on your address region.",
     "deposit": "50% of the order is paid now, the rest on delivery.",
     "more": "More: delivery terms"
+  },
+  "seo": {
+    "home": "KidsWear — quality clothing for kids. Order online with delivery across Uzbekistan.",
+    "catalog": "Kids' clothing catalog: filter by size, age, gender and price.",
+    "blog": "Tips and news about kids' clothing.",
+    "faq": "Frequently asked questions about orders, payment and delivery.",
+    "delivery": "Delivery prices, timing and free-delivery conditions.",
+    "contact": "Contact KidsWear: phone, address and message form."
+  },
+  "a11y": {
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "openMenu": "Open menu",
+    "toggleTheme": "Toggle theme"
   }
 }

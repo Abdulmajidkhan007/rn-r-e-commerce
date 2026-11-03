@@ -13,11 +13,11 @@ import { CartLine } from '@/components/cart/CartLine';
 import { EmptyCart } from '@/components/cart/EmptyCart';
 import { CartThresholds } from '@/components/cart/CartThresholds';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function CartPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('cart.cart'));
+  useSeo({ title: t('cart.cart'), noindex: true });
   const navigate = useNavigate();
   const theme = useTheme();
   const dispatch = useAppDispatch();

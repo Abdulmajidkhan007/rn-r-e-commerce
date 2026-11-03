@@ -9,6 +9,8 @@
 #              FIREBASE_PLAN = spark         — ixtiyoriy: Blaze yo'q bo'lsa faqat
 #                                              Hosting + Firestore; Functions va
 #                                              Storage o'tkazib yuboriladi
+#              SITE_URL                      — ixtiyoriy: sitemap/robots uchun sayt manzili
+#                                              (standart: https://<FIREBASE_PROJECT_ID>.web.app)
 #              VITE_ADMIN_EMAIL              — ixtiyoriy: admin email (faqat UI)
 #              OWNER_EMAIL                   — ixtiyoriy: har deploy'da admin qilinadigan
 #                                              egasi (standart: santexnika.atoyo@gmail.com)
@@ -102,6 +104,14 @@ jobs:
 
       - name: Build web
         run: npm run build --workspace @kidswear/web
+
+      # Spark'da Cloud Functions yo'q, shuning uchun sitemap deploy paytida
+      # (Admin SDK) tuziladi: mahsulot, toifa va maqolalar bilan. Saytning
+      # manzili: SITE_URL o'zgaruvchisi, bo'lmasa Firebase Hosting standart manzili.
+      - name: Sitemap va robots.txt
+        env:
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.web.app', vars.FIREBASE_PROJECT_ID) }}
+        run: node scripts/generate-sitemap.ts apps/web/dist
 
       # Spark'da Cloud Functions ham, yangi loyihalarda Storage bucket ham yo'q:
       # ular firebase.json dan vaqtincha olib tashlanadi (faqat runner'da).

@@ -33,6 +33,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useTranslation } from '@kidswear/i18n';
 import { ThemeToggle } from '@/components';
+import { useNoIndex } from '@/lib/useSeo';
 import { tokens } from '@kidswear/theme';
 
 const DRAWER_WIDTH = 240;
@@ -60,6 +61,7 @@ const BOTTOM_COUNT = 4;
 /** Admin layout: persistent sidebar + topbar on desktop; BottomNavigation on mobile. */
 export function AdminLayout(): React.ReactElement {
   const { t } = useTranslation();
+  useNoIndex();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const location = useLocation();
@@ -138,7 +140,7 @@ export function AdminLayout(): React.ReactElement {
             >
               {t('nav.admin')}
             </Typography>
-            <List disablePadding>
+            <List component="nav" disablePadding>
               {ITEMS.map((item, idx) => {
                 const isActive = idx === activeIndex;
                 return (

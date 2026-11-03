@@ -13,14 +13,14 @@ import { useSendContactMessage } from '@kidswear/data';
 import { useTranslation } from '@kidswear/i18n';
 import { Card } from '@/components';
 import { useTranslateKey } from '@/lib/useTranslateKey';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 const EMPTY: ContactFormValues = { name: '', phone: '', email: '', message: '' };
 
 export default function ContactPage(): React.ReactElement {
   const { t } = useTranslation();
   const tk = useTranslateKey();
-  useDocumentTitle(t('contact.title'));
+  useSeo({ title: t('contact.title'), description: t('seo.contact') });
   const { user } = useAuth();
   const send = useSendContactMessage();
   const [sent, setSent] = useState(false);
