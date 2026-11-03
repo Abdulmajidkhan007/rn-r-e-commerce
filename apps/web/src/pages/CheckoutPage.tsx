@@ -35,12 +35,12 @@ import { PaymentMethodPicker } from '@/components/checkout/PaymentMethodPicker';
 import { PromoCodeField, type AppliedPromo } from '@/components/checkout/PromoCodeField';
 import { regionLabel } from '@/lib/region';
 import { checkoutReturnUrl, paymentProviders } from '@/payments';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 import { useNow } from '@/lib/useNow';
 
 export default function CheckoutPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('checkout.placeOrder'));
+  useSeo({ title: t('checkout.placeOrder'), noindex: true });
   const tk = useTranslateKey();
   const navigate = useNavigate();
   const theme = useTheme();

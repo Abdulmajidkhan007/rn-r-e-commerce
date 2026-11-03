@@ -14,7 +14,8 @@ import { Skeleton } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { FeaturedReviews } from '@/components/reviews/FeaturedReviews';
 import { useLocalized } from '@/lib/useLocalized';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@kidswear/utils';
 import { pickDeals } from '@/lib/deals';
 
 const NEWEST_COUNT = 8;
@@ -65,7 +66,20 @@ function ProductGrid({
 
 export default function HomePage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('nav.home'));
+  const origin = window.location.origin;
+  useSeo({
+    title: t('branding.tagline'),
+    description: t('seo.home'),
+    image: '/og-image.png',
+    jsonLd: [
+      buildOrganizationJsonLd({
+        name: t('appName'),
+        url: origin,
+        logo: `${origin}/maskable-512.png`,
+      }),
+      buildWebSiteJsonLd({ name: t('appName'), url: origin }),
+    ],
+  });
   const localized = useLocalized();
   const { products, isLoading } = useProducts({ sort: 'newest' });
   const categoriesQuery = useCategories();
@@ -83,7 +97,7 @@ export default function HomePage(): React.ReactElement {
             p: { xs: 3, sm: 4, md: 7 },
             background: (theme) =>
               `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-            color: 'common.white',
+            color: 'primary.contrastText',
           }}
         >
           <Stack spacing={2} sx={{ maxWidth: 620 }}>
@@ -104,7 +118,7 @@ export default function HomePage(): React.ReactElement {
               color="inherit"
               size="large"
               endIcon={<ArrowForwardIcon />}
-              sx={{ alignSelf: 'flex-start', color: 'primary.main', bgcolor: 'common.white' }}
+              sx={{ alignSelf: 'flex-start', color: 'primary.main', bgcolor: 'background.paper' }}
             >
               {t('landing.shopNow')}
             </Button>

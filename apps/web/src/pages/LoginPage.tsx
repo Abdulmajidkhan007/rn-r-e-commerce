@@ -16,12 +16,12 @@ import { loginSchema, type LoginValues, useAuthActions } from '@kidswear/auth';
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 export default function LoginPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('auth.login.title'));
+  useSeo({ title: t('auth.login.title'), noindex: true });
   const tk = useTranslateKey();
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,10 +161,10 @@ export default function LoginPage(): React.ReactElement {
           px: 6,
         }}
       >
-        <Typography variant="h3" sx={{ color: 'white', fontWeight: 800 }}>
+        <Typography variant="h3" sx={{ color: 'primary.contrastText', fontWeight: 800 }}>
           KidsWear
         </Typography>
-        <Typography variant="h6" sx={{ color: 'white', opacity: 0.85, textAlign: 'center' }}>
+        <Typography variant="h6" sx={{ color: 'primary.contrastText', textAlign: 'center' }}>
           {t('branding.tagline')}
         </Typography>
       </Box>

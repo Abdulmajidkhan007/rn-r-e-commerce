@@ -8,17 +8,18 @@ import { tokens } from '@kidswear/theme';
  */
 export function createAppTheme(mode: 'light' | 'dark'): Theme {
   const c = tokens.semanticColors[mode];
-  const { palette, radii, fontFamilies, fontSizes, fontWeights, durations, easings, elevations } =
-    tokens;
+  const { radii, fontFamilies, fontSizes, fontWeights, durations, easings, elevations } = tokens;
 
   return createTheme({
     palette: {
       mode,
-      primary: { main: palette.primary[500], contrastText: c.onPrimary },
-      secondary: { main: palette.secondary[500], contrastText: c.onSecondary },
-      success: { main: palette.success[500] },
-      error: { main: palette.error[500] },
-      warning: { main: palette.warning[500] },
+      // 4.5 makes MUI pick white/black text per colour at WCAG AA (default is 3).
+      contrastThreshold: 4.5,
+      primary: { main: c.primary, contrastText: c.onPrimary },
+      secondary: { main: c.secondary, contrastText: c.onSecondary },
+      success: { main: c.success },
+      error: { main: c.error },
+      warning: { main: c.warning },
       background: { default: c.background, paper: c.surface },
       text: { primary: c.text, secondary: c.textMuted },
       divider: c.border,

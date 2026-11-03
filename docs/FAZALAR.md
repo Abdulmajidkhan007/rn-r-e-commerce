@@ -39,7 +39,7 @@ Firestore qoidalari, Spark'da server yo'q. Shuning uchun Blaze'siz fazalarda him
 
 ## Hozirgi holat (2026-10-22)
 
-Faza 1–9 tugadi: 7 — PR #19 (egasi merge qildi, 2026-10-30), 8 — PR #21, 9 — PR #22 (2026-10-31). Keyingi: Faza 10 — SEO va a11y.
+Faza 1–9 tugadi: 7 — PR #19 (egasi merge qildi, 2026-10-30), 8 — PR #21, 9 — PR #22 (2026-10-31). Faza 10 — SEO va a11y: PR ochildi (2026-11-03), nazoratchi tekshiradi.
 
 ## Fazalar ro'yxati
 
@@ -54,7 +54,7 @@ Faza 1–9 tugadi: 7 — PR #19 (egasi merge qildi, 2026-10-30), 8 — PR #21, 9
 | 7 | Foyda hisoboti (yopiq tannarx) + foydalanuvchilar ro'yxati | yo'q | M | 2, 3 | Opus | ✅ PR #19 egasi merge qildi, 2026-10-30; vebda emulyatorda 13/13 oqim; mobil telefonda sinalmagan |
 | 8 | Kontent: FAQ, Yetkazib berish sahifasi, checkout ko'rsatmalari | yo'q | S | — | Sonnet | ✅ PR #21 merge (nazoratchi), 2026-10-30; vebda emulyatorda FAQ/Yetkazish sahifasi sinaldi; mobil telefonda sinalmagan |
 | 9 | Qidiruv va filtrlar: kirill→lotin, o'lcham/yosh/narx, o'xshashlar | yo'q | M | 2 | Sonnet | ✅ PR #22 merge (nazoratchi), 2026-10-31; CI yashil; vebda emulyatorda 10/10 oqim; mobil telefonda va indekslar jonli bazada sinalmagan |
-| 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | ⏳ |
+| 10 | SEO va a11y: dinamik sitemap, JSON-LD, kontrast testi | yo'q | M | 9 | Sonnet | 🔍 PR ochildi, 2026-11-03; vebda emulyatorda axe 18/18 + klaviatura (jami 26/26); deploy/sitemap jonli sinalmagan |
 | 11 | Ilova yangilanish banneri + do'kon TV ekrani `/tv` | yo'q | S | — | Sonnet | ⏳ |
 | 12 | Xavfsizlik: CSP sarlavhalari + shifrlangan zaxira nusxa | yo'q | M | — | Opus | ⏳ |
 | 13 | Play Store (eski 8b): release kalit, AAB CI, listing | yo'q* | M | 1 | Opus | ⏳ |
@@ -143,6 +143,14 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **Ishlar:** deploy'da (Actions, Admin SDK) mahsulot va blog bilan `sitemap.xml`; JSON-LD (Product, Article, FAQPage); sahifa sarlavhalari/OG; a11y: aria-label, fokus, modalda Escape, WCAG AA kontrast testi (dark/light tokenlari uchun).
 - **Tayyor:** sitemap'da hamma faol mahsulot; kontrast testi CI'da.
 - **Model:** Sonnet.
+- **Natija (2026-11-03, rost holat):** `type-check`, `lint` (0 xato), `npm test` — 351 test (Faza 9 da 312; +39: sitemap/robots/JSON-LD 11, `useSeo` 2, kontrast 25 — light va dark tokenlari uchun WCAG AA ≥ 4.5:1), `build` yashil.
+- **Qaror (sitemap):** Spark'da Cloud Functions yo'q → `sitemap.xml` va `robots.txt` **deploy paytida** `scripts/generate-sitemap.ts` (Admin SDK) bilan `apps/web/dist` ga yoziladi (`deploy.yml`, «Sitemap va robots.txt» qadami, `vite build` dan keyin). Tarkibi: statik sahifalar, toifalar (`/catalog?category=<id>`), faol (chernovik/o'chirilgan emas) mahsulotlar, e'lon qilingan maqolalar. Sayt manzili: `SITE_URL` o'zgaruvchisi, bo'lmasa `https://<FIREBASE_PROJECT_ID>.web.app`. Sitemap faqat deploy lahzasidagi holatni aks ettiradi — yangi mahsulot keyingi deploy'gacha unda bo'lmaydi (Blaze'da funksiya bilan dinamik qilinadi). Eski nisbiy-manzilli `public/sitemap.xml` o'chirildi (nisbiy `<loc>` yaroqsiz edi); `public/robots.txt` da faqat `Disallow`lar, `Sitemap:` qatori deploy'da yoziladi.
+- **SEO (veb):** `useSeo` (`apps/web/src/lib/useSeo.ts`) — title, description, canonical, Open Graph/Twitter, `robots noindex`, JSON-LD; bosh sahifa, katalog, mahsulot, blog, maqola, FAQ, yetkazish, aloqa, maxfiylik, shartlar sahifalarida. Mahsulotda `Product`+`Offer` (UZS, `InStock/OutOfStock`, bor bo'lsa `AggregateRating`), bosh sahifada `Organization`+`WebSite`. Savat, buyurtma, kirish, profil, buyurtmalar, sevimlilar va `/admin` — `noindex` + `robots.txt` da `Disallow`. Tavsiflar uz/en/ru (`seo.*`).
+- **Cheklov (SEO):** SPA — teglar brauzerda JS bilan qo'yiladi (Google/Bing JS'ni bajaradi, lekin ijtimoiy tarmoq botlari — Telegram/Facebook — `og:` ni `index.html` dagi umumiy qiymatdan oladi, mahsulotga xos emas). Google Search Console'da **tekshirilmagan**; JSON-LD Rich Results Test'da tekshirilmagan (faqat brauzerda DOM'dagi tarkibi ko'rildi).
+- **a11y (veb):** `scripts/a11y-audit.mjs` (axe-core + Playwright, emulyator): bosh sahifa, katalog, mahsulot, savat, FAQ, yetkazish, blog, kirish, buyurtma (checkout) — har biri light va dark rejimda, WCAG 2.0/2.1 A+AA. Boshlang'ich holat — ko'p sahifa/rejimda buzilish (kontrast, nomsiz elementlar); tuzatilgach 18 ta sahifa/rejim «0 violations» + klaviatura oqimi (Tab → mahsulot havolasi, Enter → sahifa, Space bilan o'lcham/rang, Enter bilan savatga, savat → buyurtma tugmasi, fokus har bir to'xtashda ko'rinadi) + `html lang="uz"` + JS xatosi yo'q = 26/26 tekshiruv.
+- **Tuzatildi:** (1) kontrast: light `primary` `#ff5a3c`→`#cf3e27` (oq matn 3.1→4.8), `secondary`→600, `success`→600, `error`→600, `warning`→700, `textMuted` `#868e96`→`#5c636a`; veb MUI temasi endi `semanticColors` dan oladi (avval xom `palette[500]`) va `contrastThreshold: 4.5`; bosh sahifa «hero» va kirish paneli matni `primary.contrastText`; faol toifa rangi. Mobil (Paper) ham shu tokenlardan oladi — rangi biroz o'zgardi, ko'zdan kechirilmagan. (2) Savat havolasining `aria-label` i ko'rinadigan nishon raqamini o'z ichiga oladi. (3) Saralash `Select` nomi, savat progress-bar nomi. (4) `List` ichida `div` — `component="div"/"nav"`. (5) Qattiq yozilgan ingliz `aria-label`lar («toggle theme», «open menu», «decrease/increase») → `a11y.*` tarjimalari. (6) mobil: `QuantityStepper` tugmalariga `accessibilityLabel` (boshqa mobil tugmalar tegilmadi).
+- **CI:** kontrast testi (`packages/theme/src/contrast.test.ts`) `npm test` ichida — CI'da. Axe/Playwright auditi CI'ga **kiritilmadi** (emulyator + brauzer og'ir) — qo'lda ishga tushiriladi (skript boshidagi izoh); `axe-core` root devDependency.
+- **Sinalmagan:** deploy ichidagi sitemap qadami jonli loyihada (lokal emulyatorda 25 URL = 8 statik + 5 toifa + 12 mahsulot to'g'ri yozildi; jonli `SITE_URL` emas); Search Console; admin sahifalari axe'da; buyurtmani oxirigacha klaviatura bilan rasmiylashtirish (to'lov bosqichi); mobil ekranlar (faqat type-check/lint/Metro); mobil ranglar ko'zdan kechirilmagan; axe faqat `uz` tilida.
 
 ### Faza 11 — Ilova yangilanishi va TV
 - **Ishlar:** `apk-release.yml` yangi versiyani `settings/app` ga yozadi; ilova eski bo'lsa banner + yuklash havolasi; `/tv` — do'kon ekrani (karusel, narx, QR, wakeLock).
@@ -169,4 +177,4 @@ Hajm: S — 1 kun, M — 2–3 kun, L — 4+ kun ishchi vaqti.
 - **20:** Telegram kanal avto-post navbati, mijoz boti.
 Har biri boshlanishidan oldin Blaze yoqilganini egasi tasdiqlaydi.
 
-*Oxirgi yangilanish: 2026-10-31 (Faza 9 — PR ochildi)*
+*Oxirgi yangilanish: 2026-11-03 (Faza 10 — PR ochildi)*

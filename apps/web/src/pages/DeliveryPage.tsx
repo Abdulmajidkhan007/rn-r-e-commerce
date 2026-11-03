@@ -11,11 +11,11 @@ import { useTranslation } from '@kidswear/i18n';
 import { useAppSelector } from '@kidswear/store';
 import { formatPrice, pickLocalized } from '@kidswear/utils';
 import { Card, Skeleton } from '@/components';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function DeliveryPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('deliveryPage.title'));
+  useSeo({ title: t('deliveryPage.title'), description: t('seo.delivery') });
   const language = useAppSelector((s) => s.ui.language);
   const { data: settings, isLoading } = useDeliverySettings();
   const text = useDeliveryText(language);

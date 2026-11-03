@@ -39,3 +39,4 @@ export const tokens = {
 } as const;
 
 export type Tokens = typeof tokens;
+export * from './contrast';

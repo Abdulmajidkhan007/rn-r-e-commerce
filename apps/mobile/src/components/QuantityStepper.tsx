@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
+import { useTranslation } from '@kidswear/i18n';
 
 export interface QuantityStepperProps {
   value: number;
@@ -15,10 +16,12 @@ export function QuantityStepper({
   min = 1,
   max = 99,
 }: QuantityStepperProps): React.ReactElement {
+  const { t } = useTranslation();
   return (
     <View className="flex-row items-center">
       <IconButton
         icon="minus"
+        accessibilityLabel={t('a11y.decrease')}
         mode="outlined"
         size={16}
         disabled={value <= min}
@@ -29,6 +32,7 @@ export function QuantityStepper({
       </Text>
       <IconButton
         icon="plus"
+        accessibilityLabel={t('a11y.increase')}
         mode="outlined"
         size={16}
         disabled={value >= max}

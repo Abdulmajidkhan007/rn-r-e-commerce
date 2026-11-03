@@ -9,11 +9,11 @@ import { useTranslation } from '@kidswear/i18n';
 import { Skeleton } from '@/components';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { useFavoritesContext } from '@/app/FavoritesProvider';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function FavoritesPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('favorites.title'));
+  useSeo({ title: t('favorites.title'), noindex: true });
   const { ordered, isLoading } = useFavoritesContext();
 
   const { products, isLoading: productsLoading } = useProductsByIds(ordered);

@@ -14,13 +14,14 @@ import { useAppDispatch, addItem } from '@kidswear/store';
 import { describeVariantPicker } from '@kidswear/core';
 import { useTranslation } from '@kidswear/i18n';
 import { tokens } from '@kidswear/theme';
+import { buildProductJsonLd } from '@kidswear/utils';
 import { PriceTag, QuantityStepper, Rating, Skeleton } from '@/components';
 import { StockBadge } from '@/components/catalog/StockBadge';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { ProductReviews } from '@/components/reviews/ProductReviews';
 import { useLocalized } from '@/lib/useLocalized';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 import { FavoriteButton } from '@/components/catalog/FavoriteButton';
 
 export default function ProductPage(): React.ReactElement {
@@ -29,7 +30,26 @@ export default function ProductPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const { id = '' } = useParams();
   const { data: product, isLoading, isError, refetch } = useProduct(id);
-  useDocumentTitle(product ? localized(product.name) : t('nav.catalog'));
+  useSeo({
+    title: product ? localized(product.name) : t('nav.catalog'),
+    description: product ? localized(product.description).slice(0, 160) : undefined,
+    image: product?.images[0],
+    ogType: product ? 'product' : 'website',
+    jsonLd: product
+      ? [
+          buildProductJsonLd({
+            url: `${window.location.origin}/product/${product.id}`,
+            name: localized(product.name),
+            description: localized(product.description),
+            images: product.images,
+            price: product.price,
+            inStock: product.stock > 0,
+            rating: product.rating,
+            reviewCount: product.reviewCount,
+          }),
+        ]
+      : undefined,
+  });
 
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);

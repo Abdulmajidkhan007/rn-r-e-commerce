@@ -16,12 +16,12 @@ import { registerSchema, type RegisterValues, useAuthActions } from '@kidswear/a
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 export default function RegisterPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('auth.register.title'));
+  useSeo({ title: t('auth.register.title'), noindex: true });
   const tk = useTranslateKey();
   const navigate = useNavigate();
   const { register: registerUser } = useAuthActions();

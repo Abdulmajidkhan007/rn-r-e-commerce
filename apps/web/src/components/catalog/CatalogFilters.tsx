@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, type Theme } from '@mui/material/styles';
 import { useCategoriesWithProducts, useSizeOptions } from '@kidswear/data';
 import { AGE_BANDS, GENDERS, type CatalogFilters as Filters } from '@kidswear/core';
 import { useTranslation } from '@kidswear/i18n';
@@ -37,7 +37,10 @@ export function CatalogFilters({
     borderRadius: `${tokens.radii.md}px`,
     px: 1.5,
     py: 1,
-    color: active ? 'primary.main' : 'text.primary',
+    color: active
+      ? (th: Theme) =>
+          th.palette.mode === 'light' ? th.palette.primary.dark : th.palette.primary.main
+      : 'text.primary',
     fontWeight: active ? tokens.fontWeights.semibold : tokens.fontWeights.regular,
     transition: theme.transitions.create(['background-color', 'color'], {
       duration: tokens.durations.fast,
@@ -68,7 +71,11 @@ export function CatalogFilters({
   return (
     <Stack spacing={1}>
       {overline(t('catalog.category'))}
-      <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <List
+        component="div"
+        disablePadding
+        sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
+      >
         <ListItemButton
           disableGutters
           selected={categoryId === undefined}

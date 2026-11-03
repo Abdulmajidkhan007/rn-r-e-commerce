@@ -6,10 +6,12 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from '@kidswear/i18n';
 import { LanguageSwitcher, ThemeToggle } from '@/components';
+import { useNoIndex } from '@/lib/useSeo';
 
 /** Centered card layout for auth screens. */
 export function AuthLayout(): React.ReactElement {
   const { t } = useTranslation();
+  useNoIndex();
   return (
     <Box
       sx={{

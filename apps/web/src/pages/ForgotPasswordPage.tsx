@@ -12,11 +12,11 @@ import { forgotSchema, type ForgotValues, useAuthActions } from '@kidswear/auth'
 import { useAppSelector } from '@kidswear/store';
 import { useTranslation } from '@kidswear/i18n';
 import { useTranslateKey } from '@/lib/useTranslateKey';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 export default function ForgotPasswordPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('auth.forgot.title'));
+  useSeo({ title: t('auth.forgot.title'), noindex: true });
   const tk = useTranslateKey();
   const { resetPassword } = useAuthActions();
   const serverError = useAppSelector((s) => s.auth.error);

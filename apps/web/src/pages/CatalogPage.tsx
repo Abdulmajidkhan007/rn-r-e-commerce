@@ -24,7 +24,7 @@ import { ProductCardSkeleton } from '@/components/catalog/ProductCardSkeleton';
 import { CatalogFilters } from '@/components/catalog/CatalogFilters';
 import { useLocalized } from '@/lib/useLocalized';
 import { useDebounced } from '@/lib/useDebounced';
-import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { useSeo } from '@/lib/useSeo';
 
 const SORTS: ProductSort[] = ['newest', 'priceAsc', 'priceDesc'];
 const SORT_LABEL = {
@@ -41,7 +41,7 @@ const PRODUCT_GRID_SX = {
 
 export default function CatalogPage(): React.ReactElement {
   const { t } = useTranslation();
-  useDocumentTitle(t('nav.catalog'));
+  useSeo({ title: t('nav.catalog'), description: t('seo.catalog') });
   const localized = useLocalized();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -70,7 +70,13 @@ export default function CatalogPage(): React.ReactElement {
   };
 
   const sortSelect = (
-    <Select value={sort} onChange={handleSort} size="small" sx={{ minWidth: 180 }}>
+    <Select
+      value={sort}
+      onChange={handleSort}
+      size="small"
+      sx={{ minWidth: 180 }}
+      inputProps={{ 'aria-label': t('catalog.sortBy') }}
+    >
       {SORTS.map((s) => (
         <MenuItem key={s} value={s}>
           {t(SORT_LABEL[s])}

@@ -13,21 +13,21 @@ describe('QuantityStepper', () => {
   it('reports the incremented value', async () => {
     const onChange = vi.fn();
     renderWithProviders(<QuantityStepper value={3} onChange={onChange} />);
-    await userEvent.click(screen.getByLabelText('increase'));
+    await userEvent.click(screen.getByLabelText(/Koʻpaytirish|increase quantity/i));
     expect(onChange).toHaveBeenCalledWith(4);
   });
 
   it('reports the decremented value', async () => {
     const onChange = vi.fn();
     renderWithProviders(<QuantityStepper value={3} onChange={onChange} />);
-    await userEvent.click(screen.getByLabelText('decrease'));
+    await userEvent.click(screen.getByLabelText(/Kamaytirish|decrease quantity/i));
     expect(onChange).toHaveBeenCalledWith(2);
   });
 
   it('disables decrement at the minimum so quantity cannot reach zero', async () => {
     const onChange = vi.fn();
     renderWithProviders(<QuantityStepper value={1} onChange={onChange} />);
-    const decrease = screen.getByLabelText('decrease');
+    const decrease = screen.getByLabelText(/Kamaytirish|decrease quantity/i);
     expect(decrease).toBeDisabled();
     await userEvent.click(decrease);
     expect(onChange).not.toHaveBeenCalled();
@@ -36,7 +36,7 @@ describe('QuantityStepper', () => {
   it('disables increment at the maximum', async () => {
     const onChange = vi.fn();
     renderWithProviders(<QuantityStepper value={5} max={5} onChange={onChange} />);
-    const increase = screen.getByLabelText('increase');
+    const increase = screen.getByLabelText(/Koʻpaytirish|increase quantity/i);
     expect(increase).toBeDisabled();
     await userEvent.click(increase);
     expect(onChange).not.toHaveBeenCalled();
@@ -44,14 +44,14 @@ describe('QuantityStepper', () => {
 
   it('honours a custom min', () => {
     renderWithProviders(<QuantityStepper value={2} min={2} onChange={vi.fn()} />);
-    expect(screen.getByLabelText('decrease')).toBeDisabled();
+    expect(screen.getByLabelText(/Kamaytirish|decrease quantity/i)).toBeDisabled();
   });
 
   it('clamps rather than overshooting when stock is the max', async () => {
     // Guards against a stale value prop pushing quantity past available stock.
     const onChange = vi.fn();
     renderWithProviders(<QuantityStepper value={7} max={5} onChange={onChange} />);
-    await userEvent.click(screen.getByLabelText('increase'));
+    await userEvent.click(screen.getByLabelText(/Koʻpaytirish|increase quantity/i));
     expect(onChange).not.toHaveBeenCalled();
   });
 });

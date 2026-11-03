@@ -3,6 +3,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import { useTranslation } from '@kidswear/i18n';
 
 export interface QuantityStepperProps {
   value: number;
@@ -18,6 +19,7 @@ export function QuantityStepper({
   min = 1,
   max = 99,
 }: QuantityStepperProps): React.ReactElement {
+  const { t } = useTranslation();
   const dec = (): void => {
     onChange(Math.max(min, value - 1));
   };
@@ -27,13 +29,23 @@ export function QuantityStepper({
 
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-      <IconButton size="small" onClick={dec} disabled={value <= min} aria-label="decrease">
+      <IconButton
+        size="small"
+        onClick={dec}
+        disabled={value <= min}
+        aria-label={t('a11y.decrease')}
+      >
         <RemoveIcon fontSize="small" />
       </IconButton>
       <Typography variant="body1" sx={{ minWidth: 24, textAlign: 'center' }}>
         {value}
       </Typography>
-      <IconButton size="small" onClick={inc} disabled={value >= max} aria-label="increase">
+      <IconButton
+        size="small"
+        onClick={inc}
+        disabled={value >= max}
+        aria-label={t('a11y.increase')}
+      >
         <AddIcon fontSize="small" />
       </IconButton>
     </Stack>
