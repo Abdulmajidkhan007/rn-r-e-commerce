@@ -27,3 +27,5 @@ export * from './delivery';
 export * from './transfer';
 export * from './review';
 export * from './cost';
+export * from './appUpdate';
+export * from './tv';

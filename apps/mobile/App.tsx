@@ -24,6 +24,7 @@ import { useLanguageSync } from '@/lib/useLanguageSync';
 import { navigationRef } from '@/navigation/navigationRef';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { FavoritesProvider } from '@/providers/FavoritesProvider';
+import { UpdateGate } from '@/components/UpdateGate';
 
 const queryClient = makeQueryClient();
 
@@ -84,11 +85,13 @@ function AppNavigator(): ReactElement {
     <AppLockProvider>
       <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} />
       <LockGate>
-        <FavoritesProvider>
-          <NavigationContainer ref={navigationRef} theme={toNavigationTheme(theme)}>
-            <RootNavigator />
-          </NavigationContainer>
-        </FavoritesProvider>
+        <UpdateGate>
+          <FavoritesProvider>
+            <NavigationContainer ref={navigationRef} theme={toNavigationTheme(theme)}>
+              <RootNavigator />
+            </NavigationContainer>
+          </FavoritesProvider>
+        </UpdateGate>
       </LockGate>
     </AppLockProvider>
   );

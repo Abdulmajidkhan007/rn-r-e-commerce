@@ -77,6 +77,9 @@ jobs:
               RN_PUBLIC_FIREBASE_MEASUREMENT_ID: (.measurementId // "")
             } | to_entries[] | "\(.key)=\(.value)"' "$RUNNER_TEMP/sdk.json" > apps/mobile/.env
           echo "RN_PUBLIC_ADMIN_EMAIL=$ADMIN_EMAIL" >> apps/mobile/.env
+          # Same number as the APK's versionCode: the app compares it with
+          # settings/app.latestVersionCode to show the update banner.
+          echo "RN_PUBLIC_APP_VERSION_CODE=${{ github.run_number }}" >> apps/mobile/.env
 
           # Native Firebase (push) needs google-services.json for the Android
           # app. Without it messaging() throws at startup and the app closes —
@@ -163,6 +166,12 @@ jobs:
           msg=$(tail -5 "$RUNNER_TEMP/gh.err" | tr '\n' ' ')
           echo "::error title=Release upload failed::$msg"
           exit 1
+
+      - name: Yangilanish banneri uchun versiyani yozish (settings/app)
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          APK_URL: https://github.com/${{ github.repository }}/releases/latest/download/kidswear.apk
+        run: node scripts/publish-app-version.mjs
 
       - name: Kalitni o'chirish
         if: always()

@@ -28,6 +28,8 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import PeopleIcon from '@mui/icons-material/People';
+import TvIcon from '@mui/icons-material/Tv';
+import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -53,6 +55,8 @@ const ITEMS = [
   { to: '/admin/delivery', labelKey: 'adminContent.delivery', icon: <LocalShippingIcon /> },
   { to: '/admin/payment', labelKey: 'adminContent.payment', icon: <CreditCardIcon /> },
   { to: '/admin/reviews', labelKey: 'adminContent.reviews', icon: <RateReviewIcon /> },
+  { to: '/admin/tv', labelKey: 'adminTv.nav', icon: <TvIcon /> },
+  { to: '/admin/app', labelKey: 'adminApp.nav', icon: <SystemUpdateIcon /> },
 ] as const;
 
 /** Phones get the first four in the bottom bar; the rest sit behind "More". */

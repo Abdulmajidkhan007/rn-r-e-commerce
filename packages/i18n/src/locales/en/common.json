@@ -863,5 +863,46 @@
     "increase": "Increase quantity",
     "openMenu": "Open menu",
     "toggleTheme": "Toggle theme"
+  },
+  "tv": {
+    "title": "Store screen",
+    "noSlides": "No products to show yet",
+    "loading": "Loading…",
+    "sale": "Sale",
+    "new": "New"
+  },
+  "adminTv": {
+    "nav": "TV screen",
+    "title": "Store TV screen",
+    "note": "The screen opens at /tv: no sign-in, only public data (name, photo, price) is shown.",
+    "source": "What to show",
+    "new": "New products",
+    "sale": "Products on sale",
+    "category": "One category",
+    "categoryLabel": "Category",
+    "seconds": "Slide time (seconds)",
+    "secondsHint": "3 to 60",
+    "open": "Open /tv",
+    "invalid": "Slide time must be 3–60 seconds; pick a category in category mode.",
+    "saved": "Saved — open screens update on their own."
+  },
+  "adminApp": {
+    "nav": "App version",
+    "title": "Android app version",
+    "note": "The latest version is written when a release is built. Apps older than the minimum are blocked until they update.",
+    "latest": "Latest version",
+    "none": "No release recorded yet",
+    "minLabel": "Minimum version code",
+    "minHint": "Empty — no forced update. Careful: without a download link the screen is not shown.",
+    "invalid": "Enter a positive whole number.",
+    "saved": "Saved."
+  },
+  "appUpdate": {
+    "bannerTitle": "A new version is available",
+    "bannerBody": "KidsWear {{version}} is out.",
+    "download": "Download",
+    "later": "Later",
+    "forcedTitle": "Please update the app",
+    "forcedBody": "This version is no longer supported. Install the new version to continue."
   }
 }
