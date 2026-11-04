@@ -11,6 +11,7 @@ declare const process: {
     readonly RN_PUBLIC_FIREBASE_MESSAGING_SENDER_ID?: string;
     readonly RN_PUBLIC_FIREBASE_APP_ID?: string;
     readonly RN_PUBLIC_FIREBASE_MEASUREMENT_ID?: string;
+    readonly RN_PUBLIC_APP_VERSION_CODE?: string;
     readonly RN_PUBLIC_ADMIN_EMAIL?: string;
     readonly RN_PUBLIC_GOOGLE_WEB_CLIENT_ID?: string;
     readonly RN_PUBLIC_PAYME_MERCHANT_ID?: string;

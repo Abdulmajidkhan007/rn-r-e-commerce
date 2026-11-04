@@ -1328,3 +1328,52 @@ describe('purchase costs — productCosts & orderCosts (Faza 7)', () => {
     await assertSucceeds(setDoc(doc(db, 'orderCosts/o2'), orderCost({ backfilled: true })));
   });
 });
+
+describe('store TV screen /tv and app settings (Faza 11)', () => {
+  const product = {
+    name: { uz: 'Koʻylak' },
+    price: 100_000,
+    categoryId: 'c1',
+    images: [],
+    stock: 5,
+    isActive: true,
+  };
+
+  beforeEach(async () => {
+    await seed('products/p1', product);
+    await seed('settings/tv', { source: 'new', slideSeconds: 8 });
+    await seed('settings/app', { latestVersionCode: 42, apkUrl: 'https://example.com/a.apk' });
+    await seed('productCosts/p1', { cost: 40_000, updatedAt: 1 });
+    await seed('orderCosts/o1', { cost: 40_000, profit: 60_000 });
+    await seed('orders/o1', orderData());
+    await seed(`users/${CUSTOMER}`, { email: 'ali@example.com' });
+  });
+
+  it('a signed-out TV can read the public data it needs', async () => {
+    const db = anonDb();
+    await assertSucceeds(getDoc(doc(db, 'settings/tv')));
+    await assertSucceeds(getDoc(doc(db, 'settings/app')));
+    await assertSucceeds(getDocs(query(collection(db, 'products'), where('isActive', '==', true))));
+  });
+
+  it('a signed-out TV cannot read cost, order or user data', async () => {
+    const db = anonDb();
+    await assertFails(getDoc(doc(db, 'productCosts/p1')));
+    await assertFails(getDocs(collection(db, 'productCosts')));
+    await assertFails(getDoc(doc(db, 'orderCosts/o1')));
+    await assertFails(getDocs(collection(db, 'orders')));
+    await assertFails(getDoc(doc(db, `users/${CUSTOMER}`)));
+    await assertFails(getDocs(collectionGroup(db, 'productCosts')));
+  });
+
+  it('only the admin can change the TV and app update settings', async () => {
+    const tv = { source: 'sale', slideSeconds: 10 };
+    await assertFails(setDoc(doc(anonDb(), 'settings/tv'), tv));
+    await assertFails(setDoc(doc(customerDb(), 'settings/tv'), tv));
+    await assertFails(setDoc(doc(customerDb(), 'settings/app'), { minVersionCode: 99 }));
+    await assertSucceeds(setDoc(doc(adminDb(), 'settings/tv'), tv));
+    await assertSucceeds(
+      setDoc(doc(adminDb(), 'settings/app'), { minVersionCode: 40 }, { merge: true }),
+    );
+  });
+});

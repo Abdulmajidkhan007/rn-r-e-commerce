@@ -27,6 +27,10 @@ import {
   type ContactMessage,
   ContactMessageSchema,
   type ContactStatus,
+  type AppSettings,
+  AppSettingsSchema,
+  type TvSettings,
+  TvSettingsSchema,
   type DeliverySettings,
   DeliverySettingsSchema,
   type Faq,
@@ -60,6 +64,8 @@ const faqCol = () => collection(getDb(), CONTENT_COLLECTIONS.faqs).withConverter
 const promoCol = () =>
   collection(getDb(), CONTENT_COLLECTIONS.promoCodes).withConverter(promoConverter);
 const deliveryDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'delivery');
+const appSettingsDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'app');
+const tvSettingsDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'tv');
 const paymentSettingsDoc = () => doc(getDb(), CONTENT_COLLECTIONS.settings, 'payment');
 const favoritesCol = (uid: string) =>
   collection(getDb(), 'users', uid, CONTENT_COLLECTIONS.favorites);
@@ -251,6 +257,42 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
 
 export async function savePaymentSettings(settings: PaymentSettings): Promise<void> {
   await setDoc(paymentSettingsDoc(), PaymentSettingsSchema.parse(settings));
+}
+
+// --- App update settings (Android) --------------------------------------------
+
+/** null when no release has been published yet / the document is malformed. */
+export async function getAppSettings(): Promise<AppSettings | null> {
+  const snap = await getDoc(appSettingsDoc());
+  if (!snap.exists()) return null;
+  const parsed = AppSettingsSchema.safeParse(snap.data());
+  return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Admin: sets (or, with null, clears) the minimum supported version. Merges, so
+ * the `latest*` fields the release workflow wrote stay untouched.
+ */
+export async function saveMinVersionCode(minVersionCode: number | null): Promise<void> {
+  await setDoc(
+    appSettingsDoc(),
+    { minVersionCode: minVersionCode === null ? deleteField() : minVersionCode },
+    { merge: true },
+  );
+}
+
+// --- Store TV screen (/tv) ----------------------------------------------------
+
+/** Live settings; null while the admin has not configured the TV (defaults apply). */
+export function subscribeTvSettings(cb: (settings: TvSettings | null) => void): Unsubscribe {
+  return onSnapshot(tvSettingsDoc(), (snap) => {
+    const parsed = snap.exists() ? TvSettingsSchema.safeParse(snap.data()) : null;
+    cb(parsed?.success ? parsed.data : null);
+  });
+}
+
+export async function saveTvSettings(settings: TvSettings): Promise<void> {
+  await setDoc(tvSettingsDoc(), TvSettingsSchema.parse(settings));
 }
 
 // --- Favorites ----------------------------------------------------------------

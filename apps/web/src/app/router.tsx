@@ -73,6 +73,8 @@ const routes: RouteObject[] = [
       },
     ],
   },
+  // Store TV screen: no layout chrome, no sign-in, public data only.
+  { path: 'tv', lazy: lazyPage(() => import('@/pages/TvPage')) },
   {
     element: <AuthLayout />,
     children: [
@@ -106,6 +108,8 @@ const routes: RouteObject[] = [
       { path: 'delivery', lazy: lazyPage(() => import('@/pages/AdminDeliveryPage')) },
       { path: 'payment', lazy: lazyPage(() => import('@/pages/AdminPaymentPage')) },
       { path: 'reviews', lazy: lazyPage(() => import('@/pages/AdminReviewsPage')) },
+      { path: 'tv', lazy: lazyPage(() => import('@/pages/AdminTvPage')) },
+      { path: 'app', lazy: lazyPage(() => import('@/pages/AdminAppPage')) },
     ],
   },
   { path: '*', lazy: lazyPage(() => import('@/pages/NotFoundPage')) },

@@ -863,5 +863,46 @@
     "increase": "Koʻpaytirish",
     "openMenu": "Menyuni ochish",
     "toggleTheme": "Mavzuni almashtirish"
+  },
+  "tv": {
+    "title": "Do'kon ekrani",
+    "noSlides": "Hozircha ko'rsatish uchun mahsulot yo'q",
+    "loading": "Yuklanmoqda…",
+    "sale": "Aksiya",
+    "new": "Yangi"
+  },
+  "adminTv": {
+    "nav": "TV ekran",
+    "title": "Do'kon TV ekrani",
+    "note": "Ekran /tv manzilida ochiladi: kirish talab qilinmaydi, faqat ochiq ma'lumot (nom, rasm, narx) ko'rinadi.",
+    "source": "Nima ko'rsatiladi",
+    "new": "Yangi mahsulotlar",
+    "sale": "Aksiyadagi mahsulotlar",
+    "category": "Bitta toifa",
+    "categoryLabel": "Toifa",
+    "seconds": "Slayd vaqti (soniya)",
+    "secondsHint": "3 dan 60 gacha",
+    "open": "/tv ni ochish",
+    "invalid": "Slayd vaqti 3–60 soniya bo'lsin; toifa rejimida toifani tanlang.",
+    "saved": "Saqlandi — ochiq ekranlar o'zi yangilanadi."
+  },
+  "adminApp": {
+    "nav": "Ilova versiyasi",
+    "title": "Android ilova versiyasi",
+    "note": "Reliz yig'ilganda oxirgi versiya o'zi yoziladi. Minimal versiyadan eski ilovalar «Yangilash» ekranidan o'tmaguncha ishlamaydi.",
+    "latest": "Oxirgi versiya",
+    "none": "Hali reliz yozilmagan",
+    "minLabel": "Minimal versiya kodi",
+    "minHint": "Bo'sh — majburiy yangilanish yo'q. Ehtiyot bo'ling: yuklash havolasi bo'lmasa ekran ko'rsatilmaydi.",
+    "invalid": "Butun, musbat son kiriting.",
+    "saved": "Saqlandi."
+  },
+  "appUpdate": {
+    "bannerTitle": "Yangi versiya bor",
+    "bannerBody": "KidsWear {{version}} chiqdi.",
+    "download": "Yuklab olish",
+    "later": "Keyinroq",
+    "forcedTitle": "Ilovani yangilash kerak",
+    "forcedBody": "Bu versiya endi qo'llab-quvvatlanmaydi. Davom etish uchun yangi versiyani o'rnating."
   }
 }

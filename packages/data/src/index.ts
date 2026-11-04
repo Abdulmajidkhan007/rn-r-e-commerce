@@ -121,6 +121,14 @@ export {
 export type { FavoritesState } from './useContent';
 
 export {
+  useAppSettings,
+  useSaveMinVersion,
+  useTvSettings,
+  useTvSlides,
+  useSaveTvSettings,
+} from './useAppTv';
+
+export {
   useOrderReceipts,
   usePendingReceiptCounts,
   useUploadReceipt,

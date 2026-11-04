@@ -118,6 +118,10 @@ export {
   saveDeliverySettings,
   getPaymentSettings,
   savePaymentSettings,
+  getAppSettings,
+  saveMinVersionCode,
+  subscribeTvSettings,
+  saveTvSettings,
   subscribeFavorites,
   setFavorite,
 } from './content';
