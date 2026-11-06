@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "types": ["node", "vitest/globals"]
+  },
+  // Faza 12 scripts (run by Node's type stripping). Older scripts are not
+  // type-checked yet; add them here when they are touched.
+  "include": [
+    "lib/**/*.ts",
+    "backup-firestore.ts",
+    "restore-firestore.ts",
+    "*.test.ts",
+    "../test/backup/**/*.ts"
+  ]
+}

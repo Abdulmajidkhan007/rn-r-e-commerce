@@ -1,0 +1,114 @@
+# Zaxiradan tiklash (Faza 12) — telefondan ham ishga tushiriladi. Yo'riqnoma: docs/ZAXIRA.md
+#
+#   mode = drill (standart): nusxa EMULYATORGA tiklanadi va sanog'i chiqariladi —
+#          jonli bazaga hech narsa yozilmaydi. Zaxira haqiqatan ochilishini
+#          tekshirish uchun (masalan oyiga bir marta).
+#   mode = live: JONLI bazaga yoziladi. `confirm` maydoniga loyiha ID sini
+#          aynan yozmasangiz faqat quruq sinov (dry run) bo'ladi.
+#
+# Tiklash zaxiradagi hujjatlarni ustidan yozadi; zaxirada yo'q hujjatlar
+# o'chirilmaydi. Kerakli secret/variable'lar — backup.yml bilan bir xil.
+name: Restore (Firestore backup)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'drill = emulyatorda sinov, live = jonli bazaga'
+        type: choice
+        options: [drill, live]
+        default: drill
+      file:
+        description: "Fayl nomi (kidswear-firestore-….kwbk) yoki 'latest'"
+        type: string
+        default: latest
+      collections:
+        description: "Faqat shu kolleksiyalar, vergul bilan (bo'sh = hammasi)"
+        type: string
+        default: ''
+      confirm:
+        description: 'live uchun: loyiha ID sini aynan yozing (aks holda dry run)'
+        type: string
+        default: ''
+
+concurrency:
+  group: backup-firestore
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.BACKUP_REPO != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      BACKUP_REPO: ${{ vars.BACKUP_REPO }}
+      MODE: ${{ inputs.mode }}
+      FILE: ${{ inputs.file }}
+      COLLECTIONS: ${{ inputs.collections }}
+      CONFIRM: ${{ inputs.confirm }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        if: ${{ inputs.mode == 'drill' }}
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      - name: Zaxira faylini olish (private repo)
+        env:
+          TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+        run: |
+          [ -n "$TOKEN" ] || { echo "::error::BACKUP_REPO_TOKEN berilmagan"; exit 1; }
+          AUTH=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            clone --quiet --depth 1 --branch backups "https://github.com/$BACKUP_REPO.git" "$RUNNER_TEMP/store"
+          cd "$RUNNER_TEMP/store"
+          sha256sum --check --quiet SHA256SUMS
+          if [ "$FILE" = latest ]; then FILE=$(ls -1 kidswear-firestore-*.kwbk | sort | tail -n 1); fi
+          case "$FILE" in kidswear-firestore-*.kwbk) ;; *) echo "::error::Noto'g'ri fayl nomi"; exit 1;; esac
+          [ -f "$FILE" ] || { echo "::error::$FILE topilmadi. Bor nusxalar:"; ls -1 *.kwbk; exit 1; }
+          echo "Tanlandi: $FILE"
+          echo "BACKUP_FILE=$RUNNER_TEMP/store/$FILE" >> "$GITHUB_ENV"
+
+      - name: Sinov — emulyatorga tiklash
+        if: ${{ inputs.mode == 'drill' }}
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          ARGS=(--project drill-restore --confirm drill-restore --allow-other-project)
+          [ -n "$COLLECTIONS" ] && ARGS+=(--collections "$COLLECTIONS")
+          printf '%s\0' "${ARGS[@]}" > "$RUNNER_TEMP/args"
+          npx firebase emulators:exec --only firestore --project drill-restore \
+            "xargs -0 -a '$RUNNER_TEMP/args' node scripts/restore-firestore.ts '$BACKUP_FILE'"
+
+      - name: Jonli bazaga tiklash
+        if: ${{ inputs.mode == 'live' }}
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          [ -n "$SA_JSON" ] || { echo "::error::FIREBASE_SERVICE_ACCOUNT berilmagan"; exit 1; }
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          ARGS=(--project "$PROJECT_ID")
+          [ -n "$COLLECTIONS" ] && ARGS+=(--collections "$COLLECTIONS")
+          # confirm ≠ loyiha ID → skript faqat dry run qiladi.
+          [ -n "$CONFIRM" ] && ARGS+=(--confirm "$CONFIRM")
+          node scripts/restore-firestore.ts "$BACKUP_FILE" "${ARGS[@]}"
+
+      - name: Tozalash
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/sa.json" "$RUNNER_TEMP/store"

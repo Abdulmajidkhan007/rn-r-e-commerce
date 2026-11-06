@@ -74,9 +74,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 22: test/backup runs the backup/restore CLIs (.ts via Node type stripping).
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       # The Firestore emulator is a Java process.

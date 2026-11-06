@@ -12,6 +12,9 @@
  *   (cd apps/web && VITE_USE_FIREBASE_EMULATORS=true npx vite --port 5173) &
  *   node scripts/a11y-audit.mjs [baseUrl]
  *
+ * With the production CSP (Faza 12): build with the emulator env, serve it with
+ * `node scripts/csp-smoke-server.mjs 4173` and pass http://127.0.0.1:4173.
+ *
  * Exit code 1 when any violation or keyboard failure is found.
  */
 import { createRequire } from 'node:module';
@@ -39,7 +42,9 @@ async function setTheme(page, theme) {
   if ((theme === 'dark') !== isDark) {
     await page
       .locator(
-        'button:has([data-testid="LightModeIcon"]), button:has([data-testid="DarkModeIcon"])',
+        // data-testid on MUI icons exists only in dev builds; the aria-label
+        // (uz) also matches a production build (CSP smoke server).
+        'button:has([data-testid="LightModeIcon"]), button:has([data-testid="DarkModeIcon"]), button[aria-label="Mavzuni almashtirish"]',
       )
       .first()
       .click();
@@ -186,6 +191,11 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } })
 const page = await ctx.newPage();
 const pageErrors = [];
 page.on('pageerror', (e) => pageErrors.push(e.message));
+// Run against scripts/csp-smoke-server.mjs to audit with the production CSP.
+const cspErrors = [];
+page.on('console', (m) => {
+  if (/Content Security Policy|Refused to/i.test(m.text())) cspErrors.push(m.text().slice(0, 160));
+});
 
 await page.goto(BASE + '/catalog', { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('a[href^="/product/"]', { timeout: 20000 });
@@ -213,6 +223,8 @@ log(
 );
 
 log(pageErrors.length === 0, `no uncaught page errors (${pageErrors.length})`);
+log(cspErrors.length === 0, `no CSP errors in the console (${cspErrors.length})`);
+for (const e of cspErrors.slice(0, 5)) console.log(`      - ${e}`);
 await browser.close();
 console.log(failures === 0 ? '\nALL OK' : `\n${failures} FAILED`);
 process.exit(failures === 0 ? 1 - 1 : 1);

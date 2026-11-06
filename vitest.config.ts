@@ -26,7 +26,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['packages/**/*.test.ts', 'functions/src/**/*.test.ts'],
+          include: ['packages/**/*.test.ts', 'functions/src/**/*.test.ts', 'scripts/**/*.test.ts'],
         },
       },
       // Web components. jsdom + Testing Library.
@@ -50,7 +50,11 @@ export default defineConfig({
               test: {
                 name: 'rules' as const,
                 environment: 'node' as const,
-                include: ['test/rules/**/*.test.ts'],
+                // test/backup: encrypted backup → restore through the CLIs.
+                include: ['test/rules/**/*.test.ts', 'test/backup/**/*.test.ts'],
+                // Both share one emulator project and the rules suite wipes
+                // it between tests — run the files one after another.
+                fileParallelism: false,
                 testTimeout: 20_000,
                 hookTimeout: 20_000,
               },

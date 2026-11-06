@@ -1,0 +1,130 @@
+# Firestore'ning kunlik SHIFRLANGAN zaxira nusxasi (Faza 12). Yo'riqnoma: docs/ZAXIRA.md
+#
+# Nega artifact emas: bu repo OCHIQ — ochiq repo'ning Actions artifact'larini
+# GitHub'ga kirgan har kim yuklab oladi. Fayl shifrlangan bo'lsa ham, uni ochiq
+# joyga qo'ymaymiz. Zaxira egasining ALOHIDA PRIVATE repo'siga, `backups`
+# branch'iga yoziladi; har safar bitta yangi commit (orphan) bilan force-push —
+# eski nusxalar tarixda qolmaydi, faqat oxirgi BACKUP_KEEP tasi saqlanadi.
+#
+# Kerak (Settings → Secrets and variables → Actions):
+#   Variables: FIREBASE_PROJECT_ID   — (deploy.yml bilan bir xil)
+#              BACKUP_REPO           — private repo, masalan: Abdulmajidkhan007/kidswear-backups
+#              BACKUP_KEEP           — ixtiyoriy, nechta nusxa saqlansin (7–30, standart 14)
+#   Secrets:   FIREBASE_SERVICE_ACCOUNT — (deploy.yml bilan bir xil)
+#              BACKUP_PASSPHRASE        — kamida 24 belgi; NUSXASINI parol menejerida saqlang
+#              BACKUP_REPO_TOKEN        — fine-grained PAT: faqat BACKUP_REPO, Contents: read & write
+#
+# FIREBASE_PROJECT_ID yoki BACKUP_REPO berilmaguncha job o'tkazib yuboriladi.
+name: Backup (Firestore, encrypted)
+
+on:
+  schedule:
+    # Har kuni 01:17 UTC = 06:17 Toshkent.
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: backup-firestore
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.BACKUP_REPO != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      BACKUP_REPO: ${{ vars.BACKUP_REPO }}
+      BACKUP_KEEP: ${{ vars.BACKUP_KEEP || '14' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sirlar va saqlash joyi tekshiruvi
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+          TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+        run: |
+          missing=""
+          [ -n "$SA_JSON" ] || missing="$missing FIREBASE_SERVICE_ACCOUNT"
+          [ -n "$PASS" ] || missing="$missing BACKUP_PASSPHRASE"
+          [ -n "$TOKEN" ] || missing="$missing BACKUP_REPO_TOKEN"
+          if [ -n "$missing" ]; then
+            echo "::error::Secret berilmagan:$missing (docs/ZAXIRA.md)"
+            exit 1
+          fi
+          if ! [[ "$BACKUP_KEEP" =~ ^[0-9]+$ ]] || [ "$BACKUP_KEEP" -lt 7 ] || [ "$BACKUP_KEEP" -gt 30 ]; then
+            echo "::error::BACKUP_KEEP 7 dan 30 gacha son bo'lishi kerak (hozir: $BACKUP_KEEP)"
+            exit 1
+          fi
+          # Zaxira hech qachon ochiq repo'ga yozilmasin.
+          private=$(curl -fsS -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$BACKUP_REPO" | jq -r '.private')
+          if [ "$private" != "true" ]; then
+            echo "::error::$BACKUP_REPO private emas yoki token unga kira olmaydi — zaxira yozilmaydi."
+            exit 1
+          fi
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Eksport + shifrlash + tekshirish
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          NAME="kidswear-firestore-$(date -u +%Y%m%d-%H%M%S).kwbk"
+          echo "BACKUP_NAME=$NAME" >> "$GITHUB_ENV"
+          node scripts/backup-firestore.ts "$RUNNER_TEMP/out/$NAME"
+
+      - name: Private repo'ga yozish (oxirgi BACKUP_KEEP ta)
+        env:
+          TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+        run: |
+          AUTH=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          git() { command git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" "$@"; }
+          WORK="$RUNNER_TEMP/store"
+          URL="https://github.com/$BACKUP_REPO.git"
+          # 0 = branch bor, 2 = yo'q (birinchi zaxira), boshqasi = xato → to'xtaymiz:
+          # aks holda eski nusxalar ustidan bitta yangi nusxa force-push bo'lardi.
+          set +e; git ls-remote --exit-code --heads "$URL" backups > /dev/null; code=$?; set -e
+          if [ "$code" = 0 ]; then
+            git clone --quiet --depth 1 --branch backups "$URL" "$WORK"
+          elif [ "$code" = 2 ]; then
+            echo "backups branch'i yo'q — birinchi zaxira."
+            command git init --quiet "$WORK"
+          else
+            echo "::error::$BACKUP_REPO ga ulanib bo'lmadi (git ls-remote kodi $code)."
+            exit 1
+          fi
+          cd "$WORK"
+          cp "$RUNNER_TEMP/out/$BACKUP_NAME" .
+          # Nom sanani o'z ichiga oladi → leksik tartib = vaqt tartibi.
+          ls -1 kidswear-firestore-*.kwbk | sort | head -n "-$BACKUP_KEEP" | xargs -r rm -f
+          sha256sum kidswear-firestore-*.kwbk > SHA256SUMS
+          cat > README.md <<EOF
+          # KidsWear — Firestore zaxira nusxalari (shifrlangan)
+
+          Avtomatik: \`$GITHUB_REPOSITORY\` → .github/workflows/backup.yml. Oxirgi $BACKUP_KEEP ta nusxa.
+          Fayllar scrypt + AES-256-GCM bilan shifrlangan; tiklash: docs/ZAXIRA.md.
+          EOF
+          command git checkout --quiet --orphan next
+          command git add -A
+          command git -c user.name="kidswear-backup" -c user.email="backup@users.noreply.github.com" \
+            commit --quiet -m "backup $BACKUP_NAME"
+          git push --quiet --force "$URL" next:backups
+          echo "Saqlangan nusxalar:"
+          ls -1 kidswear-firestore-*.kwbk
+
+      - name: Tozalash
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/sa.json" "$RUNNER_TEMP/out" "$RUNNER_TEMP/store"
