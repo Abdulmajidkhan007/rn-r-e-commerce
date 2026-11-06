@@ -886,3 +886,16 @@ stock, price?, sku?}[]`, built as the cartesian product of `sizes × colors` min
 - **"Similar"** = `pickSimilar` scoring over the product's own category (same gender, close age,
   close price; newest breaks ties). Replaces the plain same-category row on web and mobile.
 
+
+## Home hero 3D decor (2026-11-05)
+
+- **R3F + drei, lazy and capability-gated.** `components/hero3d/HeroScene` is a `React.lazy`
+  chunk requested only after the hero intersects, `window.load` fired and the browser is idle.
+  Hero copy/CTA never wait for it. Weak devices (< 4 cores / < 4 GB), Data Saver, no hardware
+  WebGL and `prefers-reduced-motion` get a static SVG fallback instead. See `docs/HERO-3D.md`.
+- **`three` is aliased to `three-slim.ts` in `apps/web/vite.config.ts`.** R3F v9 registers the
+  whole `THREE` namespace, which ships all of three.js (~246 KB gzip chunk). The shim re-exports
+  only what R3F, drei `Float` and the scene use from `three/src/Three.js`, bringing the chunk to
+  ~197 KB gzip (budget 200 KB). Using a class not in the shim fails the build; add it there.
+- Models are code-built primitives (no external assets); `Shape`/`ExtrudeGeometry` were avoided
+  because they pull ~7 KB gzip of curve/triangulation code. Lambert (not Standard) materials.

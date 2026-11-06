@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
@@ -17,6 +18,7 @@ import { useLocalized } from '@/lib/useLocalized';
 import { useSeo } from '@/lib/useSeo';
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@kidswear/utils';
 import { pickDeals } from '@/lib/deals';
+import { HeroDecor } from '@/components/hero3d';
 
 const NEWEST_COUNT = 8;
 const DEALS_COUNT = 4;
@@ -80,6 +82,7 @@ export default function HomePage(): React.ReactElement {
       buildWebSiteJsonLd({ name: t('appName'), url: origin }),
     ],
   });
+  const heroRef = useRef<HTMLDivElement>(null);
   const localized = useLocalized();
   const { products, isLoading } = useProducts({ sort: 'newest' });
   const categoriesQuery = useCategories();
@@ -92,14 +95,25 @@ export default function HomePage(): React.ReactElement {
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
       <Stack spacing={{ xs: 4, md: 6 }}>
         <Box
+          ref={heroRef}
           sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            isolation: 'isolate',
             borderRadius: 4,
             p: { xs: 3, sm: 4, md: 7 },
+            pb: { xs: 14, sm: 4, md: 7 },
             background: (theme) =>
               `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
             color: 'primary.contrastText',
           }}
         >
+          {/* Phones: a band under the CTA. Tablets/laptops: beside the CTA.
+              Wide desktop (xl, hero at full width): the empty right half. */}
+          <HeroDecor
+            eventSource={heroRef}
+            className="inset-x-0 bottom-0 -z-10 h-24 sm:left-auto sm:h-[34%] sm:w-[55%] xl:top-0 xl:h-full xl:w-[45%]"
+          />
           <Stack spacing={2} sx={{ maxWidth: 620 }}>
             <Typography
               variant="h3"

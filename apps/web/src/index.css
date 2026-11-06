@@ -28,6 +28,29 @@
   --radius-xl: 24px;
 
   --font-sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Home hero decor (components/hero3d). Used behind motion-safe: only. */
+  --animate-hero-float: hero-float 6s ease-in-out infinite;
+  --animate-hero-fade-in: hero-fade-in 0.8s ease-out both;
+
+  @keyframes hero-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8%) rotate(4deg);
+    }
+  }
+
+  @keyframes hero-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {
