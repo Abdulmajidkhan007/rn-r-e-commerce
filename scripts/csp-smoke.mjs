@@ -39,11 +39,35 @@ const log = (ok, msg) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${msg}`);
 };
 
-const browser = await chromium.launch();
+// Software WebGL (SwiftShader) so the lazy 3D hero can really render headless.
+const browser = await chromium.launch({
+  args: [
+    '--use-angle=swiftshader',
+    '--use-gl=angle',
+    '--enable-unsafe-swiftshader',
+    '--ignore-gpu-blocklist',
+  ],
+});
 
 /** Fresh context per role so sessions never leak between checks. */
-async function newPage() {
+async function newPage({ forceHero3d = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  if (forceHero3d) {
+    // TEST ONLY: step around the hero's capability gate (hardware WebGL, >= 4
+    // cores, >= 4 GB) — headless CI has software WebGL and few cores. The gate
+    // is not CSP-related; everything after it (chunk, WebGL, canvas) is real.
+    await ctx.addInitScript(() => {
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, options) {
+        if (options && 'failIfMajorPerformanceCaveat' in options) {
+          options = { ...options, failIfMajorPerformanceCaveat: false };
+        }
+        return getContext.call(this, type, options);
+      };
+      Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+      Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+    });
+  }
   // Record violations from inside the page — catches every directive, not
   // only the ones Chromium happens to print to the console.
   await ctx.addInitScript(() => {
@@ -83,6 +107,48 @@ async function login(t, user) {
   await t.page.locator('input[type="password"]').first().fill(user.password);
   await t.page.locator('input[type="password"]').first().press('Enter');
   await t.page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 15000 });
+}
+
+// 0. Lazy 3D hero: the chunk must load and the canvas must actually draw,
+// with zero CSP violations (eval, blob:/worker, data: ...).
+{
+  const t = await newPage({ forceHero3d: true });
+  const chunks = [];
+  t.page.on('response', (r) => {
+    if (/\/HeroScene-[^/]*\.js$/.test(r.url())) chunks.push(r.status());
+  });
+  await t.page.goto(BASE + '/', { waitUntil: 'load' });
+  const decor = t.page.locator('[data-decor-mode]').first();
+  await decor.scrollIntoViewIfNeeded();
+  const canvas = t.page.locator('[data-decor-mode="3d"] canvas').first();
+  await canvas.waitFor({ state: 'attached', timeout: 20000 }).catch(() => {});
+  await t.page.waitForTimeout(3000);
+  const mode = await decor.getAttribute('data-decor-mode');
+  log(mode === '3d', `hero decor mode is 3d (got ${mode})`);
+  log(
+    chunks.length > 0 && chunks.every((c) => c === 200),
+    `HeroScene chunk loaded (${chunks.join(',') || 'not requested'})`,
+  );
+  const hasCanvas = (await canvas.count()) > 0;
+  log(hasCanvas, 'hero <canvas> present (not the SVG fallback)');
+  if (hasCanvas) {
+    const { default: sharp } = await import('sharp');
+    const png = await canvas.screenshot();
+    const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+    const colours = new Set();
+    for (let i = 0; i < data.length; i += info.channels * 7) {
+      colours.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
+    }
+    log(
+      colours.size > 20,
+      `hero canvas drew pixels (${colours.size} distinct colours sampled, ${info.width}x${info.height})`,
+    );
+  }
+  const violations = await t.page.evaluate(() => globalThis.__csp ?? []);
+  const all = [...violations.map((v) => `violation: ${v}`), ...t.problems.splice(0)];
+  log(all.length === 0, `home with 3D hero — ${all.length} CSP/console problems`);
+  for (const p of all.slice(0, 8)) console.log(`      - ${p}`);
+  await t.ctx.close();
 }
 
 // 1. Anonymous storefront.
